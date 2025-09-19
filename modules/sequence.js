@@ -50,6 +50,8 @@ function toBeat(transform, event) {
 
 export default class SequenceIterator {
     constructor(sequence, location = 0, startBeat = 0, rate = 1) {
+        if (rate === 0) throw new Error('SequenceIterator may not be created with rate=0');
+
         this.sequence  = sequence;
         this.location  = location;
         this.startBeat = startBeat;
@@ -64,7 +66,7 @@ export default class SequenceIterator {
 
     next(beat) {
         const { buffer, n } = this;
-        const { events }    = this.sequence;
+        const { events } = this.sequence;
 
         // Push any iterators not already in buffer into buffer if they have
         // next value
@@ -82,6 +84,7 @@ export default class SequenceIterator {
             && !(beat < iterator.value[0])) {
             // Remove iterator from buffer
             const event = buffer.shift().value;
+
             // Update beat to this context - WATCH OUT, this will change beat of iterator!! Is this problematic??
             // I don't think so because we dont inspect it again here, and we dont inspect it again inside the child,
             // do we?
@@ -106,7 +109,10 @@ export default class SequenceIterator {
         }
 
         // Assign event as iterator.value
-        this.value = assign({}, event, { 0: this.location + toBeat(this, event), event });
+        this.value = assign({}, event, {
+            0: this.location + toBeat(this, event),
+            event
+        });
 
         if (isSequenceEvent(event)) {
             const { name, sequences } = this.sequence;

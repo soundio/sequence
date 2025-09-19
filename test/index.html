@@ -17,25 +17,7 @@
     console.log(transpose(3, [[2, "chord", 0, 'maj', 4]]));
     console.log(transpose(3, [[2, "note", 76, 0.8, 0.5], [2, "chord", 0, 'maj', 4]]));
 
-    import SequenceIterator, { play } from '../modules/sequence.js';
-/*
-    const iterator = play({
-        name: "test",
-        events: [
-            [-2, "note", 40, 0.1, 0.5],
-            [0, "meter", 4, 1],
-            [0.5, "note", 69, 0.1, 0.5],
-            [1, "note", 69, 0.1, 0.5]
-        ]
-    });
-
-    console.log(iterator.next('ARSE').value);
-
-    let event;
-    for (event of iterator) console.log(event);
-*/
-
-
+    import SequenceIterator from '../modules/sequence.js';
 
     const seq = new SequenceIterator({
         name: "test",
