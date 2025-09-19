@@ -10,13 +10,13 @@
 <h1>Sequence Test</h1>
 
 <script type="module">
-    import transpose from '../modules/events/transpose.js';
+/*    import transpose from '../modules/events/transpose.js';
 
     console.log(transpose(0, []));
     console.log(transpose(3, [[2, "note", 76, 0.8, 0.5]]));
     console.log(transpose(3, [[2, "chord", 0, 'maj', 4]]));
     console.log(transpose(3, [[2, "note", 76, 0.8, 0.5], [2, "chord", 0, 'maj', 4]]));
-
+*/
     import SequenceIterator from '../modules/sequence.js';
 
     const seq = new SequenceIterator({
@@ -49,8 +49,9 @@
         }]
     });
 
-    console.log(seq.next(0).value);
+    console.log('event', seq.next(0.1).value);
+    console.log('undefined', seq.next(0.1).value);
 
     let ev;
-    for (ev of seq) console.log(ev);
+    for (ev of seq) console.log('event', ev);
 </script>

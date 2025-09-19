@@ -80,8 +80,10 @@ export default class SequenceIterator {
         // If first iterator in buffer value falls before next event in events
         iterator = buffer[0];
         if (iterator
-            && (!events[n + 1] || iterator.value[0] < events[n + 1][0])
-            && !(beat < iterator.value[0])) {
+            && (!events[n + 1] || toBeat(this, iterator.value) < events[n + 1][0])
+            && (beat === undefined || beat > toBeat(this, iterator.value))
+        ) {
+
             // Remove iterator from buffer
             const event = buffer.shift().value;
 
@@ -96,13 +98,15 @@ export default class SequenceIterator {
 
         const event = events[++this.n];
 
+        // We're out of events TODO: we may not be out of iterators!
         if (!event) {
             this.done  = true;
             this.value = undefined;
             return this;
         }
 
-        if (beat < toBeat(this, event)) {
+        // If beat is before this event beat - where beat is undefined this is false
+        if (beat <= toBeat(this, event)) {
             --this.n;
             this.value = undefined;
             return this;
@@ -114,6 +118,7 @@ export default class SequenceIterator {
             event
         });
 
+        //
         if (isSequenceEvent(event)) {
             const { name, sequences } = this.sequence;
             const sequence = getSequence(sequences, event);
