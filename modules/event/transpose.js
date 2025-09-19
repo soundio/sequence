@@ -14,7 +14,7 @@ export default overload((n, event) => event[1], {
         // Root note
         event[2] = toRootNumber(toRootNumber(event[2]) + n);
         // Pedal note
-        if (event[5]) event[5] = toRootNumber(toRootNumber(event[2]) + n);
+        if (event[5] !== undefined) event[5] = toRootNumber(toRootNumber(event[2]) + n);
         return event;
     },
 
