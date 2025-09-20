@@ -50,7 +50,7 @@ function toBeat(transform, event) {
 
 export default class SequenceIterator {
     constructor(sequence, location = 0, startBeat = 0, rate = 1) {
-        if (rate === 0) throw new Error('SequenceIterator may not be created with rate=0');
+        if (rate <= 0) throw new Error('SequenceIterator may not be created with rate=' + rate);
 
         this.sequence  = sequence;
         this.location  = location;
@@ -156,8 +156,10 @@ export class Sequence {
         return new Sequence(events);
     }
 
-    from(events, sequences, name) {
-        return new Sequence(events, sequences, name);
+    from(data) {
+        return data.length ?
+            new Sequence(data) :
+            new Sequence(data.events, data.sequences, data.name) ;
     }
 
     [Symbol.iterator]() {
