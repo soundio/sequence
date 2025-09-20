@@ -19,7 +19,7 @@
 */
     import SequenceIterator from '../modules/sequence.js';
 
-    const seq = new SequenceIterator({
+    /*const seq = new SequenceIterator({
         name: "test",
         events: [
             [-2, "note",    40, 0.1, 0.5],
@@ -49,9 +49,27 @@
         }]
     });
 
-    console.log('event', seq.next(0.1).value);
-    console.log('undefined', seq.next(0.1).value);
 
-    let ev;
-    for (ev of seq) console.log('event', ev);
+    console.log('event', seq.next(0.1).value);
+    console.log('undefined', seq.next(0.1).value);*/
+
+
+    const sequence = new SequenceIterator({
+        "events": [
+            [0,"meter",4,1],
+            [16, "sequence", 2, 18, 1]
+        ],
+
+        "sequences": [{
+            "id": 2,
+            "name": "Head",
+            "events": [
+                [18, "note", 64, 1, 1]
+            ]
+        }]
+    });
+
+
+    let event;
+    for (event of sequence) console.log('event', event);
 </script>

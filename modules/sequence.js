@@ -58,20 +58,21 @@ export default class SequenceIterator {
         this.rate      = rate;
         this.buffer    = [];
 
-        // Set this.n to index before first event on or after start beat
+        // Set n to index before event falling on or after start beat
         let n = -1, event;
-        while ((event = sequence.events[++n]) && toBeat(this, event) < startBeat);
+        while ((event = sequence.events[++n]) && toBeat(this, event) < 0);
         this.n = n - 1;
     }
 
     next(beat) {
-        const { buffer, n } = this;
-        const { events } = this.sequence;
+        const { buffer, sequence, n } = this;
+        const { events } = sequence;
 
         // Push any iterators not already in buffer into buffer if they have
         // next value
         let iterator;
         let i = 0;
+
         while ((iterator = this[--i]) && !buffer.includes(iterator)) if (iterator.next(beat).value) {
             // Keep buffer sorted by time
             insertBy(getValue0, buffer, iterator);
@@ -83,7 +84,6 @@ export default class SequenceIterator {
             && (!events[n + 1] || toBeat(this, iterator.value) < events[n + 1][0])
             && (beat === undefined || beat > toBeat(this, iterator.value))
         ) {
-
             // Remove iterator from buffer
             const event = buffer.shift().value;
 
@@ -115,7 +115,8 @@ export default class SequenceIterator {
         // Assign event as iterator.value
         this.value = assign({}, event, {
             0: this.location + toBeat(this, event),
-            event
+            event,
+            sequence
         });
 
         //
