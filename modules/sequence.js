@@ -3,6 +3,17 @@ import { isSequenceEvent } from './event.js';
 
 const assign = Object.assign;
 
+const nothing = [];
+
+const done = {
+    done: true,
+    value: undefined
+};
+
+const valueless = {
+    value: undefined
+};
+
 const priorities = {
     // The higher the priority, the earlier an event is ordered when
     // sorting events
@@ -10,6 +21,8 @@ const priorities = {
     meter: 1,
     default: 0
 };
+
+const temp = {};
 
 function getPriority(event) {
     return priorities[event[1]] || priorities.default;
@@ -39,99 +52,109 @@ function insertBy(by, array, object) {
     return n;
 }
 
-function getSequence(sequences, event) {
-    return sequences.find((sequence) => sequence.id === event[2]);
+function getSequence(sequences, id) {
+    return sequences.find((sequence) => sequence.id === id);
 }
 
-function toBeat(transform, event) {
-    return (event[0] - transform.startBeat) / transform.rate;
+const types = {
+    offset: (transforms, n, event) => {
+        event[0] -= transforms[++n];
+        return n;
+    },
+
+    rate: (transforms, n, event) => {
+        event[0] /= transforms[++n];
+        return n;
+    },
+
+    quantize: (transforms, n, event) => {
+        // TODO: Quantise!
+    },
+
+    transpose: (transforms, n, event) => {
+        switch (event[1]) {
+            case "note":
+            case "chord":
+            case "key":
+                event[2] += transforms[++n];
+                break;
+        }
+
+        return n;
+    }
+};
+
+function transform(transforms, event) {
+    let n = -1, type;
+    while (type = transforms[++n]) n = types[type](transforms, n, event);
+    return event;
 }
 
 
-export default class SequenceIterator {
-    constructor(sequence, location = 0, startBeat = 0, rate = 1) {
-        if (rate <= 0) throw new Error('SequenceIterator may not be created with rate=' + rate);
+export class SequenceIterator {
+    constructor(sequence, beat = 0, duration = Infinity, transforms = nothing) {
+        this.sequence   = sequence;
+        this.beat       = beat;
+        this.duration   = duration;
+        this.transforms = transforms;
 
-        this.sequence  = sequence;
-        this.location  = location;
-        this.startBeat = startBeat;
-        this.rate      = rate;
-        this.buffer    = [];
-
-        // Set n to index before event falling on or after start beat
+        // Set n to index before event falling on or after beat
         let n = -1, event;
-        while ((event = sequence.events[++n]) && toBeat(this, event) < 0);
-        this.n = n - 1;
+        while ((event = sequence.events[++n]) && transform(this.transforms, assign(temp, event))[0] < 0);
+        this.n = --n;
     }
 
-    next(beat) {
+    next() {
         const { buffer, sequence, n } = this;
-        const { events } = sequence;
+        const event = sequence.events[n + 1];
+        const value = event && transform(this.transforms, assign({ event, sequence }, event));
 
-        // Push any iterators not already in buffer into buffer if they have
-        // next value
         let iterator;
-        let i = 0;
+        let i = 0, j = 0;
+        let b = event ? value[0] : this.duration;
+        let x;
+        while (iterator = this[--i]) {
+            if (!iterator.value) {
+                if (iterator.next().value) transform(this.transforms, iterator.value);
+                if (iterator.done) ++j;
+            }
 
-        while ((iterator = this[--i]) && !buffer.includes(iterator)) if (iterator.next(beat).value) {
-            // Keep buffer sorted by time
-            insertBy(getValue0, buffer, iterator);
+            if (iterator.value && iterator.value[0] < b) {
+                x = iterator;
+                b = iterator.value[0];
+            }
+
+            // If iterator is done remove it by reassigning remaining iterators
+            if (j) this[i] = this[i - j];
         }
 
-        // If first iterator in buffer value falls before next event in events
-        iterator = buffer[0];
-        if (iterator
-            && (!events[n + 1] || toBeat(this, iterator.value) < events[n + 1][0])
-            && (beat === undefined || beat > toBeat(this, iterator.value))
-        ) {
-            // Remove iterator from buffer
-            const event = buffer.shift().value;
-
-            // Update beat to this context - WATCH OUT, this will change beat of iterator!! Is this problematic??
-            // I don't think so because we dont inspect it again here, and we dont inspect it again inside the child,
-            // do we?
-            event[0] = this.location + toBeat(this, event);
-            this.value = event;
-            // Return this
+        if (x) {
+            x.value[0] += this.beat;
+            this.value = x.value;
+            x.value = undefined;
             return this;
         }
 
-        const event = events[++this.n];
+        // We're out of events TODO: we may not be out of iterators??
+        if (!value || this.duration <= value[0]) return assign(this, done);
 
-        // We're out of events TODO: we may not be out of iterators!
-        if (!event) {
-            this.done  = true;
-            this.value = undefined;
-            return this;
-        }
-
-        // If beat is before this event beat - where beat is undefined this is false
-        if (beat <= toBeat(this, event)) {
-            --this.n;
-            this.value = undefined;
-            return this;
-        }
-
-        // Assign event as iterator.value
-        this.value = assign({}, event, {
-            0: this.location + toBeat(this, event),
-            event,
-            sequence
-        });
+        // Advance index and assign event as iterator.value
+        this.n += 1;
+        value[0] += this.beat;
+        this.value = value;
 
         //
         if (isSequenceEvent(event)) {
-            const { name, sequences } = this.sequence;
-            const sequence = getSequence(sequences, event);
+            const sequences  = this.sequence.sequences;
+            if (!sequences) return this;
 
-            if (!sequence) {
-                console.warn('SequenceIterator: sequence with id "' + event[2] + '" not found in sequence "' + this.sequence.name + '"');
-                return this;
-            }
+            const sequence   = getSequence(sequences, event[2]);
+            if (!sequence) return this;
 
-            const iterator = new SequenceIterator(sequence, event[0], event[3], event[4]);
+            const transforms = event.slice(5);
+            const iterator   = new SequenceIterator(sequence, value[0], value[4], transforms);
 
-            // Add iterator indexed as -n directly on this
+            // Add iterator (indexed as -n) directly to this
             let i = 0;
             while (this[--i]);
             this[i] = iterator;
@@ -146,7 +169,7 @@ export default class SequenceIterator {
     }
 }
 
-export class Sequence {
+export default class Sequence {
     constructor(events, sequences = [], name = '') {
         this.name      = name;
         this.events    = events;

@@ -17,7 +17,7 @@
     console.log(transpose(3, [[2, "chord", 0, 'maj', 4]]));
     console.log(transpose(3, [[2, "note", 76, 0.8, 0.5], [2, "chord", 0, 'maj', 4]]));
 */
-    import SequenceIterator from '../modules/sequence.js';
+    import { SequenceIterator } from '../modules/sequence.js';
 
     /*const seq = new SequenceIterator({
         name: "test",
@@ -55,16 +55,21 @@
 
 
     const sequence = new SequenceIterator({
+        "name": "A",
+
         "events": [
             [0,"meter",4,1],
-            [16, "sequence", 2, 18, 1]
+            [16, "sequence", 2, 0, 4, "offset", 18, "transpose", 2],
+            [18, "note", 0, 0, 0]
         ],
 
         "sequences": [{
             "id": 2,
             "name": "Head",
             "events": [
-                [18, "note", 64, 1, 1]
+                [18, "note", 1, 1, 1],
+                [20, "note", 2, 2, 2],
+                [22, "note", 3, 3, 3]
             ]
         }]
     });
