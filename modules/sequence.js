@@ -98,9 +98,11 @@ export class SequenceIterator {
         this.duration   = duration;
         this.transforms = transforms;
 
+        const events = sequence.events.sort(byPriority);
+
         // Set n to index before event falling on or after beat
         let n = -1, event;
-        while ((event = sequence.events[++n]) && transform(this.transforms, assign(temp, event))[0] < 0);
+        while ((event = events[++n]) && transform(this.transforms, assign(temp, event))[0] < 0);
         this.n = --n;
     }
 
