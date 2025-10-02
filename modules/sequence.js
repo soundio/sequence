@@ -1,5 +1,7 @@
 
+import get from 'fn/get.js';
 import { isSequenceEvent } from './event.js';
+import { toNoteNumber } from 'midi/note.js';
 
 const assign = Object.assign;
 
@@ -24,6 +26,8 @@ const priorities = {
 
 const temp = {};
 
+const get0 = get(0);
+
 function getPriority(event) {
     return priorities[event[1]] || priorities.default;
 }
@@ -35,10 +39,6 @@ function byPriority(b, a) {
         a[0] > b[0] ? -1 :
         // a and b are at the same time, prioritise by event type
         getPriority(a) - getPriority(b) ;
-}
-
-function get0(object) {
-    return object[0];
 }
 
 function getValue0(object) {
@@ -75,12 +75,15 @@ const types = {
         switch (event[1]) {
             case "note":
             case "chord":
-            case "key":
-                event[2] += transforms[++n];
+            case "key": {
+                const number = (typeof event[2] === 'string' ?
+                    toNoteNumber(event[2]) :
+                    event[2]);
+                event[2] = number + transforms[n + 1];
                 break;
+            }
         }
-
-        return n;
+        return n + 1;
     }
 };
 
@@ -91,25 +94,29 @@ function transform(transforms, event) {
 }
 
 
+
 export class SequenceIterator {
-    constructor(sequence, beat = 0, duration = Infinity, transforms = nothing) {
-        this.sequence   = sequence;
+    constructor(events, sequences = nothing, beat = 0, duration = Infinity, transforms = nothing) {
+        // Sort events
+        events.sort(byPriority);
+
+        this.events     = events,
+        this.sequences  = sequences;
         this.beat       = beat;
         this.duration   = duration;
         this.transforms = transforms;
 
-        const events = sequence.events.sort(byPriority);
-
         // Set n to index before event falling on or after beat
         let n = -1, event;
         while ((event = events[++n]) && transform(this.transforms, assign(temp, event))[0] < 0);
-        this.n = --n;
+        this.n = n - 1;
     }
 
     next() {
-        const { buffer, sequence, n } = this;
-        const event = sequence.events[n + 1];
-        const value = event && transform(this.transforms, assign({ event, sequence }, event));
+        const { buffer, events, sequences, n } = this;
+        const event = events[n + 1];
+        // TODO Make event property non-enumerable: use Event() constructor?
+        const value = event && transform(this.transforms, assign({ event, events }, event));
 
         let iterator;
         let i = 0, j = 0;
@@ -131,8 +138,8 @@ export class SequenceIterator {
         }
 
         if (x) {
-            x.value[0] += this.beat;
             this.value = x.value;
+            this.value[0] += this.beat;
             x.value = undefined;
             return this;
         }
@@ -140,27 +147,31 @@ export class SequenceIterator {
         // We're out of events TODO: we may not be out of iterators??
         if (!value || this.duration <= value[0]) return assign(this, done);
 
-        // Advance index and assign event as iterator.value
-        this.n += 1;
-        value[0] += this.beat;
-        this.value = value;
-
         //
         if (isSequenceEvent(event)) {
-            const sequences  = this.sequence.sequences;
-            if (!sequences) return this;
-
-            const sequence   = getSequence(sequences, event[2]);
-            if (!sequence) return this;
+            const sequences = this.sequences;
+            const sequence  = getSequence(sequences, event[2]);
+            if (!sequence) throw new Error('Sequence "' + event[2] + '" not found');
 
             const transforms = event.slice(5);
-            const iterator   = new SequenceIterator(sequence, value[0], value[4], transforms);
+            const iterator   = new SequenceIterator(
+                sequence.events,
+                sequence.sequences ? sequence.sequences.concat(sequences) : sequences,
+                value[0],
+                value[4],
+                transforms
+            );
 
             // Add iterator (indexed as -n) directly to this
             let i = 0;
             while (this[--i]);
             this[i] = iterator;
         }
+
+        // Advance index and assign event as iterator.value
+        this.n += 1;
+        this.value = value;
+        this.value[0] += this.beat;
 
         // Return iterator
         return this;
@@ -189,6 +200,6 @@ export default class Sequence {
     }
 
     [Symbol.iterator]() {
-        return new SequenceIterator(this);
+        return new SequenceIterator(this.events, this.sequences);
     }
 }
