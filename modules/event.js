@@ -17,6 +17,14 @@ export default class Event {
     }
 }
 
+export function isChordEvent(event) {
+    return event[1] === 'chord';
+}
+
+export function isNoteEvent(event) {
+    return event[1] === 'note';
+}
+
 export function isSequenceEvent(event) {
     return event[1] === 'sequence';
 }
