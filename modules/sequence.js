@@ -1,7 +1,8 @@
 
 import get from 'fn/get.js';
+import { toNoteNumber, toRootNumber } from 'midi/note.js';
 import { isSequenceEvent } from './event.js';
-import { toNoteNumber } from 'midi/note.js';
+import mod12 from './number/mod-12.js';
 
 const assign = Object.assign;
 
@@ -57,7 +58,7 @@ function getSequence(sequences, id) {
 }
 
 const types = {
-    offset: (transforms, n, event) => {
+    displace: (transforms, n, event) => {
         event[0] -= transforms[++n];
         return n;
     },
@@ -73,16 +74,26 @@ const types = {
 
     transpose: (transforms, n, event) => {
         switch (event[1]) {
-            case "note":
-            case "chord":
-            case "key": {
-                const number = (typeof event[2] === 'string' ?
+            case "note": {
+                const number = typeof event[2] === 'string' ?
                     toNoteNumber(event[2]) :
-                    event[2]);
+                    event[2];
+
                 event[2] = number + transforms[n + 1];
                 break;
             }
+
+            case "chord":
+            case "key": {
+                const number = typeof event[2] === 'string' ?
+                    toRootNumber(event[2]) :
+                    event[2];
+
+                event[2] = mod12(number + transforms[n + 1]);
+                break;
+            }
         }
+
         return n + 1;
     }
 };
