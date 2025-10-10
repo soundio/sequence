@@ -1,20 +1,43 @@
 
-const assign = Object.assign;
-const define = Object.defineProperties;
-const properties = {
-    event:    { writable: true },
-    sequence: { writable: true }
-};
+const assign   = Object.assign;
+const define   = Object.defineProperty;
+const writable = { writable: true };
+
+function arrayify(event) {
+    const array = [];
+    let n = -1;
+    while (event[++n] !== undefined) array.push(event[n]);
+    return array;
+}
 
 export default class Event {
     constructor() {
         assign(this, arguments);
-        define(this, properties);
+        define(this, 'event',  writable);
+        define(this, 'events', writable);
+        define(this, 'index',  writable);
+        define(this, 'target', writable);
     }
 
-    static from(event, sequence) {
-        return new Event(...event);
+    toJSON() {
+        return arrayify(this);
     }
+
+    static of(...data) {
+        return new Event(...data);
+    }
+
+    static from(data, events, index) {
+        const event = new Event(...data);
+        event.event  = data;
+        event.events = events;
+        event.index  = index;
+        return event;
+    }
+
+    static isChordEvent    = isChordEvent;
+    static isNoteEvent     = isNoteEvent;
+    static isSequenceEvent = isSequenceEvent;
 }
 
 export function isChordEvent(event) {

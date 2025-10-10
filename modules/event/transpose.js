@@ -26,3 +26,26 @@ export default overload((n, event) => event[1], {
 
     default: id
 });
+
+/* Alternative TODO: test speed!
+switch (event[1]) {
+    case "note": {
+        const number = typeof event[2] === 'string' ?
+            toNoteNumber(event[2]) :
+            event[2];
+
+        event[2] = number + transforms[n + 1];
+        break;
+    }
+
+    case "chord":
+    case "key": {
+        const number = typeof event[2] === 'string' ?
+            toRootNumber(event[2]) :
+            event[2];
+
+        event[2] = mod12(number + transforms[n + 1]);
+        break;
+    }
+}
+*/
