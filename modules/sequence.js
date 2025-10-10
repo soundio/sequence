@@ -8,11 +8,11 @@ export default class Sequence {
         this.sequences = sequences;
     }
 
-    of(...events) {
+    static of(...events) {
         return new Sequence(events);
     }
 
-    from(data) {
+    static from(data) {
         return data.length ?
             new Sequence(data) :
             new Sequence(data.events, data.sequences, data.name) ;
