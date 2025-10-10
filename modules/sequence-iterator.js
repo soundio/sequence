@@ -56,7 +56,7 @@ export default class SequenceIterator {
         this.sequences  = sequences;
         this.transforms = transforms;
 
-        // Set n to index before event falling on or after beat
+        // Set n to index before first event falling on or after beat
         let n = -1, event;
         while ((event = events[++n]) && transform(transforms, assign(temp, event))[0] < 0);
         this.n = n - 1;
@@ -72,24 +72,27 @@ export default class SequenceIterator {
         let b = value ? value[0] : Infinity ;
         let x;
         while (iterator = this[++i]) {
-            if (!iterator.value) {
-                if (iterator.next().value) {
-                    transform(this.transforms, iterator.value);
-                    // Add stored startBeat
-                    iterator.value[0] += iterator.startBeat;
-                    iterator.value.target = iterator.target;
+            let value = iterator.value;
+
+            if (!value) {
+                // Get next value from iterator and transform it for current context
+                if (value = iterator.next().value) {
+                    transform(this.transforms, value);
+                    value[0] += iterator.startBeat;
+                    value.target = iterator.target;
                 }
 
-                // Mark iterator for removal
-                if (iterator.done || iterator.value[0] >= iterator.stopBeat) ++j;
+                // If done or beyond stop beat, mark iterator for removal
+                if (iterator.done || value[0] >= iterator.stopBeat) ++j;
             }
 
-            if (iterator.value && iterator.value[0] < iterator.stopBeat && iterator.value[0] < b) {
+            // Select iterator/value with earliest beat
+            if (value && value[0] < iterator.stopBeat && value[0] < b) {
                 x = iterator;
-                b = iterator.value[0];
+                b = value[0];
             }
 
-            // If iterator is done remove it by reassigning remaining iterators
+            // Remove marked iterators by reassigning remaining iterators
             if (j) this[i] = this[i + j];
         }
 
