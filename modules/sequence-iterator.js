@@ -79,7 +79,7 @@ export default class SequenceIterator {
                 if (value = iterator.next().value) {
                     transform(this.transforms, value);
                     value[0] += iterator.startBeat;
-                    value.target = iterator.target;
+                    value.target = (value.target || 0) + iterator.target;
                 }
 
                 // If done or beyond stop beat, mark iterator for removal
