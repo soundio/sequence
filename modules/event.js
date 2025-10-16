@@ -1,4 +1,6 @@
 
+import normalise from './event/normalise.js';
+
 const assign   = Object.assign;
 const define   = Object.defineProperty;
 const writable = { writable: true };
@@ -12,7 +14,7 @@ function arrayify(event) {
 
 export default class Event {
     constructor() {
-        assign(this, arguments);
+        assign(this, normalise(arguments));
         define(this, 'event',  writable);
         define(this, 'events', writable);
         define(this, 'index',  writable);
