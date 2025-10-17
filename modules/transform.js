@@ -12,6 +12,19 @@ const types = {
 
     rate: (transforms, n, event) => {
         event[0] /= transforms[++n];
+
+        // Transform duration
+        switch (event[1]) {
+            case "chord":
+            case "note":
+            case "sequence":
+                event[4] /= transforms[n];
+                break;
+            case "text":
+                event[3] /= transforms[n];
+                break;
+        }
+
         return n;
     },
 

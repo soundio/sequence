@@ -1,4 +1,5 @@
 
+import { toNoteName, toRootName } from 'midi/note.js';
 import normalise from './event/normalise.js';
 
 const assign   = Object.assign;
@@ -12,6 +13,10 @@ function arrayify(event) {
     return array;
 }
 
+function stringify(number) {
+    return number.toFixed(4).replace(/\.?0+$/, '');
+}
+
 export default class Event {
     constructor() {
         assign(this, normalise(arguments));
@@ -23,6 +28,63 @@ export default class Event {
 
     toJSON() {
         return arrayify(this);
+    }
+
+    toString() {
+        // Beat and type
+        let string = stringify(this[0]) + ' ' + this[1];
+
+        // Stringify rest of data based on event type
+        switch (this[1]) {
+            case "chord":
+                string += ' ' + toRootName(this[2])
+                    // Extension
+                    + ' ' + this[3]
+                    // Duration
+                    + ' ' + stringify(this[4]);
+                break;
+            case "key":
+                string += ' ' + toRootName(this[2]);
+                break;
+            case "note":
+                string += ' ' + toNoteName(this[2])
+                    // Gain
+                    + ' ' + this[3]
+                    // Duration
+                    + ' ' + stringify(this[4]) ;
+                break;
+            case "param":
+                string += ' ' + this[2]
+                    // Value
+                    + ' ' + this[3]
+                    // Duration
+                    + ' ' + stringify(this[4])
+                    // Curve
+                    + ' ' + this[5] ;
+                break;
+            case "rate":
+                string += ' ' + stringify(this[2]);
+                break;
+            case "sequence":
+                string += ' ' + this[2]
+                    // Target address
+                    + ' ' + this[3]
+                    // Duration
+                    + ' ' + stringify(this[4]);
+                break;
+            case "start":
+            case "stop":
+                string += ' ' + toNoteName(this[2])
+                    // Gain
+                    + ' ' + this[3] ;
+                break;
+            // Handle "meter" and other events
+            default:
+                let n = 1;
+                while (this[++n] !== undefined) string += this[n];
+        }
+
+        return string;
     }
 
     static of(...data) {

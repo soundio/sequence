@@ -100,6 +100,7 @@ The event type, determines the length of the event array and the structure of th
 | `beat` | `"chord"`    | `root` | `mode` | `duration` |  |
 | `beat` | `"key"`      | `name` |  |  |  |
 | `beat` | `"sequence"` | `id` | `target` | `duration` |  |
+| `beat` | `"text"`     | `string` | `duration` |  |  |
 | `beat` | `"start"`    | reserved |  |  |  |
 | `beat` | `"stop"`     | reserved |  |  |  |
 
@@ -200,9 +201,10 @@ Here are some common time signatures as meter events:
 | :--- | :---- |
 | 4/4  | `[0, "meter", 4, 1]` |
 | 3/4  | `[0, "meter", 3, 1]` |
-| 6/8  | `[0, "meter", 3, 0.5]` |
+| 6/8  | `[0, "meter", 3, 1.5]` |
 | 2/4  | `[0, "meter", 2, 1]` |
-| 7/8  | `[0, "meter", 3.5, 0.5]` |
+| 7/8  | `[0, "meter", 3.5, 1.5]` |
+| 7/8  | `[0, "meter", 3.5, 2]` |
 
 A meter event MUST occur at a beat that is a full bar from a previous meter event. The second event here is valid:
 
@@ -303,6 +305,22 @@ Renders a sequence from the `sequences` array. For example, this event plays the
 ```
 
 <blockquote>TBD. It is not clear exactly how to spec targetId to select a target instrument in an interoperable manner. In Soundstage, it refers to the id of a node in the `nodes` array, where nodes are WebAudio nodes in the Soundstage graph.</blockquote>
+
+
+---
+
+### `"text"`
+
+```js
+[beat, "text", string, duration]
+```
+
+`string` – STRING<br/>
+A string of text.
+
+`duration`   – FLOAT<br/>
+The duration in beats that the text spans.
+
 
 ---
 

@@ -12,6 +12,47 @@ function toUnicode(char) {
     return flatsharps[char];
 }
 
+/*
+const extensions = [
+    // Triads
+    '∆',
+    '-',
+    // Major
+    '∆7',
+    '-7',
+    'sus♭9',
+    '7sus♭9',
+    '∆♯11',
+    '∆(♯11)',
+    '7',
+    '13',
+    'sus',
+    '7sus',
+    '-♭6',
+    'ø',
+    // Harmonic minor
+    '7♭9♭13',
+    // Melodic minor
+    '-∆',
+    '13sus♭9',
+    '∆+',
+    '∆♯5',
+    '7♯11',
+    '7♭13',
+    'ø(9)',
+    '7alt',
+    // Harmonic major
+    '∆♭6',
+    // Diminished
+    '7♭9',
+    '7♯9',
+    'º',
+    // Whole tone
+    '+',
+    '7+'
+];
+*/
+
 export default function normalise(event) {
     switch (event[1]) {
         case "chord":
