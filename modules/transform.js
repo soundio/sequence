@@ -1,5 +1,6 @@
 
 import { toNoteNumber, toRootNumber } from 'midi/note.js';
+import parseGain from './parse/parse-gain.js';
 import transpose from './event/transpose.js';
 import mod12 from './number/mod-12.js';
 
@@ -11,6 +12,7 @@ const types = {
     },
 
     rate: (transforms, n, event) => {
+        // Transform beat
         event[0] /= transforms[++n];
 
         // Transform duration
@@ -22,6 +24,19 @@ const types = {
                 break;
             case "text":
                 event[3] /= transforms[n];
+                break;
+        }
+
+        return n;
+    },
+
+    gain: (transforms, n, event) => {
+        ++n;
+
+        // Transform gain
+        switch (event[1]) {
+            case "note":
+                event[3] *= parseGain(transforms[n]);
                 break;
         }
 

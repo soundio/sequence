@@ -2,6 +2,7 @@ import toGain     from 'fn/to-gain.js';
 import parseValue from 'fn/parse-value.js';
 
 const dynamics = {
+    // Arbitrary map
     'fff': toGain(-5),
     'ff':  toGain(-10),
     'f':   toGain(-15),
