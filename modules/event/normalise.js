@@ -1,5 +1,6 @@
 
 import { toNoteNumber, toRootNumber } from 'midi/note.js';
+import parseGain from '../parse/parse-gain.js';
 
 const rflatsharp = /b|#/g;
 
@@ -11,6 +12,10 @@ const flatsharps = {
 function toUnicode(char) {
     return flatsharps[char];
 }
+
+
+
+
 
 /*
 const extensions = [
@@ -74,6 +79,8 @@ export default function normalise(event) {
         case "note":
             // Note number
             event[2] = toNoteNumber(event[2]);
+            // Gain
+            event[3] = parseGain(event[3]);
             break;
     }
 
