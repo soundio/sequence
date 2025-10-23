@@ -122,7 +122,7 @@ If `name` is a string it is an arbitrary pitch name. Implementations must accept
 the use of both the hash `#` and the unicode sharp `♯`, and both the small letter `b` and the unicode flat `♭` in their spellings, but
 output only the unicode spellings in any Sequence data output.
 
-`dynamic` – FLOAT [0-1] – STRING ["-ndB"] – STRING ["ppp"-"fff"]<br/>
+`dynamic` – FLOAT [0-1] | STRING ["-ndB"] | STRING ["ppp"-"fff"]<br/>
 Represents the force of the note's attack.
 A `dynamic` larger than `1` is permissible, but negative `dynamic` is invalid.
 
@@ -235,7 +235,7 @@ rhythm generator). Where no `"meter"` event is defined at beat `0` consumers sho
 [beat, "chord", root, mode, duration]
 ```
 
-`root` – INT [0-11] or STRING, represents the root of a chord.
+`root` – INT [0-11] | STRING ["A♭"-"G♯"], represents the root of a chord.
 Where `root` is a number it represents root note as a MIDI number `0-11`.
 Where `root` is a string it must be a root note name, ie. `C`, `C♯`, `D` ... `A`, `B♭`, `B`.
 
