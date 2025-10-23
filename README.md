@@ -122,7 +122,7 @@ If `name` is a string it is an arbitrary pitch name. Implementations must accept
 the use of both the hash `#` and the unicode sharp `♯`, and both the small letter `b` and the unicode flat `♭` in their spellings, but
 output only the unicode spellings in any Sequence data output.
 
-`dynamic` – FLOAT [0-1]<br/>
+`dynamic` – FLOAT [0-1], STRING ["-_n_dB"], STRING ["ppp" - "fff"]<br/>
 Represents the force of the note's attack.
 A `dynamic` larger than `1` is permissible, but negative `dynamic` is invalid.
 
