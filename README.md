@@ -144,7 +144,7 @@ The name of the param to control.
 In a WebAudio context this would typically map to an AudioParam on the instrument being targetted.
 
 `value` – FLOAT<br/>
-The destination value of the param.
+The destination value of the param. If `curve` is `"hold"` has no effect.
 
 `curve` – STRING `"step"`, `"linear"`, `"exponential"`, `"target"` or `"hold"`<br/>
 The ramp to use for transition to `value`.
