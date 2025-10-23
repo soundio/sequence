@@ -94,7 +94,7 @@ The event type, determines the length of the event array and the structure of th
 | beat   | type         | 2 | 3 | 4 | 5 |
 | :----- | :----------- | :--- | :--- | :--- | :--- |
 | `beat` | `"note"`     | `pitch` | `dynamic` | `duration` |  |
-| `beat` | `"param"`    | `name` | `value` | `duration` | `curve` |
+| `beat` | `"param"`    | `name` | `value` | `curve` | `duration` |
 | `beat` | `"rate"`     | `number` |  |  |  |
 | `beat` | `"meter"`    | `duration` | `divisor` |  |  |
 | `beat` | `"chord"`    | `root` | `mode` | `duration` |  |
@@ -146,13 +146,13 @@ In a WebAudio context this would typically map to an AudioParam on the instrumen
 `value` – FLOAT<br/>
 The destination value of the param.
 
-`curve` – STRING `"step"`, `"linear"`, `"exponential"` or `"target"`<br/>
+`curve` – STRING `"step"`, `"linear"`, `"exponential"`, `"target"` or `"hold"`<br/>
 The ramp to use for transition to `value`.
 This parameter is optional. If it is not present the event describes a `"step"` curve.
-If `curve` is `"target"` the event has a fifth parameter:
+If `curve` is `"target"` the event requires a fifth parameter:
 
 `duration` – FLOAT<br/>
-The decay time of the `"target"` curve.
+The T60 decay time of a `"target"` curve.
 
 ---
 
@@ -280,29 +280,6 @@ The name of a major key, a capital letter followed optionally by an accidental, 
 
 Represents a visual key change in written notation only. Does not affect how a performance sounds.
 <blockquote>Harmonic generators should use `"chord"` events to generate sound based on modes.</blockquote>
-
----
-
-### `"key"`
-
-```js
-[beat, "param", name, value, duration, curve]
-```
-
-`name` – STRING<br/>
-The name of a parameter.
-
-`value` – NUMBER<br/>
-The new value of the parameter.
-
-`duration` – STRING<br/>
-The duration of the parameter change. Where `curve` is `"step"` or `"hold"`, has no effect.
-
-`curve` – STRING<br/>
-The type of transition to the new parameter value. One of `"step"`, `"exponential"`, `"linear"`, `"target"`, `"curve"` or `"hold"`.
-
-Represents a parameter change. Data corresponds to the capabibilities of an AudioParam in the WebAudio API.
-Implementations may support further curve types, and a sequence should include a named map of user defined curves (TODO!).
 
 ---
 
