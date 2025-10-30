@@ -1,10 +1,12 @@
 
-import { toNoteName, toRootName } from 'midi/note.js';
-import normalise from './event/normalise.js';
+import { toNoteName, toNoteNumber, toRootName, toRootNumber } from 'midi/note.js';
+import parseGain from './parse/parse-gain.js';
+import mod12     from './number/mod-12.js';
+import { rflatsharp, toUnicode } from './pitch.js';
 
-const assign   = Object.assign;
-const define   = Object.defineProperty;
-const writable = { writable: true };
+const assign     = Object.assign;
+const define     = Object.defineProperty;
+const writable   = { writable: true };
 
 function arrayify(event) {
     const array = [];
@@ -17,13 +19,89 @@ function stringify(number) {
     return number.toFixed(4).replace(/\.?0+$/, '');
 }
 
+function getEvent(event) {
+    let e;
+    while (e = event.event) event = e;
+    return event;
+}
+
 export default class Event {
-    constructor() {
-        assign(this, normalise(arguments));
+    constructor(beat, type) {
+        this[0] = beat;
+        this[1] = type;
+
+        // Normalise event data
+        switch (type) {
+            case "chord":
+                // Chord root number
+                this[2] = toRootNumber(arguments[2]);
+                // Chord extension
+                this[3] = arguments[3].replaceAll(rflatsharp, toUnicode);
+                // Duration
+                this[4] = arguments[4];
+                break;
+            case "lyric":
+                // Warn user over pold version
+                console.warn('Old data contains "lyric" event, should be "text"');
+                // Change type to "text"
+                this[1] = "text";
+            case "text":
+                // String
+                this[2] = arguments[2];
+                break;
+            case "key":
+                // Key root number
+                this[2] = toRootNumber(arguments[2]);
+                break;
+            case "note":
+                // Note number
+                this[2] = toNoteNumber(arguments[2]);
+                // Gain
+                this[3] = parseGain(arguments[3]);
+                // Duration
+                this[4] = arguments[4];
+                break;
+            case "sequence":
+                this[2] = arguments[2];
+                this[3] = arguments[3];
+                this[4] = arguments[4];
+                break;
+            default:
+                this[2] = arguments[2];
+                this[3] = arguments[3];
+        }
+
         define(this, 'event',  writable);
         define(this, 'events', writable);
         define(this, 'index',  writable);
         define(this, 'target', writable);
+    }
+
+    move(n) {
+        const event = getEvent(this);
+        event[0] = this[0] = this[0] + n;
+        return this;
+    }
+
+    transpose(n) {
+        const event = getEvent(this);
+
+        switch (this[1]) {
+            case "chord":
+            case "key":
+                event[2] = this[2] = mod12(this[2] + n);
+                break;
+            case "note":
+            case "start":
+            case "stop":
+                event[2] = this[2] = this[2] + n;
+                break;
+            case "sequence":
+                console.log('TODO: transpose sequence');
+                break;
+        }
+
+        return this;
     }
 
     toJSON() {
@@ -92,16 +170,21 @@ export default class Event {
     }
 
     static from(data, events, index) {
-        const event = new Event(...data);
-        event.event  = data;
+        const event =
+            data[5] !== undefined ? new Event(data[0], data[1], data[2], data[3], data[4], data[5]) :
+            data[4] !== undefined ? new Event(data[0], data[1], data[2], data[3], data[4]) :
+            data[3] !== undefined ? new Event(data[0], data[1], data[2], data[3]) :
+            new Event(data[0], data[1], data[2]) ;
+
+        event.event  = data; // Dodgy, what if we are making event from arguments object?
         event.events = events;
         event.index  = index;
         return event;
     }
 
-    static isChordEvent    = isChordEvent;
-    static isNoteEvent     = isNoteEvent;
-    static isSequenceEvent = isSequenceEvent;
+    static isChord    = isChordEvent;
+    static isNote     = isNoteEvent;
+    static isSequence = isSequenceEvent;
 }
 
 export function isChordEvent(event) {

@@ -1,5 +1,5 @@
 
-import Event     from './event.js';
+import Event, { isSequenceEvent } from './event.js';
 import transform from './transform.js';
 
 const assign = Object.assign;
@@ -22,7 +22,7 @@ const priorities = {
 const temp = {};
 
 
-function getPriority(event) {
+function priority(event) {
     return priorities[event[1]] || priorities.default;
 }
 
@@ -32,13 +32,13 @@ function byPriority(b, a) {
         // a is after b
         a[0] > b[0] ? -1 :
         // a and b are at the same time, prioritise by event type
-        getPriority(a) - getPriority(b) ;
+        priority(a) - priority(b) ;
 }
 
-function insertBy(by, array, object) {
+export function insert(array, object) {
     let n = -1;
-    while (array[++n] && by(array[n]) <= by(object));
-    array.splice(--n, 0, object);
+    while (array[++n] && byPriority(array[n], object) < 1);
+    array.splice(n, 0, object);
     return n;
 }
 
@@ -112,7 +112,7 @@ export default class SequenceIterator {
         this.value = value;
 
         // If it is a sequence event spawn a new iterator
-        if (Event.isSequenceEvent(event)) {
+        if (isSequenceEvent(event)) {
             const sequences = this.sequences;
             const sequence  = getSequence(sequences, event[2]);
             if (!sequence) throw new Error('Sequence id "' + event[2] + '" not found');
