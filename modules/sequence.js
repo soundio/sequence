@@ -9,7 +9,7 @@ const assign = Object.assign;
 function toPriority(event) {
     return event[0] + '|' + priority(event);
 }
-
+window.m = matches;
 export default class Sequence {
     constructor(events, sequences) {
         this.events    = events;
@@ -22,14 +22,22 @@ export default class Sequence {
         return event;
     }
 
-    delete(beat, type, $2) {
-        const i = this.events.findIndex(matches({ 0: beat, 1: type, 2: toNoteNumber($2) }));
+    delete(beat, type) {
+        if (type === 'note' && arguments[2] !== undefined) {
+            arguments[2] = toNoteNumber(arguments[2]);
+        }
+
+        const i = this.events.findIndex(matches(arguments));
         if (i > -1) this.events.splice(i, 1);
         return this;
     }
 
-    find(beat, type, $2) {
-        return this.events.find(matches({ 0: beat, 1: type, 2: toNoteNumber($2) }));
+    find(beat, type) {
+        if (type === 'note' && arguments[2] !== undefined) {
+            arguments[2] = toNoteNumber(arguments[2]);
+        }
+
+        return this.events.find(matches(arguments));
     }
 
     get(id) {
