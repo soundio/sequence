@@ -4,15 +4,16 @@ import { toNoteNumber } from 'midi/note.js';
 import SequenceIterator, { insert } from './sequence-iterator.js';
 import Event  from './event.js';
 
+const assign = Object.assign;
+
 function toPriority(event) {
     return event[0] + '|' + priority(event);
 }
 
 export default class Sequence {
-    constructor(events, sequences = [], name = '') {
-        this.name      = name;
+    constructor(events, sequences = []) {
         this.events    = events;
-        this.sequences = sequences;
+        this.sequences = sequences.map(Sequence.from);
     }
 
     create() {
@@ -31,6 +32,10 @@ export default class Sequence {
         return this.events.find(matches({ 0: beat, 1: type, 2: toNoteNumber($2) }));
     }
 
+    get(id) {
+        return this.sequences && this.sequences.find(matches({ id }));
+    }
+
     select(beat, type) {
         return this.events.filter(matches({ 0: beat, 1: type }));
     }
@@ -40,9 +45,10 @@ export default class Sequence {
     }
 
     static from(data) {
+        const { events, sequences, ...props } = data;
         return data.length ?
             new Sequence(data) :
-            new Sequence(data.events, data.sequences, data.name) ;
+            assign(new Sequence(events, sequences), props) ;
     }
 
     [Symbol.iterator]() {
