@@ -11,9 +11,9 @@ function toPriority(event) {
 }
 
 export default class Sequence {
-    constructor(events, sequences = []) {
+    constructor(events, sequences) {
         this.events    = events;
-        this.sequences = sequences.map(Sequence.from);
+        if (sequences) this.sequences = sequences.map(Sequence.from);
     }
 
     create() {
@@ -38,6 +38,10 @@ export default class Sequence {
 
     select(beat, type) {
         return this.events.filter(matches({ 0: beat, 1: type }));
+    }
+
+    compress() {
+
     }
 
     static of(...events) {
