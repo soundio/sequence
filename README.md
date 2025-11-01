@@ -122,7 +122,7 @@ If `name` is a string it is an arbitrary pitch name. Implementations must accept
 the use of both the hash `#` and the unicode sharp `♯`, and both the small letter `b` and the unicode flat `♭` in their spellings, but
 output only the unicode spellings in any Sequence data output.
 
-`dynamic` – FLOAT [0-1]<br/>
+`dynamic` – FLOAT [0-1] | STRING ["-ndB"] | STRING ["ppp"-"fff"]<br/>
 Represents the force of the note's attack.
 A `dynamic` larger than `1` is permissible, but negative `dynamic` is invalid.
 
@@ -144,15 +144,15 @@ The name of the param to control.
 In a WebAudio context this would typically map to an AudioParam on the instrument being targetted.
 
 `value` – FLOAT<br/>
-The destination value of the param.
+The destination value of the param. If `curve` is `"hold"` has no effect.
 
-`curve` – STRING `"step"`, `"linear"`, `"exponential"` or `"target"`<br/>
+`curve` – STRING `"step"`, `"linear"`, `"exponential"`, `"target"` or `"hold"`<br/>
 The ramp to use for transition to `value`.
 This parameter is optional. If it is not present the event describes a `"step"` curve.
-If `curve` is `"target"` the event has a fifth parameter:
+If `curve` is `"target"` the event requires a fifth parameter:
 
 `duration` – FLOAT<br/>
-The decay time of the `"target"` curve.
+The T60 decay time of a `"target"` curve.
 
 ---
 
@@ -235,7 +235,7 @@ rhythm generator). Where no `"meter"` event is defined at beat `0` consumers sho
 [beat, "chord", root, mode, duration]
 ```
 
-`root` – INT [0-11] or STRING, represents the root of a chord.
+`root` – INT [0-11] | STRING ["A♭"-"G♯"], represents the root of a chord.
 Where `root` is a number it represents root note as a MIDI number `0-11`.
 Where `root` is a string it must be a root note name, ie. `C`, `C♯`, `D` ... `A`, `B♭`, `B`.
 
