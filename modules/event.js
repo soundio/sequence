@@ -48,6 +48,8 @@ export default class Event {
             case "text":
                 // String
                 this[2] = arguments[2];
+                // Duration
+                this[3] = arguments[3];
                 break;
             case "key":
                 // Key root number

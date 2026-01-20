@@ -3,14 +3,14 @@ import parseValue from 'fn/parse-value.js';
 
 const dynamics = {
     // Arbitrary map
-    'fff': toGain(-5),
-    'ff':  toGain(-10),
-    'f':   toGain(-15),
-    'mf':  toGain(-20),
-    'mp':  toGain(-25),
-    'p':   toGain(-30),
-    'pp':  toGain(-35),
-    'ppp': toGain(-40)
+    'fff': toGain(-4.5),
+    'ff':  toGain(-9),
+    'f':   toGain(-13.5),
+    'mf':  toGain(-18),
+    'mp':  toGain(-22.5),
+    'p':   toGain(-27),
+    'pp':  toGain(-31.5),
+    'ppp': toGain(-36)
 };
 
 export default parseValue({

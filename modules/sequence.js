@@ -9,7 +9,7 @@ const assign = Object.assign;
 function toPriority(event) {
     return event[0] + '|' + priority(event);
 }
-window.m = matches;
+
 export default class Sequence {
     constructor(events, sequences) {
         this.events    = events;
