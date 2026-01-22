@@ -65,8 +65,11 @@ export default class Event {
                 this[4] = arguments[4];
                 break;
             case "sequence":
+                // Id
                 this[2] = arguments[2];
+                // Target
                 this[3] = arguments[3];
+                // Duration
                 this[4] = arguments[4];
                 break;
             default:
