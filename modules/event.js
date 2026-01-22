@@ -4,9 +4,10 @@ import parseGain from './parse/parse-gain.js';
 import mod12     from './number/mod-12.js';
 import { rflatsharp, toUnicode } from './pitch.js';
 
-const assign     = Object.assign;
+
 const define     = Object.defineProperty;
 const writable   = { writable: true };
+
 
 function arrayify(event) {
     const array = [];
