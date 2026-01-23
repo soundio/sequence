@@ -1,2 +1,4 @@
+.claude/
 documents/*
-xmlsamples/*
+xmlsamples/
+CLAUDE.md

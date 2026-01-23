@@ -1,6 +1,6 @@
 
 import run from 'fn/test.js';
-import importMusicXML from '../modules/import-xml.js';
+import importMusicXML from '../modules/parse/parse-music-xml.js';
 import Sequence from '../modules/sequence.js';
 
 

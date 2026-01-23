@@ -12,10 +12,11 @@ Sections are detected from barline styles (double, heavy, repeat) and endings.
 **/
 
 import { toNoteNumber } from 'midi/note.js';
-import Sequence from './sequence.js';
-import parseXML, { getText, getAttr, getChild, getChildren, findDeep } from './import/parse-xml.js';
-import extractSections from './import/section.js';
-import convertToEvents from './import/convert.js';
+import Sequence from '../sequence.js';
+import parseXML, { getText, getAttr, getChild, getChildren, findDeep } from './parse-xml.js';
+import extractSections from './parse-music-xml/section.js';
+import convertToEvents from './parse-music-xml/convert.js';
+import { clefToName } from './parse-music-xml/clef.js';
 
 
 export default function importMusicXML(xmlString) {
@@ -289,6 +290,30 @@ function extractDirection(direction) {
 
 
 /**
+extractInitialClef(parts)
+TEMPORARY: Extracts the first clef from the first measure of the first part
+for sequence.display = { clef }. This is a band-aid for current Scribe implementation.
+
+Long-term, clef should be determined by target instrument or handled via
+[time, "clef", type] events in the sequence data, which are now extracted
+at the section level. This function bridges the gap until Scribe is updated
+to use clef events instead of sequence.display.clef.
+**/
+
+function extractInitialClef(parts) {
+    if (!parts || parts.length === 0) return undefined;
+
+    const firstPart = parts[0];
+    if (!firstPart.measures || firstPart.measures.length === 0) return undefined;
+
+    const firstMeasure = firstPart.measures[0];
+    if (!firstMeasure.clef) return undefined;
+
+    return clefToName(firstMeasure.clef);
+}
+
+
+/**
 buildSequence(structure, sections)
 Builds nested Sequence instance from structure and section information.
 **/
@@ -305,6 +330,12 @@ function buildSequence(structure, sections) {
 
     if (name) data.name = name;
     if (sequences.length > 0) data.sequences = sequences;
+
+    // TEMPORARY: Extract initial clef for sequence.display (band-aid for current Scribe)
+    const initialClef = extractInitialClef(parts);
+    if (initialClef) {
+        data.display = { clef: initialClef };
+    }
 
     return Sequence.from(data);
 }

@@ -9,10 +9,11 @@ Returns object with:
 **/
 
 import { toNoteNumber } from 'midi/note.js';
-import parseGain from '../parse/parse-gain.js';
+import parseGain from '../../parse/parse-gain.js';
 import toGain from 'fn/to-gain.js';
 import dB from 'fn/to-db.js';
-import { fifthsToKeyName } from '../pitch.js';
+import { fifthsToKeyName } from '../../pitch.js';
+import { clefToName } from './clef.js';
 
 
 /**
@@ -68,13 +69,22 @@ export default function convertToEvents(parts, sections) {
 
         // Generate part sequences for this section
         const partSequences = [];
+        const sectionClefChanges = [];
         parts.forEach((part, partIndex) => {
             const partId = `${sectionId}-${part.id}`;
-            const partEvents = convertPartMeasures(
+            const { events: partEvents, clefChanges } = convertPartMeasures(
                 part.measures,
                 section.start,
                 section.end
             );
+
+            // Collect clef changes for section
+            clefChanges.forEach(([beat, clefName]) => {
+                // Only add if not already present at this beat
+                if (!sectionClefChanges.some(([b, c]) => b === beat && c === clefName)) {
+                    sectionClefChanges.push([beat, clefName]);
+                }
+            });
 
             if (partEvents.length > 0) {
                 partSequences.push({
@@ -91,6 +101,11 @@ export default function convertToEvents(parts, sections) {
             section.start,
             section.end
         );
+
+        // Add clef events to section sequence (before scheduling part sequences)
+        sectionClefChanges.forEach(([beat, clefName]) => {
+            sectionSequence.events.push([beat, 'clef', clefName]);
+        });
 
         // Schedule part sequences from section sequence
         // All parts play simultaneously from beat 0 with full section duration
@@ -113,10 +128,12 @@ export default function convertToEvents(parts, sections) {
 /**
 convertPartMeasures(measures, startNum, endNum)
 Converts a range of measures from a single part to Sequence events.
+Returns { events, clefChanges } where clefChanges is array of [beat, clefName].
 **/
 
 function convertPartMeasures(measures, startNum, endNum) {
     const events = [];
+    const clefChanges = [];
     let currentBeat = 0;
     let currentDivisions = 1;
     let currentDynamic = 0.1; // Default dynamic (-20dB)
@@ -178,11 +195,21 @@ function convertPartMeasures(measures, startNum, endNum) {
     currentBeat = 0;
     currentDivisions = 1;
     currentDynamic = 0.1;
+    let currentClef = null;
 
     sectionMeasures.forEach(measure => {
         // Update divisions if changed
         if (measure.divisions !== undefined) {
             currentDivisions = measure.divisions;
+        }
+
+        // Track clef changes
+        if (measure.clef) {
+            const clefName = clefToName(measure.clef);
+            if (clefName && clefName !== currentClef) {
+                clefChanges.push([currentBeat, clefName]);
+                currentClef = clefName;
+            }
         }
 
         // Update current dynamic from directions
@@ -293,7 +320,7 @@ function convertPartMeasures(measures, startNum, endNum) {
         currentBeat += measureDuration;
     });
 
-    return events;
+    return { events, clefChanges };
 }
 
 

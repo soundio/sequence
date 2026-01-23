@@ -4,5 +4,9 @@
         "midi/": "https://cdn.jsdelivr.net/gh/stephband/midi@1.1.x/modules/"
     },
 
+    "tasks": {
+        "test": "deno test --allow-read test.js"
+    },
+
     "lock": false
 }
