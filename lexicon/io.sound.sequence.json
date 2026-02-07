@@ -1,0 +1,84 @@
+{
+  "lexicon": 1,
+  "id": "io.sound.sequence",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A musical sequence containing timed events",
+      "key": "any",
+      "record": {
+        "type": "ref",
+        "ref": "#sequence"
+      }
+    },
+    "sequence": {
+      "type": "object",
+      "required": ["events"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for referencing this sequence.",
+          "maxLength": 128
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the sequence",
+          "maxLength": 1280,
+          "maxGraphemes": 640
+        },
+        "events": {
+          "type": "array",
+          "description": "Array of events",
+          "items": {
+            "type": "ref",
+            "ref": "#event"
+          }
+        },
+        "sequences": {
+          "type": "array",
+          "description": "Nested or referenced sequences. Nested sequences require an id field. May also reference external sequences via at:// URIs in the future.",
+          "items": {
+            "type": "ref",
+            "ref": "#sequence"
+          }
+        },
+        "credits": {
+          "type": "array",
+          "description": "Attribution for composers, arrangers, etc",
+          "maxLength": 100,
+          "items": {
+            "type": "ref",
+            "ref": "#credit"
+          }
+        }
+      }
+    },
+    "event": {
+      "type": "array",
+      "description": "A timed event [beat, type, ...params]. First element must be a number (beat), second must be a string (type). Additional parameters are type-specific and not validated to allow extensibility.",
+      "minLength": 2
+    },
+    "credit": {
+      "type": "object",
+      "required": ["name", "role"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the credited person",
+          "maxLength": 640,
+          "maxGraphemes": 320
+        },
+        "role": {
+          "type": "string",
+          "description": "Role: composer, lyricist, arranger, etc",
+          "knownValues": ["composer", "arranger", "lyricist", "transcriber", "orchestrator", "adapter"]
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to credited person's profile or website"
+        }
+      }
+    }
+  }
+}
