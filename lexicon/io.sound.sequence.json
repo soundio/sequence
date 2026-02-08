@@ -56,7 +56,7 @@
           "format": "uri",
           "description": "Points to a publication record (at://) or a publication url (https://). Avoid trailing slashes."
         },
-        "pathname": {
+        "path": {
           "type": "string",
           "description": "Combine with origin or to construct a canonical URL to the document. Prepend with a leading slash."
         },
