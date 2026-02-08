@@ -2,14 +2,16 @@
 
 A simple format for representing sequences of timed events in JSON.
 
-This format defines a minimal set of events that get music working, with the objective of supporting applications
-of the WebAudio and WebMIDI APIs. However, it is designed to be extensible. Consumers of Sequence JSON are expected
-to silently ignore unsupported event types so that users may also sequence their own data.
+This format defines a minimal set of events that get music working, with the
+objective of supporting applications of the WebAudio and WebMIDI APIs. However
+it is designed to be extensible so that it has further applications. Consumers
+of Sequence JSON are expected to silently ignore unsupported event types.
 
 
 ## Concepts
 
-The Sequence format defines two data structures, a Sequence object and an Events array.
+The Sequence format defines two data structures, a Sequence object and an Events
+array.
 
 SequenceJSON describes all times and durations in beats. Beat values are arbitrary, and depend on the rate of playback
 of a sequence. A sequence playing back at a rate of `1` is running at 1 beat per second, so it is following absolute time.

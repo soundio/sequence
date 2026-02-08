@@ -5,7 +5,8 @@
     },
 
     "tasks": {
-        "test": "deno test --allow-read test.js"
+        "test": "deno test --allow-read test.js",
+        "validate-lexicon": "deno run --allow-read deno/validate-lexicon.js"
     },
 
     "lock": false

@@ -4,7 +4,7 @@
   "defs": {
     "main": {
       "type": "record",
-      "description": "A musical sequence containing timed events",
+      "description": "A sequence of timed events of arbitrary type, represented as data arrays.",
       "key": "any",
       "record": {
         "type": "ref",
@@ -18,9 +18,9 @@
         "id": {
           "type": "string",
           "description": "Unique identifier for referencing this sequence.",
-          "maxLength": 128
+          "maxLength": 64
         },
-        "name": {
+        "title": {
           "type": "string",
           "description": "Name of the sequence",
           "maxLength": 1280,
@@ -50,12 +50,45 @@
             "type": "ref",
             "ref": "#credit"
           }
+        },
+        "origin": {
+          "type": "string",
+          "format": "uri",
+          "description": "Points to a publication record (at://) or a publication url (https://). Avoid trailing slashes."
+        },
+        "pathname": {
+          "type": "string",
+          "description": "Combine with origin or to construct a canonical URL to the document. Prepend with a leading slash."
+        },
+        "bskyPostRef": {
+          "type": "ref",
+          "ref": "com.atproto.repo.strongRef",
+          "description": "Strong reference to a Bluesky post. Useful to keep track of comments off-platform."
+        },
+        "publishedAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp of the documents publish time."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp of the documents last edit."
+        },
+        "tags": {
+          "type": "array",
+          "description": "Array of strings used to tag the sequence.",
+          "items": {
+            "type": "string",
+            "maxLength": 1280,
+            "maxGraphemes": 128
+          }
         }
       }
     },
     "event": {
       "type": "array",
-      "description": "A timed event [beat, type, ...params]. First element must be a number (beat), second must be a string (type). Additional parameters are type-specific and not validated to allow extensibility.",
+      "description": "A timed event [beat, type, ...params]. First element, `beat`, must be a number, the second, `type`, must be a string. Additional parameters are type-specific and not validated to allow extensibility.",
       "minLength": 2
     },
     "credit": {
