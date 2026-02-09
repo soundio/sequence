@@ -16,6 +16,11 @@
             "description": "Identifies this sequence for playback by a \"sequence\" event.",
             "maxLength": 36
           },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Canonical location of this sequence. May be an at:// URI or an https:// URL to a JSON endpoint."
+          },
           "name": {
             "type": "string",
             "description": "Name of the sequence",
@@ -44,13 +49,8 @@
             "maxLength": 100,
             "items": {
               "type": "ref",
-              "ref": "#credit"
+              "ref": "io.sound.credit"
             }
-          },
-          "url": {
-            "type": "string",
-            "format": "uri",
-            "description": "Canonical location of this sequence. May be an at:// URI or an https:// URL to a JSON endpoint."
           },
           "bskyPostRef": {
             "type": "ref",
@@ -85,30 +85,6 @@
       "minLength": 2,
       "items": {
         "type": "unknown"
-      }
-    },
-    "credit": {
-      "type": "object",
-      "required": ["name", "role"],
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Name of the credited person",
-          "maxLength": 640,
-          "maxGraphemes": 320
-        },
-        "role": {
-          "type": "string",
-          "description": "Role: composer, lyricist, arranger, etc",
-          "maxLength": 64,
-          "maxGraphemes": 32,
-          "knownValues": ["composer", "arranger", "lyricist", "transcriber", "orchestrator", "adapter"]
-        },
-        "url": {
-          "type": "string",
-          "format": "uri",
-          "description": "URL to credited person's profile or website"
-        }
       }
     }
   }
