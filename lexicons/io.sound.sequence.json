@@ -2,11 +2,10 @@
   "$type": "com.atproto.lexicon.schema",
   "lexicon": 1,
   "id": "io.sound.sequence",
-  "description": "Full documentation at https://github.com/soundio/sequence/",
   "defs": {
     "main": {
       "type": "record",
-      "description": "A sequence of timed events.",
+      "description": "A sequence of timed events. Full documentation at https://github.com/soundio/sequence/.",
       "key": "any",
       "record": {
         "type": "object",
