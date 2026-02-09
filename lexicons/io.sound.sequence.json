@@ -1,4 +1,5 @@
 {
+  "$type": "com.atproto.lexicon.schema",
   "lexicon": 1,
   "id": "io.sound.sequence",
   "defs": {
@@ -7,77 +8,73 @@
       "description": "A sequence of timed events.",
       "key": "any",
       "record": {
-        "type": "ref",
-        "ref": "#sequence"
-      }
-    },
-    "sequence": {
-      "type": "object",
-      "required": ["events"],
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Identifies this sequence for playback by a \"sequence\" event.",
-          "maxLength": 36
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the sequence",
-          "maxLength": 1280,
-          "maxGraphemes": 640
-        },
-        "events": {
-          "type": "array",
-          "description": "Array of events",
-          "items": {
-            "type": "ref",
-            "ref": "#event"
-          }
-        },
-        "sequences": {
-          "type": "array",
-          "description": "A collection of sequences that may be played back by \"sequence\" events.",
-          "items": {
-            "type": "ref",
-            "ref": "#sequence"
-          }
-        },
-        "credits": {
-          "type": "array",
-          "description": "Attribution for composers, arrangers, etc",
-          "maxLength": 100,
-          "items": {
-            "type": "ref",
-            "ref": "#credit"
-          }
-        },
-        "url": {
-          "type": "string",
-          "format": "uri",
-          "description": "Canonical location of this sequence. May be an at:// URI or an https:// URL to a JSON endpoint."
-        },
-        "bskyPostRef": {
-          "type": "ref",
-          "ref": "com.atproto.repo.strongRef",
-          "description": "Strong reference to a Bluesky post. Useful to keep track of comments off-platform."
-        },
-        "publishedAt": {
-          "type": "string",
-          "format": "datetime",
-          "description": "Timestamp of the time of publication."
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "datetime",
-          "description": "Timestamp of the time of last edit."
-        },
-        "tags": {
-          "type": "array",
-          "description": "Array of strings used to tag the sequence.",
-          "items": {
+        "type": "object",
+        "required": ["events"],
+        "properties": {
+          "id": {
             "type": "string",
+            "description": "Identifies this sequence for playback by a \"sequence\" event.",
+            "maxLength": 36
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the sequence",
             "maxLength": 1280,
-            "maxGraphemes": 128
+            "maxGraphemes": 640
+          },
+          "events": {
+            "type": "array",
+            "description": "Array of events",
+            "items": {
+              "type": "ref",
+              "ref": "#event"
+            }
+          },
+          "sequences": {
+            "type": "array",
+            "description": "A collection of sequences that may be played back by \"sequence\" events.",
+            "items": {
+              "type": "ref",
+              "ref": "io.sound.sequence"
+            }
+          },
+          "credits": {
+            "type": "array",
+            "description": "Attribution for composers, arrangers, etc",
+            "maxLength": 100,
+            "items": {
+              "type": "ref",
+              "ref": "#credit"
+            }
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Canonical location of this sequence. May be an at:// URI or an https:// URL to a JSON endpoint."
+          },
+          "bskyPostRef": {
+            "type": "ref",
+            "ref": "com.atproto.repo.strongRef",
+            "description": "Strong reference to a Bluesky post. Useful to keep track of comments off-platform."
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp of the time of publication."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp of the time of last edit."
+          },
+          "tags": {
+            "type": "array",
+            "description": "Array of strings used to tag the sequence.",
+            "items": {
+              "type": "string",
+              "maxLength": 1280,
+              "maxGraphemes": 128
+            }
           }
         }
       }
