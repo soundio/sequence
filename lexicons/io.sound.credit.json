@@ -19,7 +19,7 @@
           "description": "Role: composer, lyricist, arranger, etc",
           "maxLength": 64,
           "maxGraphemes": 32,
-          "knownValues": ["composer", "arranger", "lyricist", "transcriber", "orchestrator", "adapter"]
+          "knownValues": ["composer", "arranger", "lyricist", "transcriber", "orchestrator", "adapter", "artist", "producer"]
         },
         "url": {
           "type": "string",
