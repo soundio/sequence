@@ -1,0 +1,118 @@
+{
+  "lexicon": 1,
+  "id": "io.sound.sequence",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A sequence of timed events.",
+      "key": "any",
+      "record": {
+        "type": "ref",
+        "ref": "#sequence"
+      }
+    },
+    "sequence": {
+      "type": "object",
+      "required": ["events"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifies this sequence for playback by a \"sequence\" event.",
+          "maxLength": 36
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the sequence",
+          "maxLength": 1280,
+          "maxGraphemes": 640
+        },
+        "events": {
+          "type": "array",
+          "description": "Array of events",
+          "items": {
+            "type": "ref",
+            "ref": "#event"
+          }
+        },
+        "sequences": {
+          "type": "array",
+          "description": "A collection of sequences that may be played back by \"sequence\" events.",
+          "items": {
+            "type": "ref",
+            "ref": "#sequence"
+          }
+        },
+        "credits": {
+          "type": "array",
+          "description": "Attribution for composers, arrangers, etc",
+          "maxLength": 100,
+          "items": {
+            "type": "ref",
+            "ref": "#credit"
+          }
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Canonical location of this sequence. May be an at:// URI or an https:// URL to a JSON endpoint."
+        },
+        "bskyPostRef": {
+          "type": "ref",
+          "ref": "com.atproto.repo.strongRef",
+          "description": "Strong reference to a Bluesky post. Useful to keep track of comments off-platform."
+        },
+        "publishedAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp of the time of publication."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp of the time of last edit."
+        },
+        "tags": {
+          "type": "array",
+          "description": "Array of strings used to tag the sequence.",
+          "items": {
+            "type": "string",
+            "maxLength": 1280,
+            "maxGraphemes": 128
+          }
+        }
+      }
+    },
+    "event": {
+      "type": "array",
+      "description": "An event of the form `[beat, type, ...params]`, where `beat` is a 64-bit float and `type` a string. Beat values are arbitrary, and depend on the rate of playback of a sequence. A sequence playing back at a rate of 1 runs at 1 beat per second, and is following absolute time. Known specified types are \"chord\", \"clef\", \"key\", \"meter\", \"note\", \"param\", \"rate\", \"sequence\", \"start\", \"stop\" and \"text\". Additional parameters depend on `type`. Types are not limited to those specified and consumers are expected to ignore event types they do not support.",
+      "minLength": 2,
+      "items": {
+        "type": "unknown"
+      }
+    },
+    "credit": {
+      "type": "object",
+      "required": ["name", "role"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the credited person",
+          "maxLength": 640,
+          "maxGraphemes": 320
+        },
+        "role": {
+          "type": "string",
+          "description": "Role: composer, lyricist, arranger, etc",
+          "maxLength": 64,
+          "maxGraphemes": 32,
+          "knownValues": ["composer", "arranger", "lyricist", "transcriber", "orchestrator", "adapter"]
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to credited person's profile or website"
+        }
+      }
+    }
+  }
+}
