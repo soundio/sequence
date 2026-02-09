@@ -2,6 +2,7 @@
   "$type": "com.atproto.lexicon.schema",
   "lexicon": 1,
   "id": "io.sound.sequence",
+  "description": "Full documentation at https://github.com/soundio/sequence/",
   "defs": {
     "main": {
       "type": "record",
