@@ -6,7 +6,7 @@
 
     "tasks": {
         "test": "deno test --allow-read test.js",
-        "validate-lexicon": "deno run --allow-read deno/validate-lexicon.js"
+        "validate-lexicon": "goat lex parse lexicon/io.sound.sequence.json"
     },
 
     "lock": false
