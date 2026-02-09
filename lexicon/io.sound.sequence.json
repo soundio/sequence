@@ -4,7 +4,7 @@
   "defs": {
     "main": {
       "type": "record",
-      "description": "A sequence of timed events of arbitrary type, represented as data arrays.",
+      "description": "A sequence of timed events.",
       "key": "any",
       "record": {
         "type": "ref",
@@ -17,10 +17,10 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for referencing this sequence.",
-          "maxLength": 64
+          "description": "Identifies this sequence for playback by a \"sequence\" event.",
+          "maxLength": 36
         },
-        "title": {
+        "name": {
           "type": "string",
           "description": "Name of the sequence",
           "maxLength": 1280,
@@ -36,7 +36,7 @@
         },
         "sequences": {
           "type": "array",
-          "description": "Nested or referenced sequences. Nested sequences require an id field. May also reference external sequences via at:// URIs in the future.",
+          "description": "A collection of sequences that may be played back by \"sequence\" events.",
           "items": {
             "type": "ref",
             "ref": "#sequence"
@@ -51,14 +51,10 @@
             "ref": "#credit"
           }
         },
-        "origin": {
+        "url": {
           "type": "string",
           "format": "uri",
-          "description": "Points to a publication record (at://) or a publication url (https://). Avoid trailing slashes."
-        },
-        "path": {
-          "type": "string",
-          "description": "Combine with origin or to construct a canonical URL to the document. Prepend with a leading slash."
+          "description": "Canonical location of this sequence. May be an at:// URI or an https:// URL to a JSON endpoint."
         },
         "bskyPostRef": {
           "type": "ref",
@@ -68,12 +64,12 @@
         "publishedAt": {
           "type": "string",
           "format": "datetime",
-          "description": "Timestamp of the documents publish time."
+          "description": "Timestamp of the time of publication."
         },
         "updatedAt": {
           "type": "string",
           "format": "datetime",
-          "description": "Timestamp of the documents last edit."
+          "description": "Timestamp of the time of last edit."
         },
         "tags": {
           "type": "array",
@@ -88,7 +84,7 @@
     },
     "event": {
       "type": "array",
-      "description": "A timed event [beat, type, ...params]. First element, `beat`, must be a number, the second, `type`, must be a string. Additional parameters are type-specific and not validated to allow extensibility.",
+      "description": "An event of the form `[beat, type, ...params]`, where `beat` is a 64-bit float and `type` a string. Beat values are arbitrary, and depend on the rate of playback of a sequence. A sequence playing back at a rate of 1 runs at 1 beat per second, and is following absolute time. Known specified types are \"chord\", \"clef\", \"key\", \"meter\", \"note\", \"param\", \"rate\", \"sequence\", \"start\", \"stop\" and \"text\". Additional parameters depend on `type`. Types are not limited to those specified and consumers are expected to ignore event types they do not support.",
       "minLength": 2
     },
     "credit": {
