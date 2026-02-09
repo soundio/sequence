@@ -85,7 +85,10 @@
     "event": {
       "type": "array",
       "description": "An event of the form `[beat, type, ...params]`, where `beat` is a 64-bit float and `type` a string. Beat values are arbitrary, and depend on the rate of playback of a sequence. A sequence playing back at a rate of 1 runs at 1 beat per second, and is following absolute time. Known specified types are \"chord\", \"clef\", \"key\", \"meter\", \"note\", \"param\", \"rate\", \"sequence\", \"start\", \"stop\" and \"text\". Additional parameters depend on `type`. Types are not limited to those specified and consumers are expected to ignore event types they do not support.",
-      "minLength": 2
+      "minLength": 2,
+      "items": {
+        "type": "unknown"
+      }
     },
     "credit": {
       "type": "object",
