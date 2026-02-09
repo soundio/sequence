@@ -6,7 +6,8 @@
 
     "tasks": {
         "test": "deno test --allow-read test.js",
-        "validate-lexicon": "goat lex lint lexicons/"
+        "validate-lexicons": "goat lex lint ./lexicons",
+        "publish-lexicons": "goat lex publish --update ./lexicons"
     },
 
     "lock": false
