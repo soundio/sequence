@@ -5,8 +5,8 @@ import mod12     from './number/mod-12.js';
 import { rflatsharp, toUnicode } from './pitch.js';
 
 
-const define     = Object.defineProperty;
-const writable   = { writable: true };
+const define   = Object.defineProperty;
+const writable = { writable: true };
 
 
 function arrayify(event) {
@@ -40,11 +40,13 @@ export default class Event {
                 this[3] = arguments[3].replaceAll(rflatsharp, toUnicode);
                 // Duration
                 this[4] = arguments[4];
+                // Chord bass
+                if (arguments[5]) this[5] = arguments[5] || 0;
                 break;
             case "lyric":
                 // Warn user over pold version
                 console.warn('Old data contains "lyric" event, should be "text"');
-                // Change type to "text"
+                // Set type to "text"
                 this[1] = "text";
             case "text":
                 // String
@@ -64,6 +66,24 @@ export default class Event {
                 // Duration
                 this[4] = arguments[4];
                 break;
+            case "rate":
+                // Rate
+                this[2] = arguments[2];
+                // Curve
+                this[3] = arguments[3] || 'step';
+                // Duration
+                if (this[3] === 'target' || this[3] === 'curve') this[4] = arguments[4] || 0 ;
+                break;
+            case "param":
+                // Name
+                this[2] = arguments[2];
+                // Value
+                this[3] = arguments[3];
+                // Curve
+                this[4] = arguments[4] || 'step';
+                // Duration
+                if (this[4] === 'target' || this[4] === 'curve') this[5] = arguments[5] || 0 ;
+                break;
             case "sequence":
                 // Id
                 this[2] = arguments[2];
@@ -71,6 +91,9 @@ export default class Event {
                 this[3] = arguments[3];
                 // Duration
                 this[4] = arguments[4];
+                // Transforms
+                let n = 4;
+                while(arguments[++n] !== undefined) this[n] = arguments[n];
                 break;
             default:
                 this[2] = arguments[2];
@@ -108,6 +131,12 @@ export default class Event {
         }
 
         return this;
+    }
+
+    // Enable event object to be spread by making it iterable
+    *[Symbol.iterator]() {
+        let i = -1;
+        while (this[++i] !== undefined) yield this[i];
     }
 
     toJSON() {
@@ -176,12 +205,7 @@ export default class Event {
     }
 
     static from(data, events, index) {
-        const event =
-            data[5] !== undefined ? new Event(data[0], data[1], data[2], data[3], data[4], data[5]) :
-            data[4] !== undefined ? new Event(data[0], data[1], data[2], data[3], data[4]) :
-            data[3] !== undefined ? new Event(data[0], data[1], data[2], data[3]) :
-            new Event(data[0], data[1], data[2]) ;
-
+        const event = new Event(...data) ;
         event.event  = data; // Dodgy, what if we are making event from arguments object?
         event.events = events;
         event.index  = index;

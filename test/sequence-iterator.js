@@ -41,7 +41,7 @@ run('SequenceIterator(events, sequences)', [
 });
 
 run('SequenceIterator(events, sequences) transforms', [
-    [4,   "sequence", 1, 0, 2],
+    [4,   "sequence", 1, 0, 2, "rate", 2],
     [4,   "note", 69, 0.1, 0.5],
     [4.5, "note", 71, 0.1, 0.5],
     [5,   "note", 72, 0.1, 0.5],
