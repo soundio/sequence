@@ -18,7 +18,7 @@ export const TYPENAMES = mirror(TYPENUMBERS);
 
 export const TYPEBYTES = {
     2:  16, // note    4 pitch     4 dynamic  8 duration
-    3:  14, // param   2 address   4 value    8 duration
+    3:  12, // param   4 value     8 duration
     4:  13, // rate    4 rate      1 curve    8 duration
     5:  1,  // key     1 root
     6:  4,  // meter   2 duration  2 divisor

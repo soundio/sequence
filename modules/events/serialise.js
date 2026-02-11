@@ -4,14 +4,15 @@ import { TYPENUMBERS, TYPEBYTES }      from '../event/types.js';
 import { TRANSFORMNUMBERS, TRANSFORMBYTES, TRANSFORMLENGTHS } from '../event/transforms.js';
 import { CHORDNUMBERS }     from '../event/chords.js';
 import { PARAMNUMBERS }     from '../event/params.js';
-import { CURVEBITS }        from './address.js';
+import { packAddress }      from './address.js';
 
 
 /**
 serialise(events)
 Serialises an array of Sequence events to a Uint8Array binary format.
 
-Event structure: beat(8) | type(1) | length(1) | values(variable)
+Event structure: beat(8) | address(2) | length(1) | values(variable)
+Address structure: route(2 bits) | name(10 bits) | curve(4 bits)
 **/
 
 // Maximum string bytes for text events
@@ -64,7 +65,7 @@ export default function serialise(events) {
     // First pass: calculate total size
     let totalSize = 0;
     for (const event of events) {
-        totalSize += 10; // beat(8) + type(1) + length(1)
+        totalSize += 11; // beat(8) + address(2) + length(1)
         totalSize += getEventBytes(event);
     }
 
@@ -78,17 +79,26 @@ export default function serialise(events) {
     let n = -1, event;
     while(event = events[++n]) {
         const type = event[1];
-        const t    = TYPENUMBERS[type];
-
-        if (t === undefined) throw new Error(`Unknown event type: ${ type }`);
 
         // Write beat (float64)
         view.setFloat64(offset, event[0], true);
         offset += 8;
 
-        // Write type (uint8)
-        buffer[offset] = t;
-        offset += 1;
+        // Write address (uint16) - format depends on event type
+        let address;
+        if (type === 'param') {
+            // Route 1: param event
+            const paramNumber = typeof event[2] === 'string' ? (PARAMNUMBERS[event[2]] || 0) : event[2];
+            const curveNumber = typeof event[4] === 'string' ? (CURVENUMBERS[event[4]] || 0) : event[4];
+            address = packAddress(1, paramNumber, curveNumber);
+        } else {
+            // Route 0: sequence control event
+            const typeNumber = TYPENUMBERS[type];
+            if (typeNumber === undefined) throw new Error(`Unknown event type: ${ type }`);
+            address = packAddress(0, typeNumber, 0);
+        }
+        view.setUint16(offset, address, true);
+        offset += 2;
 
         // Write length (uint8)
         buffer[offset] = getEventBytes(event);
@@ -104,13 +114,9 @@ export default function serialise(events) {
                 break;
 
             case 'param': {
-                const paramNumber = typeof event[2] === 'string' ? (PARAMNUMBERS[event[2]] || 0) : event[2];
-                const curveNumber = typeof event[4] === 'string' ? (CURVENUMBERS[event[4]] || 0) : event[4];
-                const address = (paramNumber << CURVEBITS) | curveNumber;
-                view.setUint16(offset, address, true);        // address (param + curve)
-                view.setFloat32(offset + 2, event[3], true);  // value
-                view.setFloat64(offset + 6, event[5] || 0, true); // duration
-                offset += 14;
+                view.setFloat32(offset, event[3], true);            // value
+                view.setFloat64(offset + 4, event[5] || 0, true);   // duration
+                offset += 12;
                 break;
             }
 

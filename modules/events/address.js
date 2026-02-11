@@ -1,72 +1,86 @@
 
 import { CURVENAMES, CURVENUMBERS } from '../event/curves.js';
 import { PARAMNAMES, PARAMNUMBERS } from '../event/params.js';
+import { TYPENAMES, TYPENUMBERS }   from '../event/types.js';
 
-export const PARAMBITS = 12;
-export const PARAMMASK = Math.pow(2, PARAMBITS) - 1;
+export const ROUTEBITS = 2;
+export const PARAMBITS = 10;
 export const CURVEBITS = 4;
-export const CURVEMASK = Math.pow(2, CURVEBITS) - 1;
+
+export const ROUTEMASK = (1 << ROUTEBITS) - 1;
+export const PARAMMASK = (1 << PARAMBITS) - 1;
+export const CURVEMASK = (1 << CURVEBITS) - 1;
 
 
 /**
-parseAddress(path)
-Parses a string like "gain.exponential" into a 16-bit packed address.
-Format: [PPPPPPPPPPPP][CCCC] - param(12 bits), curve(4 bits)
+packAddress(route, name, curve)
+Packs route, name, and curve into a 16-bit address.
+Format: [RR][NNNNNNNNNN][CCCC] - route(2 bits), name(10 bits), curve(4 bits)
 **/
-export function parseAddress(path) {
-    const parts = path.split('.');
-    const curvePart = parts[1];
-    const paramPart = parts[0];
-
-    const curveNumber = curvePart ? (CURVENUMBERS[curvePart] || 0) : 0;
-    const paramNumber = PARAMNUMBERS[paramPart] || 0;
-
-    return (paramNumber << CURVEBITS) | curveNumber;
+export function packAddress(route, name, curve) {
+    return (route << 14) | (name << 4) | curve;
 }
 
 /**
-toPath(n)
-Converts a 16-bit packed address back to a string path.
+unpackAddress(address)
+Unpacks a 16-bit address into route, param, and curve components.
+Returns an object: { route, param, curve }
 **/
-export function toPath(n) {
-    const curveNumber = n & CURVEMASK;
-    const paramNumber = (n >> CURVEBITS) & PARAMMASK;
-
-    const param = PARAMNAMES[paramNumber] || paramNumber;
-    const curve = CURVENAMES[curveNumber];
-
-    return curve ? param + '.' + curve : param;
+export function unpackAddress(address) {
+    return {
+        route: address >> 14,
+        param: (address >> CURVEBITS) & PARAMMASK,
+        curve: address & CURVEMASK
+    };
 }
 
 /**
-toParamNumber(n)
-Extracts the 12-bit param number from packed address.
+toRoute(address)
+Extracts the 2-bit route from packed address.
 **/
-export function toParamNumber(n) {
-    return (n >> CURVEBITS) & PARAMMASK;
+export function toRoute(address) {
+    return address >> 14;
 }
 
 /**
-toCurveNumber(n)
+toParamNumber(address)
+Extracts the 10-bit param/name number from packed address.
+**/
+export function toParamNumber(address) {
+    return (address >> CURVEBITS) & PARAMMASK;
+}
+
+/**
+toCurveNumber(address)
 Extracts the 4-bit curve number from packed address.
 **/
-export function toCurveNumber(n) {
-    return n & CURVEMASK;
+export function toCurveNumber(address) {
+    return address & CURVEMASK;
 }
 
 /**
-toParamName(n)
-Extracts the param name string from packed address.
+toTypeName(address)
+Extracts the type name string from packed address (for route 0).
 **/
-export function toParamName(n) {
-    const paramNumber = toParamNumber(n);
-    return PARAMNAMES[paramNumber] || paramNumber;
+export function toTypeName(address) {
+    const nameNumber = toParamNumber(address);
+    return TYPENAMES[nameNumber] || nameNumber;
 }
 
 /**
-toCurveName(n)
+toParamName(address)
+Extracts the param name string from packed address (for route 1).
+**/
+export function toParamName(address) {
+    const nameNumber = toParamNumber(address);
+    return PARAMNAMES[nameNumber] || nameNumber;
+}
+
+/**
+toCurveName(address)
 Extracts the curve name string from packed address.
 **/
-export function toCurveName(n) {
-    return CURVENAMES[toCurveNumber(n)];
+export function toCurveName(address) {
+    const curveNumber = toCurveNumber(address);
+    return CURVENAMES[curveNumber];
 }

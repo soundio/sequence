@@ -1,7 +1,7 @@
 
 import { TYPENAMES }      from '../event/types.js';
 import { TRANSFORMNUMBERS } from '../event/transforms.js';
-import { toParamNumber, toCurveNumber } from './address.js';
+import { toRoute, toParamNumber, toTypeName, toParamName, toCurveName } from './address.js';
 import Event              from '../event.js';
 
 
@@ -9,7 +9,8 @@ import Event              from '../event.js';
 deserialise(buffer)
 Deserialises a Uint8Array binary format to an array of Sequence events.
 
-Event structure: beat(8) | type(1) | length(1) | values(variable)
+Event structure: beat(8) | address(2) | length(1) | values(variable)
+Address structure: route(2 bits) | name(10 bits) | curve(4 bits)
 **/
 
 export default function deserialise(buffer) {
@@ -22,23 +23,28 @@ export default function deserialise(buffer) {
         const beat = view.getFloat64(offset, true);
         offset += 8;
 
-        // Read type (uint8)
-        const typeNumber = buffer[offset];
-        offset += 1;
+        // Read address (uint16)
+        const address = view.getUint16(offset, true);
+        offset += 2;
 
-        const type = TYPENAMES[typeNumber];
-        if (type === undefined) {
-            throw new Error(`Unknown event type number: ${ typeNumber }`);
-        }
+        const route = toRoute(address);
+        const nameNumber = toParamNumber(address);
 
         // Read length (uint8)
         const length = buffer[offset];
         offset += 1;
 
-        // Read type-specific data
+        // Read event data based on route
         let event;
 
-        switch(type) {
+        if (route === 0) {
+            // Route 0: sequence control event
+            const type = toTypeName(address);
+            if (type === undefined) {
+                throw new Error(`Unknown event type number: ${ nameNumber }`);
+            }
+
+            switch(type) {
             case 'note':
                 event = Event.of(
                     beat,
@@ -49,17 +55,6 @@ export default function deserialise(buffer) {
                 );
                 offset += 16;
                 break;
-
-            case 'param': {
-                const address = view.getUint16(offset, true);
-                const paramNumber = toParamNumber(address);
-                const value = view.getFloat32(offset + 2, true);
-                const curveNumber = toCurveNumber(address);
-                const duration = view.getFloat64(offset + 6, true);
-                event = Event.of(beat, type, paramNumber, value, curveNumber, duration);
-                offset += 14;
-                break;
-            }
 
             case 'rate': {
                 const rate = view.getFloat32(offset, true);
@@ -162,6 +157,17 @@ export default function deserialise(buffer) {
 
             default:
                 throw new Error(`Unhandled event type: ${ type }`);
+            }
+        } else if (route === 1) {
+            // Route 1: param event
+            const paramNumber = nameNumber;
+            const curveNumber = toCurveName(address);
+            const value = view.getFloat32(offset, true);
+            const duration = view.getFloat64(offset + 4, true);
+            event = Event.of(beat, 'param', paramNumber, value, curveNumber, duration);
+            offset += 12;
+        } else {
+            throw new Error(`Unknown route: ${ route }`);
         }
 
         events.push(event);
