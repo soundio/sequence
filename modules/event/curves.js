@@ -11,3 +11,13 @@ export const CURVENUMBERS = {
 };
 
 export const CURVENAMES = mirror(CURVENUMBERS);
+
+/**
+toCurveName(value)
+Converts a curve name or number to a curve name string.
+**/
+export function toCurveName(value) {
+    return typeof value === 'number' ?
+        (CURVENAMES[value] || 'step') :
+        value;
+}

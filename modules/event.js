@@ -3,6 +3,10 @@ import { toNoteName, toNoteNumber, toRootName, toRootNumber } from 'midi/note.js
 import parseGain from './parse/parse-gain.js';
 import mod12     from './number/mod-12.js';
 import { rflatsharp, toUnicode } from './pitch.js';
+import { toCurveName }    from './event/curves.js';
+import { toChordName }    from './event/chords.js';
+import { toParamName }    from './event/params.js';
+import { toTransformName, TRANSFORMNUMBERS, TRANSFORMLENGTHS } from './event/transforms.js';
 
 
 const define   = Object.defineProperty;
@@ -36,8 +40,8 @@ export default class Event {
             case "chord":
                 // Chord root number
                 this[2] = toRootNumber(arguments[2]);
-                // Chord extension
-                this[3] = arguments[3].replaceAll(rflatsharp, toUnicode);
+                // Chord extension - handle number or string
+                this[3] = toChordName(arguments[3]);
                 // Duration
                 this[4] = arguments[4];
                 // Chord bass
@@ -69,18 +73,18 @@ export default class Event {
             case "rate":
                 // Rate
                 this[2] = arguments[2];
-                // Curve
-                this[3] = arguments[3] || 'step';
+                // Curve - handle number or string
+                this[3] = toCurveName(arguments[3]);
                 // Duration
                 if (this[3] === 'target' || this[3] === 'curve') this[4] = arguments[4] || 0 ;
                 break;
             case "param":
-                // Name
-                this[2] = arguments[2];
+                // Name - handle number or string
+                this[2] = toParamName(arguments[2]);
                 // Value
                 this[3] = arguments[3];
-                // Curve
-                this[4] = arguments[4] || 'step';
+                // Curve - handle number or string
+                this[4] = toCurveName(arguments[4]);
                 // Duration
                 if (this[4] === 'target' || this[4] === 'curve') this[5] = arguments[5] || 0 ;
                 break;
@@ -92,8 +96,19 @@ export default class Event {
                 // Duration
                 this[4] = arguments[4];
                 // Transforms
-                let n = 4;
-                while(arguments[++n] !== undefined) this[n] = arguments[n];
+                let n = 5;
+                while(arguments[n] !== undefined) {
+                    const transform = arguments[n];
+                    // Convert transform name from number to string
+                    this[n] = toTransformName(transform);
+
+                    // Get transform number for looking up parameter count
+                    const number = TRANSFORMNUMBERS[this[n]];
+
+                    // Copy parameters without conversion
+                    const m = n + (TRANSFORMLENGTHS[number] || 0);
+                    while (n++ < m) this[n] = arguments[n] || 0;
+                }
                 break;
             default:
                 this[2] = arguments[2];

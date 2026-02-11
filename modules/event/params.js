@@ -34,3 +34,13 @@ export const PARAMNUMBERS = Object.entries(PARAMNAMES)
         object[value] = parseInt(key, 10);
         return object;
     }, {});
+
+/**
+toParamName(value)
+Converts a param name or number to a param name string.
+**/
+export function toParamName(value) {
+    return typeof value === 'number' ?
+        (PARAMNAMES[value] || value) :
+        value;
+}

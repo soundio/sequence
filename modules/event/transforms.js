@@ -25,3 +25,13 @@ export const TRANSFORMLENGTHS = {
     4: 1, // quantize   TBD
     5: 1  // transpose  value
 };
+
+/**
+toTransformName(value)
+Converts a transform name or number to a transform name string.
+**/
+export function toTransformName(value) {
+    return typeof value === 'number' ?
+        (TRANSFORMNAMES[value] || value) :
+        value;
+}

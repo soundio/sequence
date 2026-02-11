@@ -1,3 +1,5 @@
+
+import { rflatsharp, toUnicode } from '../pitch.js';
 import mirror from '../object/mirror.js';
 
 export const CHORDNUMBERS = {
@@ -44,3 +46,13 @@ export const CHORDNUMBERS = {
 };
 
 export const CHORDNAMES = mirror(CHORDNUMBERS);
+
+/**
+toChordName(value)
+Converts a chord name or number to a chord name string.
+**/
+export function toChordName(value) {
+    return typeof value === 'number' ?
+        (CHORDNAMES[value] || value) :
+        CHORDNAMES[CHORDNUMBERS[value.replaceAll(rflatsharp, toUnicode)]];
+}

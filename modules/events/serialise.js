@@ -4,6 +4,7 @@ import { TYPENUMBERS, TYPEBYTES }      from '../event/types.js';
 import { TRANSFORMNUMBERS, TRANSFORMBYTES, TRANSFORMLENGTHS } from '../event/transforms.js';
 import { CHORDNUMBERS }     from '../event/chords.js';
 import { PARAMNUMBERS }     from '../event/params.js';
+import { CURVEBITS }        from './address.js';
 
 
 /**
@@ -25,10 +26,7 @@ function truncateUTF8(bytes, maxLength) {
     // Walk backwards from maxLength to find start of last complete character
     // UTF-8 continuation bytes have pattern 10xxxxxx (0x80-0xBF)
     let i = maxLength;
-    while (i > 0 && (bytes[i] & 0xC0) === 0x80) {
-        i--;
-    }
-
+    while (i > 0 && (bytes[i] & 0xC0) === 0x80) i--;
     return bytes.slice(0, i);
 }
 
@@ -106,13 +104,13 @@ export default function serialise(events) {
                 break;
 
             case 'param': {
-                const nameId = typeof event[2] === 'string' ? (PARAMNUMBERS[event[2]] || 0) : event[2];
-                view.setUint16(offset, nameId, true);         // name
+                const paramNumber = typeof event[2] === 'string' ? (PARAMNUMBERS[event[2]] || 0) : event[2];
+                const curveNumber = typeof event[4] === 'string' ? (CURVENUMBERS[event[4]] || 0) : event[4];
+                const address = (paramNumber << CURVEBITS) | curveNumber;
+                view.setUint16(offset, address, true);        // address (param + curve)
                 view.setFloat32(offset + 2, event[3], true);  // value
-                const c = CURVENUMBERS[event[4]] ?? 0;
-                buffer[offset + 6] = c;                 // curve
-                view.setFloat64(offset + 7, event[5] || 0, true); // duration
-                offset += 15;
+                view.setFloat64(offset + 6, event[5] || 0, true); // duration
+                offset += 14;
                 break;
             }
 
@@ -165,35 +163,36 @@ export default function serialise(events) {
                 let i = 4;
                 while (++i < event.length) {
                     const transformName = event[i];
-                    const n = TRANSFORMNUMBERS[transformName];
-                    if (n === undefined) {
-                        throw new Error(`Unknown transform type: ${ transformName }`);
-                    }
+                    const n = typeof transformName === 'string' ?
+                        TRANSFORMNUMBERS[transformName] :
+                        transformName;
+
+                    if (n === undefined) throw new Error(`Unknown transform type: ${ transformName }`);
 
                     buffer[offset] = n;
                     offset += 1;
 
-                    // Write parameters based on transform type
-                    switch(transformName) {
-                        case 'displace':
+                    // Write parameters based on transform number
+                    switch(n) {
+                        case TRANSFORMNUMBERS['displace']:
                             view.setFloat64(offset, event[i + 1], true);
                             offset += 8;
                             break;
 
-                        case 'rate':
-                        case 'gain':
-                        case 'quantize':
+                        case TRANSFORMNUMBERS['rate']:
+                        case TRANSFORMNUMBERS['gain']:
+                        case TRANSFORMNUMBERS['quantize']:
                             view.setFloat32(offset, event[i + 1], true);
                             offset += 4;
                             break;
 
-                        case 'transpose':
+                        case TRANSFORMNUMBERS['transpose']:
                             view.setInt8(offset, event[i + 1]);
                             offset += 1;
                             break;
 
                         default:
-                            throw new Error(`Unknown transform type: ${ transformName }`);
+                            throw new Error(`Unknown transform number: ${ n }`);
                     }
 
                     i += TRANSFORMLENGTHS[n];

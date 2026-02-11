@@ -1,9 +1,7 @@
 
 import { TYPENAMES }      from '../event/types.js';
-import { TRANSFORMNAMES } from '../event/transforms.js';
-import { CURVENAMES }     from '../event/curves.js';
-import { CHORDNAMES }     from '../event/chords.js';
-import { PARAMNAMES }     from '../event/params.js';
+import { TRANSFORMNUMBERS } from '../event/transforms.js';
+import { toParamNumber, toCurveNumber } from './address.js';
 import Event              from '../event.js';
 
 
@@ -53,23 +51,21 @@ export default function deserialise(buffer) {
                 break;
 
             case 'param': {
-                const nameNumber = view.getUint16(offset, true);
-                const name = PARAMNAMES[nameNumber] || nameNumber;
+                const address = view.getUint16(offset, true);
+                const paramNumber = toParamNumber(address);
                 const value = view.getFloat32(offset + 2, true);
-                const curveNumber = buffer[offset + 6];
-                const curve = CURVENAMES[curveNumber];
-                const duration = view.getFloat64(offset + 7, true);
-                event = Event.from([beat, type, name, value, curve, duration]);
-                offset += 15;
+                const curveNumber = toCurveNumber(address);
+                const duration = view.getFloat64(offset + 6, true);
+                event = Event.of(beat, type, paramNumber, value, curveNumber, duration);
+                offset += 14;
                 break;
             }
 
             case 'rate': {
                 const rate = view.getFloat32(offset, true);
                 const curveNumber = buffer[offset + 4];
-                const curve = curveNumber ? (CURVENAMES[curveNumber] ?? 'linear') : undefined;
                 const duration = view.getFloat64(offset + 5, true);
-                event = Event.from([beat, type, rate, curve, duration]);
+                event = Event.of(beat, type, rate, curveNumber, duration);
                 offset += 13;
                 break;
             }
@@ -87,10 +83,9 @@ export default function deserialise(buffer) {
             case 'chord': {
                 const root = buffer[offset];
                 const modeNumber = buffer[offset + 1];
-                const mode = CHORDNAMES[modeNumber] || modeNumber;
                 const duration = view.getFloat64(offset + 2, true);
                 const bass = buffer[offset + 10];
-                event = Event.from([beat, type, root, mode, duration, bass]);
+                event = Event.of(beat, type, root, modeNumber, duration, bass);
                 offset += 11;
                 break;
             }
@@ -115,34 +110,29 @@ export default function deserialise(buffer) {
                     const transformNumber = buffer[offset];
                     offset += 1;
 
-                    const transformName = TRANSFORMNAMES[transformNumber];
-                    if (transformName === undefined) {
-                        throw new Error(`Unknown transform type number: ${ transformNumber }`);
-                    }
+                    params.push(transformNumber);
 
-                    params.push(transformName);
-
-                    // Read parameters based on transform type
-                    switch(transformName) {
-                        case 'displace':
+                    // Read parameters based on transform number
+                    switch(transformNumber) {
+                        case TRANSFORMNUMBERS['displace']:
                             params.push(view.getFloat64(offset, true));
                             offset += 8;
                             break;
 
-                        case 'rate':
-                        case 'gain':
-                        case 'quantize':
+                        case TRANSFORMNUMBERS['rate']:
+                        case TRANSFORMNUMBERS['gain']:
+                        case TRANSFORMNUMBERS['quantize']:
                             params.push(view.getFloat32(offset, true));
                             offset += 4;
                             break;
 
-                        case 'transpose':
+                        case TRANSFORMNUMBERS['transpose']:
                             params.push(view.getInt8(offset));
                             offset += 1;
                             break;
 
                         default:
-                            throw new Error(`Unknown transform type: ${ transformName }`);
+                            throw new Error(`Unknown transform number: ${ transformNumber }`);
                     }
                 }
                 event = Event.from(params);
