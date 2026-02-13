@@ -4,10 +4,10 @@ import { toNoteNumber } from 'midi/note.js';
 import SequenceIterator, { insert } from './sequence-iterator.js';
 import Event     from './event.js';
 import deserialise from './events/deserialise.js';
-import serialise, { VERSION } from './events/serialise.js';
-//import lexicon from '../lexicons/io.sound.sequence.json' with { type: 'json' };
+
 
 const assign = Object.assign;
+
 
 function validate(schema, object) {
 
@@ -60,17 +60,6 @@ export default class Sequence {
 
     select(beat, type) {
         return this.events.filter(matches({ 0: beat, 1: type }));
-    }
-
-    toJSON() {
-        // Validate against schema
-        //validate(lexicon.defs.main.record.properties, this);
-
-        return assign({}, this, {
-            version:   VERSION,
-            events:    serialise(this.events),
-            sequences: this.sequences ? this.sequences.map(toJSON) : undefined
-        });
     }
 
     static of(...events) {
