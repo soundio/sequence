@@ -12,9 +12,9 @@
         "required": ["events"],
         "properties": {
           "id": {
-            "type": "string",
+            "type": "integer",
             "description": "Identifies this sequence for playback by a \"sequence\" event.",
-            "maxLength": 36
+            "maximum": 65535
           },
           "url": {
             "type": "string",
@@ -27,18 +27,14 @@
             "maxLength": 1280,
             "maxGraphemes": 640
           },
+          "version": {
+            "type": "integer",
+            "description": "Version number for the byte array encoding of the events field."
+          },
           "events": {
-            "type": "array",
-            "description": "Array of events",
-            "items": {
-              "type": "array",
-              "description": "An event of the form `[beat, type, ...params]` where `beat` is a 64-bit float and `type` is a string. \n\nBeat values are arbitrary, and depend on the rate of playback of a sequence. A sequence playing back at a rate of 1 runs at 1 beat per second, and is following absolute time. \n\nKnown specified types are \"chord\", \"clef\", \"key\", \"meter\", \"note\", \"param\", \"rate\", \"sequence\", \"start\", \"stop\" and \"text\". Additional parameters depend on `type`. Types are not limited to those specified and consumers are expected to ignore event types they do not support.",
-              "minLength": 2,
-              "maxLength": 128,
-              "items": {
-                "type": "unknown"
-              }
-            }
+            "type": "bytes",
+            "description": "Array of events serialised and binary encoded.",
+            "maxLength": 524288
           },
           "sequences": {
             "type": "array",

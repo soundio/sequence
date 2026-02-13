@@ -8,6 +8,9 @@ import { PARAMNUMBERS }     from '../event/params.js';
 import { packAddress }      from './address.js';
 
 
+export const VERSION = 1;
+
+
 /**
 serialise(events)
 Serialises an array of events to a Uint8Array binary format.
