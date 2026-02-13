@@ -1,20 +1,12 @@
-export const rflatsharp = /b|#/g;
+export const rflatsharp = /b{1,2}|#{1,2}/g;
 
 const flatsharps = {
     'b': '♭',
-    '#': '♯'
+    '#': '♯',
+    'bb': '𝄫',
+    '##':  '𝄪'
 };
 
 export function toUnicode(char) {
     return flatsharps[char];
-}
-
-/**
-fifthsToKeyName(fifths)
-Convert circle of fifths (-7 to 7) to key name.
-**/
-
-export function fifthsToKeyName(fifths) {
-    const keys = ['Cb', 'Gb', 'Db', 'Ab', 'Eb', 'Bb', 'F', 'C', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
-    return keys[fifths + 7] || 'C';
 }

@@ -59,15 +59,6 @@ export function toCurveNumber(address) {
 }
 
 /**
-toTypeName(address)
-Extracts the type name string from packed address (for route 0).
-**/
-export function toTypeName(address) {
-    const nameNumber = toParamNumber(address);
-    return TYPENAMES[nameNumber] || nameNumber;
-}
-
-/**
 toParamName(address)
 Extracts the param name string from packed address (for route 1).
 **/

@@ -1,23 +1,23 @@
 
-import { TYPENAMES }      from '../event/types.js';
+import { TYPENUMBERS, TYPEBYTES } from '../event/types.js';
 import { TRANSFORMNUMBERS } from '../event/transforms.js';
-import { toRoute, toParamNumber, toTypeName, toParamName, toCurveName } from './address.js';
-import Event              from '../event.js';
+import { CURVENUMBERS, CURVEBYTES }     from '../event/curves.js';
+import { toRoute, toParamNumber, toCurveNumber } from './address.js';
+import Event from '../event.js';
 
 
 /**
 deserialise(buffer)
 Deserialises a Uint8Array binary format to an array of Sequence events.
-
-Event structure: beat(8) | address(2) | length(1) | values(variable)
-Address structure: route(2 bits) | name(10 bits) | curve(4 bits)
+Event structure: Float64 beat | Int16 address | data...
+Address structure: 2-bit route | 10-bit name | 4-bit curve
 **/
 
 export default function deserialise(buffer) {
-    const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+    const view   = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
     const events = [];
-    let offset = 0;
 
+    let offset = 0;
     while (offset < buffer.length) {
         // Read beat (float64)
         const beat = view.getFloat64(offset, true);
@@ -28,149 +28,245 @@ export default function deserialise(buffer) {
         offset += 2;
 
         const route = toRoute(address);
-        const nameNumber = toParamNumber(address);
-
-        // Read length (uint8)
-        const length = buffer[offset];
-        offset += 1;
+        const param = toParamNumber(address);
 
         // Read event data based on route
-        let event;
-
-        if (route === 0) {
+        switch (route) {
             // Route 0: sequence control event
-            const type = toTypeName(address);
-            if (type === undefined) {
-                throw new Error(`Unknown event type number: ${ nameNumber }`);
-            }
+            case 0:
+                switch (param) {
+                    case TYPENUMBERS['note']:
+                        events.push(Event.of(
+                            beat,
+                            param,
+                            view.getFloat32(offset, true),      // pitch
+                            view.getFloat32(offset + 4, true),  // dynamic
+                            view.getFloat64(offset + 8, true)   // duration
+                        ));
+                        offset += 16;
+                        break;
 
-            switch(type) {
-            case 'note':
-                event = Event.of(
-                    beat,
-                    type,
-                    view.getFloat32(offset, true),      // pitch
-                    view.getFloat32(offset + 4, true),  // dynamic
-                    view.getFloat64(offset + 8, true)   // duration
-                );
-                offset += 16;
-                break;
+                    case TYPENUMBERS['meter']:
+                        events.push(Event.of(
+                            beat,
+                            param,
+                            view.getFloat16(offset, true),      // duration
+                            view.getFloat16(offset + 2, true)   // divisor
+                        ));
+                        offset += 4;
+                        break;
 
-            case 'rate': {
-                const rate = view.getFloat32(offset, true);
-                const curveNumber = buffer[offset + 4];
-                const duration = view.getFloat64(offset + 5, true);
-                event = Event.of(beat, type, rate, curveNumber, duration);
-                offset += 13;
-                break;
-            }
+                    case TYPENUMBERS['chord']:
+                        events.push(Event.of(
+                            beat,
+                            param,
+                            buffer[offset],                     // root
+                            buffer[offset + 1],                 // modeNumber
+                            view.getFloat64(offset + 2, true),  // duration
+                            buffer[offset + 10]                 // bass
+                        ));
+                        offset += 11;
+                        break;
 
-            case 'meter':
-                event = Event.of(
-                    beat,
-                    type,
-                    view.getFloat16(offset, true),      // duration
-                    view.getFloat16(offset + 2, true)   // divisor
-                );
-                offset += 4;
-                break;
+                    case TYPENUMBERS['key']:
+                        events.push(Event.of(
+                            beat,
+                            param,
+                            view.getInt8(offset)
+                        ));
+                        offset += 1;
+                        break;
 
-            case 'chord': {
-                const root = buffer[offset];
-                const modeNumber = buffer[offset + 1];
-                const duration = view.getFloat64(offset + 2, true);
-                const bass = buffer[offset + 10];
-                event = Event.of(beat, type, root, modeNumber, duration, bass);
-                offset += 11;
-                break;
-            }
+                    case TYPENUMBERS['clef']:
+                        events.push(Event.of(
+                            beat,
+                            param,
+                            buffer[offset]
+                        ));
+                        offset += 1;
+                        break;
 
-            case 'key': {
-                const name = buffer[offset];
-                event = Event.of(beat, type, name);
-                offset += 1;
-                break;
-            }
+                    // id | target | duration | bytelength | transforms...
+                    case TYPENUMBERS['sequence']: {
+                        const id       = view.getUint16(offset, true);
+                        const target   = view.getUint16(offset + 2, true);
+                        const duration = view.getFloat64(offset + 4, true);
+                        const bytes    = buffer[offset + 12];
+                        const params   = [beat, param, id, target, duration];
+                        offset += 13;
 
-            case 'sequence': {
-                const id = view.getUint16(offset, true);
-                const target = view.getUint16(offset + 2, true);
-                const duration = view.getFloat64(offset + 4, true);
-                const params = [beat, type, id, target, duration];
-                offset += 12;
+                        // Read transforms
+                        let o = 0;
+                        while (o < bytes) {
+                            const number = buffer[offset + o];
+                            o += 1;
+                            params.push(number);
 
-                // Read transforms
-                const transformsEnd = offset + length - 12;
-                while (offset < transformsEnd) {
-                    const transformNumber = buffer[offset];
-                    offset += 1;
+                            // Read parameters based on transform number
+                            switch(number) {
+                                case TRANSFORMNUMBERS['displace']:
+                                    params.push(view.getFloat64(offset + o, true));
+                                    o += 8;
+                                    break;
 
-                    params.push(transformNumber);
+                                case TRANSFORMNUMBERS['rate']:
+                                case TRANSFORMNUMBERS['gain']:
+                                case TRANSFORMNUMBERS['quantize']:
+                                    params.push(view.getFloat32(offset + o, true));
+                                    o += 4;
+                                    break;
 
-                    // Read parameters based on transform number
-                    switch(transformNumber) {
-                        case TRANSFORMNUMBERS['displace']:
-                            params.push(view.getFloat64(offset, true));
-                            offset += 8;
-                            break;
+                                case TRANSFORMNUMBERS['transpose']:
+                                    params.push(view.getInt8(offset + o));
+                                    o += 1;
+                                    break;
 
-                        case TRANSFORMNUMBERS['rate']:
-                        case TRANSFORMNUMBERS['gain']:
-                        case TRANSFORMNUMBERS['quantize']:
-                            params.push(view.getFloat32(offset, true));
-                            offset += 4;
-                            break;
+                                default:
+                                    throw new Error(`Unknown transform number: ${ number }`);
+                            }
+                        }
 
-                        case TRANSFORMNUMBERS['transpose']:
-                            params.push(view.getInt8(offset));
-                            offset += 1;
-                            break;
+                        events.push(Event.from(params));
+                        offset += bytes;
+                        break;
+                    }
 
-                        default:
-                            throw new Error(`Unknown transform number: ${ transformNumber }`);
+                    // duration | bytelength | string...
+                    case TYPENUMBERS['text']: {
+                        const duration = view.getFloat64(offset, true);
+                        const bytes    = buffer[offset + 8];
+                        offset += 9;
+
+                        // Get string data
+                        const data = buffer.subarray(offset, offset + bytes);
+                        events.push(Event.of(
+                            beat,
+                            param,
+                            new TextDecoder().decode(data),
+                            duration
+                        ));
+                        offset += bytes;
+                        break;
+                    }
+
+                    case TYPENUMBERS['start']:
+                    case TYPENUMBERS['stop']:
+                        events.push(Event.of(
+                            beat,
+                            param,
+                            view.getFloat32(offset, true),      // pitch
+                            view.getFloat32(offset + 4, true)   // dynamic
+                        ));
+                        offset += 8;
+                        break;
+
+                    default: {
+                        // Default handler for route 0 events with variable-length encoding (rate, etc.)
+                        const curveNumber = toCurveNumber(address);
+
+                        switch (curveNumber) {
+                            case CURVENUMBERS['step']:
+                            case CURVENUMBERS['linear']:
+                            case CURVENUMBERS['exponential']:
+                                // step/linear/exponential: value(4) only
+                                events.push(Event.of(beat, param, view.getFloat32(offset, true), curveNumber));
+                                offset += 4;
+                                break;
+
+                            case CURVENUMBERS['target']:
+                                // target: value(4) + timeConstant(8)
+                                events.push(Event.of(
+                                    beat,
+                                    param,
+                                    view.getFloat32(offset, true),
+                                    curveNumber,
+                                    view.getFloat64(offset + 4, true)
+                                ));
+                                offset += 12;
+                                break;
+
+                            case CURVENUMBERS['curve']:
+                                // curve: duration(8) + bytelength(2) + arraydata(n * 4)
+                                const duration = view.getFloat64(offset, true);
+                                const bytes    = view.getUint16(offset + 8, true);
+                                offset += 10;
+
+                                if (bytes < 8) throw new Error(`Invalid bytes count ${ bytes } (must hold at least 2 * Float32 bytes)`);
+                                if (bytes % 4 !== 0) throw new Error(`Invalid bytes count ${ bytes } (must hold n * Float32 bytes)`);
+
+                                // Copy bytes to new aligned buffer and create Float32Array
+                                const slice = buffer.slice(offset, offset + bytes);
+                                const values = new Float32Array(slice.buffer);
+                                offset += bytes;
+
+                                events.push(Event.of(beat, param, values, curveNumber, duration));
+                                break;
+
+                            default: // hold/cancel
+                                events.push(Event.of(beat, param, undefined, curveNumber));
+                                break;
+                        }
+                        break;
                     }
                 }
-                event = Event.from(params);
+
+                break;
+
+            // Route 1: param event
+            case 1: {
+                const number = toCurveNumber(address);
+
+                switch (number) {
+                    case CURVENUMBERS['step']:
+                    case CURVENUMBERS['linear']:
+                    case CURVENUMBERS['exponential']:
+                        // step/linear/exponential: value(4) only
+                        events.push(Event.of(beat, 'param', param, view.getFloat32(offset, true), number));
+                        offset += 4;
+                        break;
+
+                    case CURVENUMBERS['target']:
+                        // target: value(4) + timeConstant(8)
+                        events.push(Event.of(
+                            beat,
+                            'param',
+                            param,
+                            view.getFloat32(offset, true),
+                            number,
+                            view.getFloat64(offset + 4, true)
+                        ));
+                        offset += 12;
+                        break;
+
+                    case CURVENUMBERS['curve']:
+                        // curve: duration(8) + bytelength(2) + arraydata(n * 4)
+                        const duration = view.getFloat64(offset, true);
+                        const bytes    = view.getUint16(offset + 8, true);
+                        offset += 10;
+
+                        if (bytes < 8) throw new Error(`Invalid bytes count ${ bytes } (must hold at least 2 * Float32 bytes)`);
+                        if (bytes % 4 !== 0) throw new Error(`Invalid bytes count ${ bytes } (must hold n * Float32 bytes)`);
+
+                        // Copy bytes to new aligned buffer and create Float32Array
+                        const slice = buffer.slice(offset, offset + bytes);
+                        const values = new Float32Array(slice.buffer);
+                        offset += bytes;
+
+                        events.push(Event.of(beat, 'param', param, values, number, duration));
+                        break;
+
+                    // hold/cancel
+                    default:
+                        events.push(Event.of(beat, 'param', param, undefined, number));
+                        break;
+                }
                 break;
             }
-
-            case 'text': {
-                const duration = view.getFloat64(offset, true);
-                const stringLength = length - 8;
-                const stringBytes = buffer.subarray(offset + 8, offset + 8 + stringLength);
-                const string = new TextDecoder().decode(stringBytes);
-                event = Event.of(beat, type, string, duration);
-                offset += 8 + stringLength;
-                break;
-            }
-
-            case 'start':
-            case 'stop':
-                event = Event.of(
-                    beat,
-                    type,
-                    view.getFloat32(offset, true),      // pitch
-                    view.getFloat32(offset + 4, true)   // dynamic
-                );
-                offset += 8;
-                break;
 
             default:
-                throw new Error(`Unhandled event type: ${ type }`);
-            }
-        } else if (route === 1) {
-            // Route 1: param event
-            const paramNumber = nameNumber;
-            const curveNumber = toCurveName(address);
-            const value = view.getFloat32(offset, true);
-            const duration = view.getFloat64(offset + 4, true);
-            event = Event.of(beat, 'param', paramNumber, value, curveNumber, duration);
-            offset += 12;
-        } else {
-            throw new Error(`Unknown route: ${ route }`);
+                throw new Error(`Cannot deserialise unknown address ${ route }.${ param }.${ toCurveNumber(address) }`);
+                break;
         }
-
-        events.push(event);
     }
 
     return events;

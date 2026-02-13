@@ -3,9 +3,10 @@ import { toNoteName, toNoteNumber, toRootName, toRootNumber } from 'midi/note.js
 import parseGain from './parse/parse-gain.js';
 import mod12     from './number/mod-12.js';
 import { rflatsharp, toUnicode } from './pitch.js';
-import { toCurveName }    from './event/curves.js';
-import { toChordName }    from './event/chords.js';
-import { toParamName }    from './event/params.js';
+import { toTypeName }  from './event/types.js';
+import { toCurveName } from './event/curves.js';
+import { toChordName } from './event/chords.js';
+import { toParamName } from './event/params.js';
 import { toTransformName, TRANSFORMNUMBERS, TRANSFORMLENGTHS } from './event/transforms.js';
 
 
@@ -33,22 +34,22 @@ function getEvent(event) {
 export default class Event {
     constructor(beat, type) {
         this[0] = beat;
-        this[1] = type;
+        this[1] = toTypeName(type);
 
         // Normalise event data
-        switch (type) {
+        switch (this[1]) {
             case "chord":
                 // Chord root number
                 this[2] = toRootNumber(arguments[2]);
                 // Chord extension - handle number or string
                 this[3] = toChordName(arguments[3]);
                 // Duration
-                this[4] = arguments[4];
+                this[4] = arguments[4] || 0;
                 // Chord bass
                 if (arguments[5]) this[5] = arguments[5] || 0;
                 break;
             case "lyric":
-                // Warn user over pold version
+                // Warn user over old version
                 console.warn('Old data contains "lyric" event, should be "text"');
                 // Set type to "text"
                 this[1] = "text";
@@ -68,7 +69,7 @@ export default class Event {
                 // Gain
                 this[3] = parseGain(arguments[3]);
                 // Duration
-                this[4] = arguments[4];
+                this[4] = arguments[4] || 0;
                 break;
             case "rate":
                 // Rate
@@ -94,7 +95,7 @@ export default class Event {
                 // Target
                 this[3] = arguments[3];
                 // Duration
-                this[4] = arguments[4];
+                this[4] = arguments[4] || 0;
                 // Transforms
                 let n = 5;
                 while(arguments[n] !== undefined) {
@@ -110,6 +111,14 @@ export default class Event {
                     while (n++ < m) this[n] = arguments[n] || 0;
                 }
                 break;
+            case "start":
+            case "stop":
+                // Note number
+                this[2] = toNoteNumber(arguments[2]);
+                // Gain
+                this[3] = parseGain(arguments[3]);
+                break;
+
             default:
                 this[2] = arguments[2];
                 this[3] = arguments[3];

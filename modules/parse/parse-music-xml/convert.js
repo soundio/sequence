@@ -12,7 +12,7 @@ import { toNoteNumber } from 'midi/note.js';
 import parseGain from '../../parse/parse-gain.js';
 import toGain from 'fn/to-gain.js';
 import dB from 'fn/to-db.js';
-import { fifthsToKeyName } from '../../pitch.js';
+import { toKeyName } from '../../event/keys.js';
 import { clefToName } from './clef.js';
 
 
@@ -40,7 +40,7 @@ export default function convertToEvents(parts, sections) {
     if (firstMeasure) {
         // Initial key
         if (firstMeasure.key) {
-            const keyName = fifthsToKeyName(firstMeasure.key.fifths);
+            const keyName = toKeyName(firstMeasure.key.fifths);
             mainEvents.push([0, 'key', keyName]);
         }
 
