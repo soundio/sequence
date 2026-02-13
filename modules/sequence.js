@@ -3,6 +3,7 @@ import matches from 'fn/matches.js';
 import { toNoteNumber } from 'midi/note.js';
 import SequenceIterator, { insert } from './sequence-iterator.js';
 import Event     from './event.js';
+import deserialise from './events/deserialise.js';
 import serialise, { VERSION } from './events/serialise.js';
 //import lexicon from '../lexicons/io.sound.sequence.json' with { type: 'json' };
 
