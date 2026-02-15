@@ -5,7 +5,7 @@ import mod12     from './number/mod-12.js';
 import { rflatsharp, toUnicode } from './pitch.js';
 import { toTypeName }  from './event/types.js';
 import { toCurveName } from './event/curves.js';
-import { toChordName } from './event/chords.js';
+import { toHSID, toHSName }      from './event/chords.js';
 import { toParamName } from './event/params.js';
 import { toTransformName, TRANSFORMNUMBERS, TRANSFORMLENGTHS } from './event/transforms.js';
 
@@ -39,20 +39,15 @@ export default class Event {
         // Normalise event data
         switch (this[1]) {
             case "chord":
-                // Chord root number
+                // Root number
                 this[2] = toRootNumber(arguments[2]);
-                // Chord extension - handle number or string
-                this[3] = toChordName(arguments[3]);
+                // Harmonic structure id - handle number or name string
+                this[3] = toHSID(arguments[3]);
                 // Duration
                 this[4] = arguments[4] || 0;
                 // Chord bass
                 if (arguments[5]) this[5] = arguments[5] || 0;
                 break;
-            case "lyric":
-                // Warn user over old version
-                console.warn('Old data contains "lyric" event, should be "text"');
-                // Set type to "text"
-                this[1] = "text";
             case "text":
                 // String
                 this[2] = arguments[2];
@@ -176,7 +171,7 @@ export default class Event {
             case "chord":
                 string += ' ' + toRootName(this[2])
                     // Extension
-                    + ' ' + this[3]
+                    + ' ' + toHSName(this[3])
                     // Duration
                     + ' ' + stringify(this[4]);
                 break;

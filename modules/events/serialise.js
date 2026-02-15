@@ -8,7 +8,7 @@ import { PARAMNUMBERS }     from '../event/params.js';
 import { packAddress }      from './address.js';
 
 
-export const VERSION = 1;
+export const VERSION = 0;
 
 
 /**
@@ -193,12 +193,12 @@ export default function serialise(events) {
             case 'chord': {
                 const rootId = typeof event[2] === 'number' ? event[2] : 0;
                 buffer[offset] = rootId;                      // root
-                const modeId = typeof event[3] === 'string' ? (CHORDNUMBERS[event[3]] || 0) : event[3];
-                buffer[offset + 1] = modeId;                  // mode
-                view.setFloat64(offset + 2, event[4], true);  // duration
+                const hsId   = typeof event[3] === 'string' ? (CHORDNUMBERS[event[3]] || 0) : event[3];
+                view.setFloat64(offset + 1, hsId, true);      // hsid
+                view.setFloat64(offset + 9, event[4], true);  // duration
                 const bassId = typeof event[5] === 'number' ? event[5] : 0;
-                buffer[offset + 10] = bassId;                 // bass
-                offset += 11;
+                buffer[offset + 17] = bassId;                 // bass
+                offset += 18;
                 break;
             }
 

@@ -1,11 +1,16 @@
-# Sequence JSON
+# Sequence
 
-A simple format for representing sequences of timed events in JSON.
+Sequence data is a structure for storing and transmitting sequences of timed
+events such as music. Sequence data defines a minimal set of events carrying
+information needed to control the WebAudio API, a superset of the information
+transmittable via MIDI or OSC.
 
-This format defines a minimal set of events that get music working, with the
-objective of supporting applications of the WebAudio and WebMIDI APIs. However
-it is designed to be extensible so that it has further applications. Consumers
-of Sequence JSON are expected to silently ignore unsupported event types.
+Consumers of Sequence data are expected to silently ignore unsupported event
+types, allowing the set of event types to be extended for other applications.
+
+This repository contains a reference implementation of an iterable `Sequence`
+object and `Event` object, an events serializer, and a lexicon schema for
+publishing sequences as PDS records on the ATProtocol.
 
 
 ## Concepts
@@ -13,8 +18,12 @@ of Sequence JSON are expected to silently ignore unsupported event types.
 The Sequence format defines two data structures, a Sequence object and an Events
 array.
 
-SequenceJSON describes all times and durations in beats. Beat values are arbitrary, and depend on the rate of playback
-of a sequence. A sequence playing back at a rate of `1` is running at 1 beat per second, so it is following absolute time.
+Sequence data describes all times and durations in beats. Beat values are
+arbitrary, and depend on the rate of playback of a sequence.
+
+> [!NOTE]
+> A sequence playing back at a rate of `1` is running at 1 beat per second, so
+> it is following absolute time.
 
 ## Example JSON
 
@@ -99,7 +108,7 @@ The event type, determines the length of the event array and the structure of th
 | `beat` | `"param"`    | `name` | `value` | `curve` | `duration` |
 | `beat` | `"rate"`     | `number` |  |  |  |
 | `beat` | `"meter"`    | `duration` | `divisor` |  |  |
-| `beat` | `"chord"`    | `root` | `mode` | `duration` |  |
+| `beat` | `"chord"`    | `root` | `id` | `duration` |  |
 | `beat` | `"key"`      | `name` |  |  |  |
 | `beat` | `"sequence"` | `id` | `target` | `duration` |  |
 | `beat` | `"text"`     | `string` | `duration` |  |  |
@@ -222,27 +231,46 @@ Where here it is invalid:
 [2, "meter", 3, 1]
 ```
 
-Consumers may choose to recover from invalid `"meter"` events by pushing them to the start of the following bar,
-or choose to throw an error.
+Consumers may choose to recover from invalid `"meter"` events by pushing them to
+the start of the following bar, or choose to throw an error.
 
-Meter events have no effect on the rate of the beat clock (although they may have an effect on a metronome or
-rhythm generator). Where no `"meter"` event is defined at beat `0` consumers should assume a default meter of
-4/4 - ie, `[0, "meter", 4, 1]`.
+Meter events have no effect on the rate of the beat clock (although they may
+have an effect on a metronome or rhythm generator). Where no `"meter"` event is
+defined at beat `0` consumers should assume a default meter of 4/4 - ie,
+`[0, "meter", 4, 1]`.
+
 
 ---
 
 ### `"chord"`
 
 ```js
-[beat, "chord", root, mode, duration]
+[beat, "chord", root, id, duration]
 ```
 
 `root` – INT [0-11] | STRING ["A♭"-"G♯"], represents the root of a chord.
 Where `root` is a number it represents root note as a MIDI number `0-11`.
-Where `root` is a string it must be a root note name, ie. `C`, `C♯`, `D` ... `A`, `B♭`, `B`.
+Where `root` is a string it must be a root note name, ie. `C`, `C♯`, `D` ...
+`A`, `B♭`, `B`.
 
-`chord` – STRING, represents the mode of a chord.
-The mode identifier may be arbitrary, but these mode names have fixed meanings:
+`id` – INT, represents a harmonic structure.
+A **harmonic structure id** (HSID) is an integer that identifies, can be encoded
+from, and can be decoded to, a collection of note numbers. All chords, modes and
+scales, and a huge number of larger harmonic structures, have an HSID. A
+`"chord"` event is capable of carrying much more information than just a chord.
+
+HSIDs encode successive intervals between notes from an array of ascending note
+numbers into 5-bit blocks. In JavaScript, 64-bit numbers safely carry 53-bit
+integers. This imposes 2 limitations:
+
+- Consecutive note numbers can not have an interval any greater than 31 semitones (5 bits)
+- Harmonic structures are limited to 11 note numbers (10 intervals)
+
+> [!TIP]
+> Using BigInts it is possible to identify an arbitrary number of notes. The
+> events serializer in this repo does not support BigInts.
+
+These chord names have fixed meanings:
 
 | Symbol     | Meaning |
 | :--------- | :----------------------------------- |
@@ -266,8 +294,6 @@ The mode identifier may be arbitrary, but these mode names have fixed meanings:
 
 `duration` – FLOAT, the duration of the chord in beats.
 
-A chord event provides information about the root and mode of the music. A chord event can
-be interpreted by a music generator, or used by a notation renderer to display chord symbols.
 
 ---
 

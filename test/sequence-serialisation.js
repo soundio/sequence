@@ -1,5 +1,5 @@
 
-import Sequence from '../modules/sequence.js';
+import Sequence from '../module.js';
 import { VERSION } from '../modules/events/serialise.js';
 
 // Simple validation tests - just check the structure is correct
@@ -8,7 +8,7 @@ const sequence = new Sequence([
     [2, 'note', 72, 0.6, 1.5]
 ]);
 
-const json = sequence.toJSON();
+const json = Sequence.toRecord(sequence);
 
 // Test version
 console.assert(json.version === VERSION, 'Version should match');

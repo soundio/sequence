@@ -3,15 +3,10 @@ import matches from 'fn/matches.js';
 import { toNoteNumber } from 'midi/note.js';
 import SequenceIterator, { insert } from './sequence-iterator.js';
 import Event     from './event.js';
-import deserialise from './events/deserialise.js';
 
 
 const assign = Object.assign;
 
-
-function validate(schema, object) {
-
-}
 
 function toJSON(object) {
     return object.toJSON();
@@ -23,10 +18,7 @@ function toPriority(event) {
 
 export default class Sequence {
     constructor(events, sequences) {
-        this.events =
-            events instanceof Uint8Array ? deserialise(events) :
-            events ;
-
+        this.events = events;
         if (sequences) this.sequences = sequences.map(Sequence.from);
     }
 

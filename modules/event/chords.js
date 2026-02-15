@@ -1,58 +1,68 @@
 
 import { rflatsharp, toUnicode } from '../pitch.js';
 import mirror from '../object/mirror.js';
+import { hsidOf, hsidFrom, hsidToNotes } from './hsid.js';
+
 
 export const CHORDNUMBERS = {
     // Triads
-    'maj':       1,
-    'min':       2,
-    'dim':       4,
+    'sus4':      hsidOf(0, 5, 7),
+    'sus':       hsidOf(0, 5, 7),
+    'maj':       hsidOf(0, 4, 7),
+    'min':       hsidOf(0, 3, 7),
+    'dim':       hsidOf(0, 3, 6),
     // Major scale
-    'maj7':      5,
-    'min7':      6,
-    'sus♭9':     7,
-    '7sus♭9':    7,
-    'maj7♯11':   8,
-    'maj7(♯11)': 8,
-    '7':         9,
-    '9':         10,
-    '13':        11,
-    'sus':       12,
-    'sus4':      12,
-    '7sus':      12,
-    '7sus4':     12,
-    'min♭6':     13,
-    'ø':         14,
-    // Melodic minor
-    '-∆':        16,
-    '13sus♭9':   17,
-    'maj+':      18,
-    'maj♯4♯5':   18,
-    '7♯11':      19,
-    '7♭13':      20,
-    'ø(9)':      21,
-    '7alt':      22,
+    'maj7♯11':   hsidOf(0, 4, 6, 7, 11),
+    'maj7':      hsidOf(0, 4, 7, 11),
+    '7':         hsidOf(0, 4, 7, 10),
+    '9':         hsidOf(0, 2, 4, 7, 10),
+    '13':        hsidOf(0, 4, 7, 9, 10),
+    '7sus':      hsidOf(0, 5, 7, 10),
+    '7sus4':     hsidOf(0, 5, 7, 10),
+    'min7':      hsidOf(0, 3, 7, 10),
+    'min♭6':     hsidOf(0, 3, 7, 8, 10),
+    'sus♭9':     hsidOf(0, 1, 5, 7, 10),
+    '7sus♭9':    hsidOf(0, 1, 5, 7, 10),
+    'ø':         hsidOf(0, 3, 6, 10),
+    // Melodic minor modes
+    '-∆':        hsidOf(0, 2, 3, 5, 7, 9, 11),
+    '13sus♭9':   hsidOf(0, 1, 3, 5, 7, 9, 10),
+    'maj+':      hsidOf(0, 2, 4, 6, 8, 9, 11),
+    'maj♯4♯5':   hsidOf(0, 2, 4, 6, 8, 9, 11),
+    '7♯11':      hsidOf(0, 2, 4, 6, 7, 9, 11),
+    '7♭13':      hsidOf(0, 2, 4, 5, 7, 8, 10),
+    'ø9':        hsidOf(0, 2, 3, 5, 6, 8, 10),
+    '7alt':      hsidOf(0, 1, 3, 4, 6, 8, 10),
     // Harmonic minor
-    '7♭9♭13':    32,
+    '7♭9♭13':    hsidOf(0, 1, 4, 5, 7, 8, 10),
     // Harmonic major
-    'maj♭6':     33,
+    'maj♭6':     hsidOf(0, 4, 7, 8, 11),
     // Diminished
-    '7♭9':       48,
-    '7♯9':       49,
-    'dim7':      50,
+    '7♭9':       hsidOf(0, 1, 4, 7, 10),
+    '7♯9':       hsidOf(0, 3, 4, 7, 10),
+    'dim7':      hsidOf(0, 3, 6, 9),
     // Whole tone
-    '+':         64,
-    '7+':        64
+    '+':         hsidOf(0, 4, 8),
+    '7+':        hsidOf(0, 2, 4, 6, 8, 10)
 };
 
 export const CHORDNAMES = mirror(CHORDNUMBERS);
 
 /**
-toChordName(value)
-Converts a chord name or number to a chord name string.
+toHSID(value)
+Converts a chord name or harmonic structure of note numbers to an HSID.
 **/
-export function toChordName(value) {
-    return typeof value === 'number' ?
-        (CHORDNAMES[value] || value) :
-        CHORDNAMES[CHORDNUMBERS[value.replaceAll(rflatsharp, toUnicode)]];
+
+export function toHSID(value) {
+    return typeof value === 'string' ?
+            CHORDNUMBERS[value.replaceAll(/\(\)/g, '').replaceAll(rflatsharp, toUnicode)] :
+        typeof value === 'object' ?
+            hsidFrom(value) :
+        value ;
+}
+
+
+export function toHSName(value) {
+    const hsid = toHSID(value);
+    return CHORDNAMES[hsid] || hsidToNotes(hsid);
 }

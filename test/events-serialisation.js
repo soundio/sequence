@@ -22,7 +22,7 @@ run('Serialise "note" events', [
 run('Serialise "meter", "chord", "key" events', [
     [0, 'meter', 4, 1],
     [0, 'key', 2],
-    [4, 'chord', 0, 'min7', 4],
+    [4, 'chord', 0, 3203, 4], // min7 chord symbol serializes to harmonic ID 3203
 ], (test, done) => {
     const buffer = serialise([
         [0, 'meter', 4, 1],

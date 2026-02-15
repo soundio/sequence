@@ -60,12 +60,12 @@ export default function deserialise(buffer) {
                         events.push(Event.of(
                             beat,
                             param,
-                            buffer[offset],                     // root
-                            buffer[offset + 1],                 // modeNumber
-                            view.getFloat64(offset + 2, true),  // duration
-                            buffer[offset + 10]                 // bass
+                            buffer[offset],                      // root
+                            view.getFloat64(offset + 1, true),   // hsId (harmonic structure id)
+                            view.getFloat64(offset + 9, true),   // duration
+                            buffer[offset + 17]                  // bass
                         ));
-                        offset += 11;
+                        offset += 18;
                         break;
 
                     case TYPENUMBERS['key']:
