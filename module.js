@@ -1,10 +1,8 @@
+import Event       from './modules/event.js';
 import Sequence    from './modules/sequence.js';
 import deserialise from './modules/events/deserialise.js';
 import serialise, { VERSION } from './modules/events/serialise.js';
 //import lexicon from '../lexicons/io.sound.sequence.json' with { type: 'json' };
-
-export { Event } from './modules/event.js';
-export { Sequence };
 
 
 const assign = Object.assign;
@@ -65,3 +63,6 @@ Sequence.toRecord = function toRecord(sequence) {
 Sequence.prototype.toRecord = function() {
     return Sequence.toRecord(this);
 };
+
+
+export { Event, Sequence };
