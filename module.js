@@ -7,6 +7,13 @@ import serialise, { VERSION } from './modules/events/serialise.js';
 const assign = Object.assign;
 //const schema = lexicon.defs.main.record.properties;
 
+/**
+Sequence.version
+A version number for the revision of the sequence spec this Sequence object
+implements.
+**/
+Sequence.version = VERSION;
+
 
 /**
 Sequence.fromRecord(record);
@@ -43,7 +50,7 @@ Sequence.toRecord = function toRecord(sequence) {
     //validate(schema, this);
 
     return assign({}, sequence, {
-        version:   VERSION,
+        version:   Sequence.version,
         events:    serialise(sequence.events),
         sequences: sequence.sequences ? sequence.sequences.map(toRecord) : undefined
     });

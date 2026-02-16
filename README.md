@@ -1,7 +1,8 @@
 # Sequence
 
 Sequence data is a structure for storing and transferring sequences of timed
-events – such as music.
+events – such as music. Sequences can be stringified to human readable JSON or
+serialized to binary data.
 
 Sequence data defines a minimal set of events closely aligned with the features
 needed to control the WebAudio API, transmittable via MIDI 1.0 (with some
@@ -9,15 +10,13 @@ resolution loss), MIDI 2.0 or OSC.
 
 Consumers of Sequence data are expected to silently ignore unsupported event
 types, allowing the set of events to be extended for other applications.
-Sequences can be stringified to human readable JSON, or serialized to
-binary data.
 
 
 ## In this repository
 
 This README outlines the format of Sequence data, and the repository contains a
-reference implementation of an iterable `Sequence`, an `Event` object, an events
-serializer, and a schema lexicon suitable for publishing sequences as PDS
+reference implementation of an iterable `Sequence` object, an `Event` object, an
+events serializer, and a schema lexicon suitable for publishing sequences as PDS
 records on the ATProtocol.
 
 
@@ -301,27 +300,31 @@ constraints:
 > Using `BigInt` it is possible to identify any arbitrary number of notes as an
 > HSID. The implementations in this repository use standard JavaScript numbers.
 
-These chord names have fixed meanings:
+Several HSIDs are associated with named chord symbols. When events are
+stringified to JSON their HSIDs are replaced with these names.
 
-| Symbol     | Meaning |
-| :--------- | :----------------------------------- |
-| `"∆♯11"`   | 4th mode of the major scale (lydian) |
-| `"∆"`      | 1st mode of the major scale (ionian) |
-| `"7"`      | 5th mode of the major scale (myxolydian) |
-| `"-7"`     | 2nd mode of the major scale (dorian) |
-| `"-♭6"`    | 6th mode of the major scale (aoelian) |
-| `"7sus♭9"` | 3rd mode of the major scale (phrygian) |
-| `"ø"`      | 7th mode of the major scale (locrian) |
-| `"7♯11"`   | 4th mode of melodic minor |
-| `"-∆"`     | 1st mode of melodic minor |
-| `"7♭13"`   | 5th mode of melodic minor |
-| `"-♭9"`    | 2nd mode of melodic minor |
-| `"ø7"`     | 6th mode of melodic minor |
-| `"∆♯5"`    | 3rd mode of melodic minor |
-| `"7alt"`   | 7th mode of melodic minor |
-| `"°"`      | Diminished whole tone / half tone |
-| `"7♭9"`    | Diminished half tone / whole tone |
-| `"+7"`     | Whole tone |
+| Symbol      | HSID       | Meaning |
+| :---------- | :--------- | :----------------------------------- |
+| `"∆♯11"`    | 187996     | 4th mode of the major scale (lydian) |
+| `"∆"`       | 5296       | 1st mode of the major scale (ionian) |
+| `"7"`       | 4000       | 5th mode of the major scale (myxolydian) |
+| `"-7"`      | 4035       | 2nd mode of the major scale (dorian) |
+| `"-♭6"`     | 94755      | 6th mode of the major scale (aoelian) |
+| `"7sus♭9"`  | 142705     | 3rd mode of the major scale (phrygian) |
+| `"ø"`       | 5295       | 7th mode of the major scale (locrian) |
+| `"7♯11"`    | 63874730   | 4th mode of melodic minor |
+| `"-∆"`      | 124387526  | 1st mode of melodic minor |
+| `"7♭13"`    | 122706650  | 5th mode of melodic minor |
+| `"13sus♭9"` | 63921385   | 2nd mode of melodic minor |
+| `"ø9"`      | 124340870  | 6th mode of melodic minor |
+| `"∆♯4♯5"`   | 122707946  | 3rd mode of melodic minor |
+| `"7alt"`    | 124386265  | 7th mode of melodic minor |
+| `"-∆♭6"`    | 183174086  | 1st mode of harmonic minor |
+| `"7♭9♭13"`  | 122706685  | 5th mode of harmonic minor |
+| `"∆♭6"`     | 183172826  | 1st mode of harmonic major |
+| `"°"`       | 4417439366 | Diminished whole tone / half tone |
+| `"7♭9"`     | 2299488985 | Diminished half tone / whole tone |
+| `"+7"`      | 3455210    | Whole tone |
 
 `duration` – FLOAT, the duration of the chord in beats.
 
