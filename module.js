@@ -3,6 +3,9 @@ import deserialise from './modules/events/deserialise.js';
 import serialise, { VERSION } from './modules/events/serialise.js';
 //import lexicon from '../lexicons/io.sound.sequence.json' with { type: 'json' };
 
+export { Event } from './modules/event.js';
+export { Sequence };
+
 
 const assign = Object.assign;
 //const schema = lexicon.defs.main.record.properties;
@@ -23,19 +26,18 @@ Sequence.fromRecord(record);
 // instantiate nested sequences, so Sequence.from() must be overridden to
 // provide deserialisation of record events.
 
+const from = Sequence.from;
+
 Sequence.from = function from(data) {
-    // data is an events array
-    if (data.length) return new Sequence(data);
     // data is a record
-    if (data.events instanceof Uint8Array) return Sequence.fromRecord(data);
-    // data is an object
-    const { events, sequences, ...props } = data;
-    return assign(new Sequence(events, sequences), props);
+    return data.events && data.events instanceof Uint8Array ?
+        Sequence.fromRecord(data) :
+        from(data) ;
 };
 
 Sequence.fromRecord = function fromRecord(record) {
     const { events, sequences, ...props } = record;
-    return assign(new Sequence(deserialise(events), sequences), record);
+    return assign(new Sequence(deserialise(events), sequences), props);
 };
 
 
@@ -63,5 +65,3 @@ Sequence.toRecord = function toRecord(sequence) {
 Sequence.prototype.toRecord = function() {
     return Sequence.toRecord(this);
 };
-
-export default Sequence;
