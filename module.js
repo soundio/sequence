@@ -24,13 +24,13 @@ Sequence.fromRecord(record);
 // instantiate nested sequences, so Sequence.from() must be overridden to
 // provide deserialisation of record events.
 
-const from = Sequence.from;
+const SequenceFrom = Sequence.from;
 
 Sequence.from = function from(data) {
     // data is a record
     return data.events && data.events instanceof Uint8Array ?
         Sequence.fromRecord(data) :
-        from(data) ;
+        SequenceFrom(data) ;
 };
 
 Sequence.fromRecord = function fromRecord(record) {
