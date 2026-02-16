@@ -1,22 +1,30 @@
 # Sequence
 
-Sequence data is a structure for storing and transmitting sequences of timed
-events such as music. Sequence data defines a minimal set of events carrying
-information needed to control the WebAudio API, a superset of the information
-transmittable via MIDI or OSC.
+Sequence data is a structure for storing and transferring sequences of timed
+events – such as music.
+
+Sequence data defines a minimal set of events closely aligned with the features
+needed to control the WebAudio API, transmittable via MIDI 1.0 (with some
+resolution loss), MIDI 2.0 or OSC.
 
 Consumers of Sequence data are expected to silently ignore unsupported event
-types, allowing the set of event types to be extended for other applications.
+types, allowing the set of events to be extended for other applications.
+Sequences can be stringified to human readable JSON, or serialized to
+binary data.
 
-This repository contains a reference implementation of an iterable `Sequence`
-object and `Event` object, an events serializer, and a lexicon schema for
-publishing sequences as PDS records on the ATProtocol.
+
+## In this repository
+
+This README outlines the format of Sequence data, and the repository contains a
+reference implementation of an iterable `Sequence`, an `Event` object, an events
+serializer, and a schema lexicon suitable for publishing sequences as PDS
+records on the ATProtocol.
 
 
 ## Concepts
 
-The Sequence format defines two data structures, a Sequence object and an Events
-array.
+The Sequence format defines two data structures, a `Sequence` object and an
+`Event` array.
 
 Sequence data describes all times and durations in beats. Beat values are
 arbitrary, and depend on the rate of playback of a sequence.
@@ -24,6 +32,7 @@ arbitrary, and depend on the rate of playback of a sequence.
 > [!NOTE]
 > A sequence playing back at a rate of `1` is running at 1 beat per second, so
 > it is following absolute time.
+
 
 ## Example JSON
 
@@ -49,6 +58,8 @@ Here are the first two bars of Dolphin Dance represented as a sequence in JSON:
 
 ## Sequence
 
+A sequence, at its simplest, is an object with an `events` array.
+
 ```json
 {
     "events": [...]
@@ -58,35 +69,42 @@ Here are the first two bars of Dolphin Dance represented as a sequence in JSON:
 `events` – ARRAY<br/>
 An array of events.
 
-An `events` property is the only requirement for a top-level sequence. Sequences may also have the properties:
+Sequences may also have the properties:
 
 ```json
 {
-    "id": "0",
-    "name": "My Sequence",
-    "author": {...},
+    "id": 0,
     "url":  "https://...",
-    "sequences": [...]
+    "name": "My Sequence",
+    "events": [...],
+    "sequences": [...],
+    "credits": [...],
+    "tags": [...],
 }
 ```
 
 `id` – STRING<br/>
-in any array of sequences it must be unique, and is used to identify the sequence for playback.
-A top level sequence does not require an `id`.
+in any array of sequences it must be unique, and is used to identify the sequence
+for playback. A top level sequence does not require an `id`.
+
+`url` – URL STRING, optional<br/>
+Canonical location of this sequence.
 
 `name` – STRING, optional<br/>
 An arbitrary string.
 
-`author` – OBJECT, optional<br/>
-An object containing details of the author.
-
-`url` – URL STRING, optional<br/>
-Points to a resource where this sequence can be fetched as JSON.
-
 `sequences`  – ARRAY, optional<br/>
-An array of sequence objects.
-Sequences are played back by `"sequence"` events in the `events` array.
-If there are no `"sequence"` events  in the `events` array, the property `sequences` is not required.
+An array of sequence objects. Sequences are played back by `"sequence"` events
+in the `events` array. They are referred to by `id`. If there are no `"sequence"`
+events in the `events` array, the property `sequences` is not required.
+
+`credits` – ARRAY, optional<br/>
+An array of objects containing details of contributors, of the form
+`{ name, role, url }`.
+
+`tags` – ARRAY, optional<br/>
+An array of strings.
+
 
 ---
 
@@ -100,7 +118,8 @@ If there are no `"sequence"` events  in the `events` array, the property `sequen
 Describes a point in time from the start of the sequence in beats.
 
 `type` – STRING<br/>
-The event type, determines the length of the event array and the structure of the rest of its values:
+The event type, determines the length of the event array and the structure of
+the rest of its values:
 
 | beat   | type         | 2 | 3 | 4 | 5 |
 | :----- | :----------- | :--- | :--- | :--- | :--- |
@@ -108,14 +127,13 @@ The event type, determines the length of the event array and the structure of th
 | `beat` | `"param"`    | `name` | `value` | `curve` | `duration` |
 | `beat` | `"rate"`     | `number` |  |  |  |
 | `beat` | `"meter"`    | `duration` | `divisor` |  |  |
-| `beat` | `"chord"`    | `root` | `id` | `duration` |  |
+| `beat` | `"chord"`    | `root` | `hsid` | `duration` |  |
+| `beat` | `"clef"`     | `name` |  |  |  |
 | `beat` | `"key"`      | `name` |  |  |  |
 | `beat` | `"sequence"` | `id` | `target` | `duration` |  |
 | `beat` | `"text"`     | `string` | `duration` |  |  |
 | `beat` | `"start"`    | reserved |  |  |  |
 | `beat` | `"stop"`     | reserved |  |  |  |
-
-
 
 
 ---
@@ -128,10 +146,12 @@ The event type, determines the length of the event array and the structure of th
 
 `name` – FLOAT [0-127] or STRING<br/>
 Represents the pitch of a note.
-If `name` is a number, it is a MIDI note number, but may be a float and so can represent any frequency. MIDI note number `69` is `440Hz`.
-If `name` is a string it is an arbitrary pitch name. Implementations must accept at least the 128 pitch names `'C0'` - `'G9'`, and
-the use of both the hash `#` and the unicode sharp `♯`, and both the small letter `b` and the unicode flat `♭` in their spellings, but
-output only the unicode spellings in any Sequence data output.
+If `name` is a number, it is a MIDI note number, but may be a float and so can
+represent any frequency. MIDI note number `69` is `440Hz`. If `name` is a string
+it is an arbitrary pitch name. Implementations must accept at least the 128
+pitch names `'C0'` - `'G9'`, and the use of both the hash `#` and the unicode
+sharp `♯`, and both the small letter `b` and the unicode flat `♭` in their
+spellings, but output only the unicode spellings in any Sequence data output.
 
 `dynamic` – FLOAT [0-1] | STRING ["-ndB"] | STRING ["ppp"-"fff"]<br/>
 Represents the force of the note's attack.
@@ -139,6 +159,7 @@ A `dynamic` larger than `1` is permissible, but negative `dynamic` is invalid.
 
 `duration` – FLOAT [0-n]<br/>
 Represents the duration of the note in beats.
+
 
 ---
 
@@ -152,18 +173,24 @@ Represents the duration of the note in beats.
 
 `name` – STRING<br/>
 The name of the param to control.
-In a WebAudio context this would typically map to an AudioParam on the instrument being targetted.
+In a WebAudio context this would typically map to an AudioParam on the
+instrument being targetted.
 
 `value` – FLOAT<br/>
 The destination value of the param. If `curve` is `"hold"` has no effect.
 
 `curve` – STRING `"step"`, `"linear"`, `"exponential"`, `"target"` or `"hold"`<br/>
-The ramp to use for transition to `value`.
-This parameter is optional. If it is not present the event describes a `"step"` curve.
-If `curve` is `"target"` the event requires a fifth parameter:
+The ramp to use for transition to `value`. This parameter is optional. If it is
+not present the event describes a `"step"` curve. If `curve` is `"target"` the
+event requires a fifth parameter:
 
 `duration` – FLOAT<br/>
-The T60 decay time of a `"target"` curve.
+The T60 decay time of a `"target"` curve with a value of `0`.
+
+> [!NOTE]
+> The WebAudio API defines a time constant as the time it takes for audio to
+> reach 63.2% of its new value, where sequence data prefers a T60 decay time.
+
 
 ---
 
@@ -176,20 +203,22 @@ The T60 decay time of a `"target"` curve.
 ```
 
 `rate`  – FLOAT<br/>
-Rate of playback of a sequence. Nominally in beats per second, but sequences may be played
-from other sequences, and rates are accumulative. If sequence A is playing at rate `2` and
-contains sequence B playing at rate `1.5`, sequence B is playing at an absolute rate of `3`,
-or 3 beats per second, a tempo of 90bpm.
+Rate of playback of a sequence. Nominally in beats per second, but sequences may
+be played from other sequences, and rates are accumulative. If sequence A is
+playing at rate `2` and contains sequence B playing at rate `1.5`, sequence B is
+playing at an absolute rate of `3`, or 3 beats per second, a tempo of 90bpm.
 
 `curve` – STRING, optional<br/>
 One of `"step"`, `"linear"`, `"exponential"` or `"target"`.
-Represents the type of ramp to use to transition to the new rate. Where `curve` is `"target"` a duration is required:
+Represents the type of ramp to use to transition to the new rate. Where `curve`
+is `"target"` a duration is required:
 
 `duration` – STRING, optional<br/>
 Where `curve` is `"target"`, represents the target duration of the target curve.
 
-Where there is no `"rate"` event at beat `0`, consumers should assume a playback rate of `2`,
-as if there were an initial `[0, "rate", 2]` event in the data. A rate of `2` is a tempo of 120bpm.
+Where there is no `"rate"` event at beat `0`, consumers should assume a playback
+rate of `2`, as if there were an initial `[0, "rate", 2]` event in the data. A
+rate of `2` is a tempo of 120bpm.
 
 
 ---
@@ -217,7 +246,8 @@ Here are some common time signatures as meter events:
 | 7/8  | `[0, "meter", 3.5, 1.5]` |
 | 7/8  | `[0, "meter", 3.5, 2]` |
 
-A meter event MUST occur at a beat that is a full bar from a previous meter event. The second event here is valid:
+A meter event MUST occur at a beat that is a full bar from a previous meter
+event. The second event here is valid:
 
 ```json
 [0, "meter", 4, 1]
@@ -253,22 +283,23 @@ Where `root` is a number it represents root note as a MIDI number `0-11`.
 Where `root` is a string it must be a root note name, ie. `C`, `C♯`, `D` ...
 `A`, `B♭`, `B`.
 
-`id` – INT, represents a harmonic structure.
-A **harmonic structure id** (HSID) is an integer that identifies, can be encoded
-from, and can be decoded to, a collection of note numbers. All chords, modes and
-scales, and a huge number of larger harmonic structures, have an HSID. A
-`"chord"` event is capable of carrying much more information than just a chord.
+`hsid` – INT, represents a harmonic structure.
+A **Harmonic Structure ID** (HSID) is an integer that identifies, can be encoded
+from, and can be decoded to, an array of ascending note numbers. All chords,
+modes and scales, and a vast number of larger harmonic structures, have an HSID.
+A single note always has an HSID of `0` and simple intervals map so that a
+semitone `[0, 1]` has HSID `1`, a second `[0, 2]` has HSID `2` and so on.
 
-HSIDs encode successive intervals between notes from an array of ascending note
-numbers into 5-bit blocks. In JavaScript, 64-bit numbers safely carry 53-bit
-integers. This imposes 2 limitations:
+HSIDs encode intervals between notes using base 36 maths. In JavaScript, 64-bit
+numbers safely carry integers up to `Number.MAX_SAFE_INTEGER`. This imposes 2
+constraints:
 
-- Consecutive note numbers can not have an interval any greater than 31 semitones (5 bits)
+- Consecutive note numbers can not have an interval any greater 35
 - Harmonic structures are limited to 11 note numbers (10 intervals)
 
 > [!TIP]
-> Using BigInts it is possible to identify an arbitrary number of notes. The
-> events serializer in this repo does not support BigInts.
+> Using `BigInt` it is possible to identify any arbitrary number of notes as an
+> HSID. The implementations in this repository use standard JavaScript numbers.
 
 These chord names have fixed meanings:
 
@@ -283,7 +314,7 @@ These chord names have fixed meanings:
 | `"ø"`      | 7th mode of the major scale (locrian) |
 | `"7♯11"`   | 4th mode of melodic minor |
 | `"-∆"`     | 1st mode of melodic minor |
-| `"∆♭6"`    | 5th mode of melodic minor |
+| `"7♭13"`   | 5th mode of melodic minor |
 | `"-♭9"`    | 2nd mode of melodic minor |
 | `"ø7"`     | 6th mode of melodic minor |
 | `"∆♯5"`    | 3rd mode of melodic minor |
@@ -304,10 +335,16 @@ These chord names have fixed meanings:
 ```
 
 `name` – STRING<br/>
-The name of a major key, a capital letter followed optionally by an accidental, as in `"A♭"`, `"A"`, `"A♯"`, `"B♭"`, `"B"`, `"C"`, and so on up to `"G♯"`.
+The name of a major key, a capital letter followed optionally by an accidental,
+as in `"A♭"`, `"A"`, `"A♯"`, `"B♭"`, `"B"`, `"C"`, and so on up to `"G♯"`.
 
-Represents a visual key change in written notation only. Does not affect how a performance sounds.
-<blockquote>Harmonic generators should use `"chord"` events to generate sound based on modes.</blockquote>
+Represents a visual key change in written notation only. Does not affect how a
+performance sounds.
+
+> [!NOTE]
+> Harmonic generators should read `"chord"` events to generate sound based on
+> modes, scales and chords.
+
 
 ---
 
@@ -326,13 +363,17 @@ The id of an instrument to play the sequence through.
 `duration`   – FLOAT<br/>
 The duration in beats to play the sequence.
 
-Renders a sequence from the `sequences` array. For example, this event plays the sequence "my-sequence" at beat `0.5` for `3` beats:
+Renders a sequence from the `sequences` array. For example, this event plays the
+sequence "my-sequence" at beat `0.5` for `3` beats:
 
 ```json
 [0.5, "sequence", "my-sequence", 3]
 ```
 
-<blockquote>TBD. It is not clear exactly how to spec targetId to select a target instrument in an interoperable manner. In Soundstage, it refers to the id of a node in the `nodes` array, where nodes are WebAudio nodes in the Soundstage graph.</blockquote>
+> [!CAUTION]
+> TBD. It is not clear exactly how to spec targetId to select a target instrument
+> in an interoperable manner. In Soundstage, it refers to the id of a node in the
+> `nodes` array, where nodes are WebAudio nodes in the Soundstage graph.
 
 
 ---
@@ -358,8 +399,10 @@ The duration in beats that the text spans.
 [beat, "start", identifier, value]
 ```
 
-Reserved event name. Basically, both `"note"` and `"sequence"` events, which have duration, may be decomposed into matching `"start"` and `"stop"` events without duration in internal implementations.
-Neither should appear in exported SequenceJSON.
+Reserved event name. Basically, both `"note"` and `"sequence"` events, which
+have duration, may be decomposed into matching `"start"` and `"stop"` events
+without duration in internal implementations. Neither should appear in exported
+SequenceJSON.
 
 ---
 

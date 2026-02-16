@@ -1,37 +1,30 @@
 
-const { floor } = Math;
+const { floor, log } = Math;
 
 /**
 In JavaScript Float64 numbers safely represent up to 53-bit integers, giving
-us a 53-bit space to identify harmonic structures. If we consider harmonic
-structures to be composed of stacked intervals, that allows for:
+us a 2^53 space to identify harmonic structures. If we consider harmonic
+structures to be composed of stacked intervals up to 36 semitones, that allows
+for:
 
-4-bit intervals:
-- Max interval 15 semitones
-- Max notes 14 (13 intervals)
-- Max id 4503599627370496
-
-5-bit intervals:
-- Max interval 31 semitones
+- Max interval 35 semitones
 - Max notes 11 (10 intervals)
-- Max id 1125899906842624
-
-6-bit intervals:
-- Max interval 63 semitones
-- Max notes 9 (8 intervals)
-- Max id 281474976710656
+- Max id 36^10 = 3656158440062976
 **/
 
-const BITS_PER_INTERVAL = 5;
-const BASE              = 1 << BITS_PER_INTERVAL;        // 32
-const MAX_INTERVAL      = BASE - 1;                      // 31
-const MAX_LENGTH        = floor(53 / BITS_PER_INTERVAL); // 11
+const BASE         = 36;                            // 36
+const MAX_INTERVAL = BASE - 1;                      // 35
+
+// How many times you can multiply BASE by itself before exceeding
+// MAX_SAFE_INTEGER, plus 1 (for the root note)
+const MAX_LENGTH   = floor(log(Number.MAX_SAFE_INTEGER) / log(BASE)) + 1; // 11
 
 
 /**
 hsidFrom(notes)
-Generates a safe 53-bit integer id from an ascending collection of note numbers,
-up to 11 notes where no interval is greater than 31 semitones. A single note
+Generates an integer id from an ascending collection of note numbers. Using base
+36 maths, no interval between note numbers can be greater than 35. 10 intervals
+(11 notes) can be encoded in the `Number.MAX_SAFE_INTEGER` space. A single note
 always has an id of `0`, and simple intervals map so that a semitone `[0, 1]`
 has id `1`, a second `[0, 2]` has id `2` and so on.
 **/
