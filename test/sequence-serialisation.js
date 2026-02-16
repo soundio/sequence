@@ -1,22 +1,32 @@
 
-import Sequence from '../module.js';
-import { VERSION } from '../modules/events/serialise.js';
+import run from 'fn/test.js';
+import { Sequence } from '../module.js';
 
-// Simple validation tests - just check the structure is correct
-const sequence = new Sequence([
-    [0, 'note', 69, 0.8, 2],
-    [2, 'note', 72, 0.6, 1.5]
-]);
+run('Sequence.toRecord() and Sequence.fromRecord()', [
+    [0, 'note', 69, Math.fround(0.8), 2],
+    [2, 'note', 72, Math.fround(0.6), 1.5]
+], (test, done) => {
+    // Create a sequence
+    const sourceSequence = new Sequence([
+        [0, 'note', 69, 0.8, 2],
+        [2, 'note', 72, 0.6, 1.5]
+    ]);
 
-const json = Sequence.toRecord(sequence);
+    // Convert to record
+    const record = Sequence.toRecord(sourceSequence);
 
-// Test version
-console.assert(json.version === VERSION, 'Version should match');
+    // Verify record structure
+    if (record.version !== Sequence.version) throw new Error('Version should match');
+    if (!record.events || typeof record.events !== 'object') throw new Error('Events should be an object');
+    if (!('$bytes' in record.events)) throw new Error('Events should have $bytes property');
+    if (typeof record.events.$bytes !== 'string') throw new Error('Events.$bytes should be a string');
+    if (record.events.$bytes.length === 0) throw new Error('Events should have data');
 
-// Test events is Uint8Array
-console.assert(json.events instanceof Uint8Array, 'Events should be Uint8Array');
+    // Decode back to sequence
+    const decodedSequence = Sequence.fromRecord(record);
 
-// Test events has data
-console.assert(json.events.length > 0, 'Events should have data');
+    // Check events match expected values
+    for (const event of decodedSequence.events) test(event);
 
-console.log('✔ Passed - Sequence serialisation tests');
+    done();
+});

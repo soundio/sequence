@@ -1,18 +1,16 @@
 import Event       from './modules/event.js';
 import Sequence    from './modules/sequence.js';
-import deserialise from './modules/events/deserialise.js';
-import serialise, { VERSION } from './modules/events/serialise.js';
-//import lexicon from '../lexicons/io.sound.sequence.json' with { type: 'json' };
-
+import { toRecord, fromRecord, VERSION } from './modules/record.js';
 
 const assign = Object.assign;
-//const schema = lexicon.defs.main.record.properties;
+
 
 /**
 Sequence.version
-A version number for the revision of the sequence spec this Sequence object
+Version number for the revision of the sequence spec this Sequence object
 implements.
 **/
+
 Sequence.version = VERSION;
 
 
@@ -20,49 +18,37 @@ Sequence.version = VERSION;
 Sequence.fromRecord(record);
 **/
 
-// The Sequence() constructor delegates to Sequence.from() to recursively
-// instantiate nested sequences, so Sequence.from() must be overridden to
-// provide deserialisation of record events.
-
-const SequenceFrom = Sequence.from;
-
-Sequence.from = function from(data) {
-    // data is a record
-    return data.events && data.events instanceof Uint8Array ?
-        Sequence.fromRecord(data) :
-        SequenceFrom(data) ;
-};
-
-Sequence.fromRecord = function fromRecord(record) {
-    const { events, sequences, ...props } = record;
-    return assign(new Sequence(deserialise(events), sequences), props);
-};
-
-
 /**
 Sequence.toRecord(sequence);
 **/
 
-//function validate(schema, object) {}
+// The Sequence() constructor delegates to Sequence.from() to recursively
+// instantiate nested sequences, so Sequence.from() must be overridden to
+// provide deserialisation of nested records' events.
 
-Sequence.toRecord = function toRecord(sequence) {
-    // Validate against schema
-    //validate(schema, this);
+const fromData = Sequence.from;
 
-    return assign({}, sequence, {
-        version:   Sequence.version,
-        events:    serialise(sequence.events),
-        sequences: sequence.sequences ? sequence.sequences.map(toRecord) : undefined
-    });
+Sequence.from = function from(data) {
+    return data.events && data.events.$bytes ?
+        fromRecord(data) :
+        fromData(data) ;
 };
+
+assign(Sequence, {
+    toRecord,
+    fromRecord
+});
+
 
 /**
 .toRecord()
 **/
 
-Sequence.prototype.toRecord = function() {
-    return Sequence.toRecord(this);
-};
+assign(Sequence.prototype, {
+    toRecord: function() {
+        return toRecord(this);
+    }
+});
 
 
 export { Event, Sequence };
