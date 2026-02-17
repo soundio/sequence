@@ -61,12 +61,12 @@ export function hsidOf() {
 
 
 /**
-hsidToNotes(hsid)
+hsidToNumbers(hsid)
 Unpacks a harmonic structure id to an ascending collection of note numbers.
 Returns a Uint8Array.
 **/
 
-export function hsidToNotes(hsid) {
+export function hsidToNumbers(hsid) {
     // If id is -ve it's an empty array
     if (hsid === -1) return Uint8Array.of();
 

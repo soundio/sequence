@@ -3,6 +3,40 @@ import { rflatsharp, toUnicode } from '../pitch.js';
 import mirror from '../object/mirror.js';
 import { hsidOf, hsidFrom, hsidToNotes } from './hsid.js';
 
+/*
+const extensions = {
+    "":       [0,4,7],
+    "∆":      [0,4,7,11],
+    "∆7":     [0,4,7,11],
+    "∆♯11":   [0,4,6,7,11],
+    "7":      [0,4,7,10],
+    "13":     [0,4,7,9,10],
+    "7sus":   [0,5,7,10],
+    "-":      [0,3,7],
+    "-7":     [0,3,7,10],
+    "-11":    [0,3,5,7],
+    "-6":     [0,3,7,9],
+    "-13":    [0,3,7,9],
+    "-♭6":    [0,3,7,8],
+    "7sus♭9": [0,1,5,7,10],
+    "ø":      [0,3,6,10],
+    "-∆":     [0,3,7,11],
+    "7♯11":   [0,4,6,7,10],
+    "∆♭6":    [0,4,7,8],
+    "-♭9":    [0,1,3,7],
+    "ø7":     [0,2,3,6,10],
+    "∆♯5":    [0,2,4,6,8,9,11],
+    "7alt":   [0,1,3,4,6,8,10],
+    "°":      [0,3,6,9],
+    "7♭9":    [0,1,4,7,10],
+    "7♯9":    [0,3,4,7,10],
+    "7♭13":   [0,4,7,8,10],
+    "13♭9":   [0,1,4,7,9],
+    "+":      [0,2,4,6,8,10],
+    "+7":     [0,2,4,6,8,10],
+    "dim":    [0,3,6,9],
+};
+*/
 
 export const CHORDNUMBERS = {
     // Triads
@@ -82,7 +116,7 @@ export function toHSID(value) {
 }
 
 
-export function toHSName(value) {
+export function toChordName(value) {
     const hsid = toHSID(value);
     return CHORDNAMES[hsid] || hsidToNotes(hsid);
 }

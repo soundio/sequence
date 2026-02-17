@@ -5,7 +5,7 @@ import mod12     from './number/mod-12.js';
 import { rflatsharp, toUnicode } from './pitch.js';
 import { toTypeName }  from './event/types.js';
 import { toCurveName } from './event/curves.js';
-import { toHSID, toHSName }      from './event/chords.js';
+import { toHSID, toChordName } from './event/chords.js';
 import { toParamName } from './event/params.js';
 import { toTransformName, TRANSFORMNUMBERS, TRANSFORMLENGTHS } from './event/transforms.js';
 
@@ -171,7 +171,7 @@ export default class Event {
             case "chord":
                 string += ' ' + toRootName(this[2])
                     // Extension
-                    + ' ' + toHSName(this[3])
+                    + ' ' + toChordName(this[3])
                     // Duration
                     + ' ' + stringify(this[4]);
                 break;
