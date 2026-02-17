@@ -1,6 +1,6 @@
 import Event       from './modules/event.js';
 import Sequence    from './modules/sequence.js';
-import { toRecord, fromRecord, VERSION } from './modules/record.js';
+import { toRecord, fromRecord, validateRecord, VERSION } from './modules/record.js';
 
 const assign = Object.assign;
 
@@ -10,9 +10,6 @@ Sequence.version
 Version number for the revision of the sequence spec this Sequence object
 implements.
 **/
-
-Sequence.version = VERSION;
-
 
 /**
 Sequence.fromRecord(record);
@@ -35,8 +32,10 @@ Sequence.from = function from(data) {
 };
 
 assign(Sequence, {
+    version: VERSION,
     toRecord,
-    fromRecord
+    fromRecord,
+    validateRecord
 });
 
 

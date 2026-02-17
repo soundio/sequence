@@ -160,6 +160,16 @@ export const VERSION = 0;
 
 
 /**
+validateRecord(record)
+Validates an 'io.sound.sequence' record.
+**/
+
+export function validateRecord(record) {
+    return validateObject(sequenceSchema, record);
+}
+
+
+/**
 toRecord(sequence)
 Creates an ATProto record object that conforms to the io.sound.sequence
 lexicon.
@@ -175,7 +185,7 @@ export function toRecord(sequence) {
     });
 
     // Validate against schema
-    validateObject(sequenceSchema, record);
+    validateRecord(record);
 
     // Assign sequences property if it exists
     if (sequences) record.sequences = sequences.map(toRecord);
