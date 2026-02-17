@@ -166,19 +166,19 @@ lexicon.
 **/
 
 export function toRecord(sequence) {
+    const { events, sequences, ...record } = sequence;
+
     // Create record object from sequence
-    const record = assign({}, sequence, {
+    assign(record, {
         version: VERSION,
-        events: { $bytes: serialise(sequence.events).toBase64() }
+        events: { $bytes: serialise(events).toBase64() }
     });
 
     // Validate against schema
     validateObject(sequenceSchema, record);
 
     // Assign sequences property if it exists
-    if (sequence.sequences) {
-        record.sequences = sequence.sequences.map(toRecord);
-    }
+    if (sequences) record.sequences = sequences.map(toRecord);
 
     return record;
 }
