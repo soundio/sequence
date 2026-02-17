@@ -1,12 +1,12 @@
 # Sequence
 
 Sequence data is a structure for storing and transferring sequences of timed
-events – such as music. Sequences can be stringified to human readable JSON or
+events such as music. Sequences can be stringified to human readable JSON or
 serialized to binary data.
 
-Sequence data defines a minimal set of events closely aligned with the features
-needed to control the WebAudio API, transmittable via MIDI 1.0 (with some
-resolution loss), MIDI 2.0 or OSC.
+This specification defines a minimal set of events closely aligned with the
+features needed to control the WebAudio API, transmittable via MIDI 1.0 (with
+some resolution loss), MIDI 2.0 or OSC.
 
 Consumers of Sequence data are expected to silently ignore unsupported event
 types, allowing the set of events to be extended for other applications.
@@ -14,10 +14,10 @@ types, allowing the set of events to be extended for other applications.
 
 ## In this repository
 
-This README outlines the format of Sequence data, and the repository contains a
-reference implementation of an iterable `Sequence` object, an `Event` object, an
-events serializer, and a schema lexicon suitable for publishing sequences as PDS
-records on the ATProtocol.
+This README specifies the format of Sequence data, while the repository contains
+a reference implementation of an iterable `Sequence` object, an `Event` object,
+an events binary serializer, and a schema lexicon suitable for publishing
+sequences as records to an ATProtocol Personal Data Server (PDS).
 
 
 ## Concepts
@@ -25,12 +25,11 @@ records on the ATProtocol.
 The Sequence format defines two data structures, a `Sequence` object and an
 `Event` array.
 
-Sequence data describes all times and durations in beats. Beat values are
-arbitrary, and depend on the rate of playback of a sequence.
-
 > [!NOTE]
-> A sequence playing back at a rate of `1` is running at 1 beat per second, so
-> it is following absolute time.
+> Sequence data describes all times and durations in beats. Beat values are
+> arbitrary, and depend on the rate of playback of a sequence. A sequence
+> playing back at a rate of `1` is running at 1 beat per second, so it is
+> following absolute time.
 
 
 ## Example JSON
