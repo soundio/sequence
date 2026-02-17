@@ -1,7 +1,7 @@
 
 import { rflatsharp, toUnicode } from '../pitch.js';
 import mirror from '../object/mirror.js';
-import { hsidOf, hsidFrom, hsidToNotes } from './hsid.js';
+import { hsidOf, hsidFrom, hsidToNumbers } from './hsid.js';
 
 /*
 const extensions = {
@@ -118,5 +118,5 @@ export function toHSID(value) {
 
 export function toChordName(value) {
     const hsid = toHSID(value);
-    return CHORDNAMES[hsid] || hsidToNotes(hsid);
+    return CHORDNAMES[hsid] || hsidToNumbers(hsid);
 }
