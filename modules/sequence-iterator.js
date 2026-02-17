@@ -42,6 +42,13 @@ export function insert(array, object) {
     return n;
 }
 
+function slice(n, event) {
+    const array = [];
+    let i = n - 1;
+    while (this[++n] !== undefined) array.push(this[n]);
+    return array;
+}
+
 function getSequence(sequences, id) {
     return sequences.find((sequence) => sequence.id === id);
 }
@@ -124,7 +131,7 @@ export default class SequenceIterator {
                     sequence.sequences.concat(sequences) :
                     sequences ,
                 // Transforms
-                event.slice(5)
+                slice(5, event)
             );
 
             // Store info about the event on the iterator object
