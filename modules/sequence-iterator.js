@@ -45,7 +45,7 @@ export function insert(array, object) {
 function slice(n, event) {
     const array = [];
     let i = n - 1;
-    while (this[++n] !== undefined) array.push(this[n]);
+    while (event[++i] !== undefined) array.push(event[i]);
     return array;
 }
 
