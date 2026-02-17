@@ -14,10 +14,12 @@ types, allowing the set of events to be extended for other applications.
 
 ## In this repository
 
-This README specifies the format of Sequence data, while the repository contains
-a reference implementation of an iterable `Sequence` object, an `Event` object,
-an events binary serializer, and a schema lexicon suitable for publishing
-sequences as records to an ATProtocol Personal Data Server (PDS).
+- Specification of the format of Sequence data (this README)
+- Reference implementation of an iterable `Sequence` object
+- Reference implementation of an `Event` object
+- MusicXML to Sequence converter
+- ATProto record converter with binary serializer for events arrays
+- ATProto lexicon schema for publishing sequences as PDS records
 
 
 ## Concepts
