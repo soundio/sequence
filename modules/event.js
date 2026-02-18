@@ -10,6 +10,7 @@ import { toParamName } from './event/params.js';
 import { toTransformName, TRANSFORMNUMBERS, TRANSFORMLENGTHS } from './event/transforms.js';
 
 
+const DEBUG    = globalThis.DEBUG;
 const define   = Object.defineProperty;
 const writable = { writable: true };
 
@@ -223,7 +224,10 @@ export default class Event {
         return new Event(...data);
     }
 
-    static from(data, events, index) {
+    static from(data, index, events) {
+        if (DEBUG && index  !== undefined && typeof index  !== 'number') throw new Error('Event() cannot create event with index ' + index);
+        if (DEBUG && events !== undefined && typeof events !== 'object') throw new Error('Event() cannot create event with events ' + events);
+
         const event = new Event(...data) ;
         event.event  = data; // Dodgy, what if we are making event from arguments object?
         event.events = events;

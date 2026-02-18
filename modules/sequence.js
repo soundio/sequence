@@ -18,7 +18,7 @@ function toPriority(event) {
 
 export default class Sequence {
     constructor(events, sequences) {
-        this.events = events;
+        this.events = events.map(Event.from);
         if (sequences) this.sequences = sequences.map(Sequence.from);
     }
 
