@@ -26,7 +26,7 @@ Sequence.toRecord(sequence);
 const fromData = Sequence.from;
 
 Sequence.from = function from(data) {
-    return data.events && data.events.$bytes ?
+    return data.events && typeof data.events.$bytes === 'string' ?
         fromRecord(data) :
         fromData(data) ;
 };
