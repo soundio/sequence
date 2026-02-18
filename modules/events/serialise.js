@@ -1,11 +1,12 @@
 
-import { CURVENUMBERS, CURVEBYTES }     from '../event/curves.js';
-import { TYPENUMBERS, TYPEBYTES }      from '../event/types.js';
+import Event                        from '../event.js';
+import { packAddress }              from './address.js';
+import { CURVENUMBERS, CURVEBYTES } from '../event/curves.js';
+import { TYPENUMBERS, TYPEBYTES }   from '../event/types.js';
 import { TRANSFORMNUMBERS, TRANSFORMBYTES, TRANSFORMLENGTHS } from '../event/transforms.js';
-import { CHORDNUMBERS }     from '../event/chords.js';
-import { KEYNUMBERS, toKeyNumber }       from '../event/keys.js';
-import { PARAMNUMBERS }     from '../event/params.js';
-import { packAddress }      from './address.js';
+import { CHORDNUMBERS }             from '../event/chords.js';
+import { KEYNUMBERS, toKeyNumber }  from '../event/keys.js';
+import { PARAMNUMBERS }             from '../event/params.js';
 
 
 /**
@@ -113,6 +114,9 @@ export default function serialise(events) {
     // Second pass: write events
     let n = -1, event, offset = 0;
     while(event = events[++n]) {
+        // Make sure event is a normalised event object
+        if (!(event instanceof Event)) event = Event.from(event);
+
         // Write beat Float64
         view.setFloat64(offset, event[0], true);
         offset += 8;
