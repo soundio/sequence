@@ -107,9 +107,15 @@ toHSID(value)
 Converts a chord name or harmonic structure of note numbers to an HSID.
 **/
 
+const rparenthesis = /[()]/g;
+
 export function toHSID(value) {
     return typeof value === 'string' ?
-            CHORDNUMBERS[value.replaceAll(/\(\)/g, '').replaceAll(rflatsharp, toUnicode)] :
+            CHORDNUMBERS[
+                value
+                .replaceAll(rparenthesis, '')
+                .replaceAll(rflatsharp, toUnicode)
+            ] :
         typeof value === 'object' ?
             hsidFrom(value) :
         value ;
