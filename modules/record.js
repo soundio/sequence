@@ -83,7 +83,7 @@ const validateRule = overload(get('type'), {
     },
 
     integer: (rule, name, value) => {
-        if (!Number.isInteger(value)) throw new Error(`Record "${ name }" not of type "integer"`);
+        if (!Number.isInteger(value)) throw new Error(`Record "${ name }" not of type "integer" but type "${ typeof value }"`);
         if (rule.minimum !== undefined && value < rule.minimum) throw new Error(`Record "${ name }" is ${ value }, minimum ${ rule.minimum }`);
         if (rule.maximum !== undefined && value > rule.maximum) throw new Error(`Record "${ name }" is ${ value }, maximum ${ rule.maximum }`);
         if (rule.enum && !rule.enum.includes(value)) throw new Error(`Record "${ name }" must be one of [${ rule.enum.join(', ') }]`);
