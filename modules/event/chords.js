@@ -46,6 +46,10 @@ export const CHORDNUMBERS = {
     'min':       hsidOf(0, 3, 7),
     'dim':       hsidOf(0, 3, 6),
 
+    '+':         hsidOf(0, 4, 8),
+    '':          hsidOf(0, 4, 7),
+    '-':         hsidOf(0, 3, 7),
+
     // Major scale
     '∆♯11':      hsidOf(0, 4, 6, 7, 11),        // 4th mode lydian)
     '∆':         hsidOf(0, 4, 7, 11),           // 1st mode (ionian)
@@ -96,7 +100,6 @@ export const CHORDNUMBERS = {
     '°':         hsidOf(0, 2, 3, 5, 6, 8, 9, 11), // Whole step / half step
 
     // Whole tone
-    '+':         hsidOf(0, 2, 4, 6, 8, 10),
     '+7':        hsidOf(0, 2, 4, 6, 8, 10)
 };
 
