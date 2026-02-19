@@ -20,20 +20,23 @@ run('Chord', [
     '-',
     '°',
     '°',
-    '{4}',
-    '{4}',
-    '{7}',
-    '{7}',
-    '{8}',
-    '-{3}',
-    '-{3}',
-    '-{7}',
-    '-{7}',
+    '/{4}',
+    '/{4}',
+    '/{7}',
+    '/{7}',
+    '/{8}',
+    '/{11}',
+    '/{1}',
+    '-/{3}',
+    '-/{3}',
+    '-/{7}',
+    '-/{7}',
     '∆♯11',
     '∆♯11',
     '∆♯11',
     '∆',
     '∆',
+    '∆6',
     '∆6/9',
     '7',
     '13',
@@ -120,6 +123,8 @@ run('Chord', [
     test(getChordOf(0, 5, 9));                  // C/G   2nd inversion
     test(getChordOf(0, 5, 7, 9));               // C/G   2nd inversion
     test(getChordOf(0, 4, 8, 11));              // C/Ab
+    test(getChordOf(0, 1, 5, 8));               // C/B
+    test(getChordOf(0, 3, 6, 11));              // C/Db
     test(getChordOf(0, 4, 9));                  // C-/Eb 1st inversion
     test(getChordOf(0, 4, 9, 11));              // C-/Eb 1st inversion
     test(getChordOf(0, 5, 8));                  // C-/G  2nd inversion
@@ -129,6 +134,7 @@ run('Chord', [
     test(getChordOf(0, 2, 4, 6));               // ∆♯11  HMMM. TRICKY
     test(getChordOf(0, 4, 7, 11));              // ∆
     test(getChordOf(0, 2, 7, 11));              // ∆
+    test(getChordOf(0, 4, 7, 9));               // ∆6
     test(getChordOf(0, 4, 7, 9, 14));           // ∆6/9
     test(getChordOf(0, 4, 7, 10));              // 7
     test(getChordOf(0, 10, 16, 21));            // 13

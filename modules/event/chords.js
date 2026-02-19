@@ -13,20 +13,25 @@ const DEBUG = globalThis.DEBUG;
 Chord symbols
 
 Chords are identified by HSIDs with a maximum range of 12 (1 octave). These
-serve as maximal harmonic identifiers for each symbol, almost as mode
+serve as maximal harmonic identifiers for each symbol, in some cases as mode
 identifiers. That is to say, a group of notes should be considered 'of a chord'
 if all of them are found in its identity – that doesn't mean that all the
-notes of the identity need to be present in the notes.
+notes of the identity need to be present in the group.
 
 Here be dragons. Chord maps are created from an ordered list of entries. Entry
 order is important to `getChordFrom(numbers)`, which chooses the first entry
 with the highest matching ratio of notes (up to a limit of 6 notes ie. any
 chord identifier with over 6 notes is treated as if it has 6, evening out the
-scores between whole tone, major, minor and diminished scales).
+scores between whole tone (6-note), major, minor (7-note) and diminished (8-note)
+scales).
 
-In other words, it's fragile, but at least efficient. There is a full suite of
-tests for various groups of notes in test/chord.js. Consult it before changing
-anything.
+It's fragile, but it is efficient. There is a full suite of tests for various
+groups of notes in test/chord.js. Consult it before changing anything.
+
+Chord extensions containing `/{n}` number tags are slash chords. The tag should
+be replaced with the chord bass note name, while the number denotes the interval
+from the bass note to the root note of the chord (within the range 1-12), which
+should be prepended to the symbol as usual.
 */
 
 const CHORDENTRIES = [
@@ -37,11 +42,15 @@ const CHORDENTRIES = [
     ['sus♭9',     hsidOf(0, 1, 5, 7)],
     ['-',         hsidOf(0, 2, 3, 7)],
     ['°',         hsidOf(0, 2, 3, 6)],
-    ['{4}',       hsidOf(0, 3, 8, 10)],             // C/E   1st inversion
-    ['{7}',       hsidOf(0, 5, 7, 9)],              // C/G   2nd inversion
-    ['{8}',       hsidOf(0, 4, 8, 11)],             // C/A♭
-    ['-{3}',      hsidOf(0, 4, 9, 11)],             // C-/E♭ 1st inversion
-    ['-{7}',      hsidOf(0, 5, 7, 8)],              // C-/G  2nd inversion
+    ['/{4}',      hsidOf(0, 3, 8, 10)],             // C/E   1st inversion
+    ['/{7}',      hsidOf(0, 5, 7, 9)],              // C/G   2nd inversion
+    ['/{8}',      hsidOf(0, 4, 8, 11)],             // C/A♭
+    ['-/{3}',     hsidOf(0, 4, 9, 11)],             // C-/E♭ 1st inversion
+    ['-/{7}',     hsidOf(0, 5, 7, 8)],              // C-/G  2nd inversion
+    ['/{11}',     hsidOf(0, 1, 5, 8)],              // C/B                       - must come after -/{7}
+    ['/{1}',      hsidOf(0, 3, 6, 11)],             // C/D♭
+    ['ø',         hsidOf(0, 3, 6, 10)],
+    ['∆6',        hsidOf(0, 4, 7, 9)],
     ['∆',         hsidOf(0, 2, 4, 7, 9, 11)],       // 1st mode major (ionian)   - must come before ∆♯11
     ['∆6/9',      hsidOf(0, 2, 4, 7, 9)],
     ['∆♯11',      hsidOf(0, 2, 4, 6, 7, 9, 11)],    // 4th mode major lydian)
@@ -53,7 +62,6 @@ const CHORDENTRIES = [
     ['-6',        hsidOf(0, 2, 3, 5, 7, 9)],
     ['-7',        hsidOf(0, 2, 3, 5, 7, 9, 10)],    // 2nd mode major (dorian)
     ['-11',       hsidOf(0, 2, 3, 5, 10)],
-    ['ø',         hsidOf(0, 3, 6, 10)],             // 7th mode major (locrian)
     ['7♯11',      hsidOf(0, 2, 4, 6, 7, 9, 10)],    // 4th mode melodic minor
     ['-∆',        hsidOf(0, 2, 3, 5, 7, 9, 11)],    // 1st mode melodic minor
     ['7♭13',      hsidOf(0, 2, 4, 5, 7, 8, 10)],    // 5th mode melodic minor
@@ -122,7 +130,7 @@ function scoreNumbers(chord, numbers) {
         if (!chord.includes(number)) return -1;
         array.push(number);
     }
-//console.log(CHORDNAMES[hsidFrom(chord)], array.length, Math.min(6, chord.length), chord.length);
+
     return array.length / Math.min(6, chord.length);
 }
 
@@ -139,7 +147,7 @@ export function getChordFrom(numbers) {
         h = hsid;
         s = score;
     }
-//console.log(CHORDNAMES[h], s);
+
     return h && CHORDNAMES[h];
 }
 
