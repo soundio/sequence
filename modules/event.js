@@ -7,6 +7,7 @@ import { toTypeName }  from './event/types.js';
 import { toCurveName } from './event/curves.js';
 import { toHSID, toChordName } from './event/chords.js';
 import { toParamName } from './event/params.js';
+import { toKeyNumber, toKeyName } from './event/keys.js';
 import { toTransformName, TRANSFORMNUMBERS, TRANSFORMLENGTHS } from './event/transforms.js';
 
 
@@ -57,7 +58,7 @@ export default class Event {
                 break;
             case "key":
                 // Key root number
-                this[2] = toRootNumber(arguments[2]);
+                this[2] = toKeyNumber(arguments[2]);
                 break;
             case "note":
                 // Note number
@@ -95,15 +96,14 @@ export default class Event {
                 // Transforms
                 let n = 5;
                 while(arguments[n] !== undefined) {
-                    const transform = arguments[n];
                     // Convert transform name from number to string
-                    this[n] = toTransformName(transform);
+                    this[n] = toTransformName(arguments[n]);
 
                     // Get transform number for looking up parameter count
                     const number = TRANSFORMNUMBERS[this[n]];
 
                     // Copy parameters without conversion
-                    const m = n + (TRANSFORMLENGTHS[number] || 0);
+                    const m = n + TRANSFORMLENGTHS[number];
                     while (n++ < m) this[n] = arguments[n] || 0;
                 }
                 break;
@@ -177,7 +177,7 @@ export default class Event {
                     + ' ' + stringify(this[4]);
                 break;
             case "key":
-                string += ' ' + toRootName(this[2]);
+                string += ' ' + toKeyName(this[2]);
                 break;
             case "note":
                 string += ' ' + toNoteName(this[2])

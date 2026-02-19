@@ -1,3 +1,4 @@
+import './test/chord.js';
 import './test/event.js';
 import './test/sequence-iterator.js';
 import './test/sequence.js';

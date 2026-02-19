@@ -1,5 +1,10 @@
 
+import cache from 'fn/cache.js';
+
+
+const DEBUG = globalThis.DEBUG;
 const { floor, log } = Math;
+
 
 /**
 In JavaScript Float64 numbers safely represent up to 53-bit integers, giving
@@ -66,7 +71,9 @@ Unpacks a harmonic structure id to an ascending collection of note numbers.
 Returns a Uint8Array.
 **/
 
-export function hsidToNumbers(hsid) {
+export const hsidToNumbers = cache((hsid) => {
+    if (DEBUG && typeof hsid !== 'number') throw new Error(`hsidToNumbers() takes number, called with ${ typeof hsid }`)
+
     // If id is -ve it's an empty array
     if (hsid === -1) return Uint8Array.of();
 
@@ -89,4 +96,4 @@ export function hsidToNumbers(hsid) {
     }
 
     return numbers;
-}
+});

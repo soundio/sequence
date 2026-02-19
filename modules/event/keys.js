@@ -20,7 +20,7 @@ export const KEYNUMBERS = {
     "E♭": -3,
     "B♭": -2,
     "F":  -1,
-    "C":   0, // C
+    "C":   0,
     "G":   1,
     "D":   2,
     "A":   3,

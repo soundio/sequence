@@ -48,7 +48,7 @@ function getEventBytes(event) {
         case 'sequence': {
             bytes += 13; // id 2 | target 2 | duration 8 | byteslength 1
             i = 4;
-            while (++i < event.length) {
+            while (event[++i] !== undefined) {
                 const n = TRANSFORMNUMBERS[event[i]];
                 bytes += TRANSFORMBYTES[n];
                 i += TRANSFORMLENGTHS[n];
@@ -221,7 +221,7 @@ export default function serialise(events) {
 
                 // Write transforms
                 let i = 4;
-                while (++i < event.length) {
+                while (event[++i] !== undefined) {
                     const name = event[i];
                     const n = typeof name === 'string' ?
                         TRANSFORMNUMBERS[name] :

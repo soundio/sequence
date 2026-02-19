@@ -50,7 +50,7 @@ const simpleXML = `<?xml version="1.0" encoding="UTF-8"?>
 run('importMusicXML() - simple single-part piece', [{
     "name": "Test Piece",
     "events": [
-        [0, "key", "C"],
+        [0, "key", 0],
         [0, "rate", 2],
         [0, "meter", 4, 1],
         [0, "sequence", "section-0", 0, 4]
@@ -117,7 +117,7 @@ const chordXML = `<?xml version="1.0" encoding="UTF-8"?>
 
 run('importMusicXML() - with harmony/chord symbols', [{
     "events": [
-        [0, "key", "C"],
+        [0, "key", 0],
         [0, "meter", 4, 1],
         [0, "sequence", "section-0", 0, 4]
     ],
@@ -125,7 +125,7 @@ run('importMusicXML() - with harmony/chord symbols', [{
         "id": "section-0-P1",
         "name": "Lead",
         "events": [
-            [0, "chord", "C", "", 4],
+            [0, "chord", 0, 112, 4],
             [0, "note", 64, 0.1, 4]
         ]
     }, {
@@ -177,7 +177,7 @@ const keyXML = `<?xml version="1.0" encoding="UTF-8"?>
 
 run('importMusicXML() - key signature conversion', [{
     "events": [
-        [0, "key", "D"],
+        [0, "key", 2],
         [0, "meter", 4, 1],
         [0, "sequence", "section-0", 0, 4]
     ],
@@ -233,7 +233,7 @@ const clefXML = `<?xml version="1.0" encoding="UTF-8"?>
 
 run('importMusicXML() - clef extraction', [{
     "events": [
-        [0, "key", "C"],
+        [0, "key", 0],
         [0, "meter", 4, 1],
         [0, "sequence", "section-0", 0, 4]
     ],
@@ -305,7 +305,7 @@ const clefChangeXML = `<?xml version="1.0" encoding="UTF-8"?>
 
 run('importMusicXML() - clef change mid-piece', [{
     "events": [
-        [0, "key", "C"],
+        [0, "key", 0],
         [0, "meter", 4, 1],
         [0, "sequence", "section-0", 0, 5]
     ],
