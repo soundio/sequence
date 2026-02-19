@@ -118,34 +118,39 @@ Experimental chord identification.
 **/
 
 const CHORDIDS = CHORDENTRIES.map(get(1));
-const array = [];
+const results = [];
 
 function scoreNumbers(chord, numbers) {
     const r = numbers[0];
     let n = numbers.length, score = 0;
-    array.length = 0;
+    results.length = 0;
     while (n--) {
         const number = mod12(numbers[n] - r);
-        if (array.includes(number)) continue;
+        if (results.includes(number)) continue;
         if (!chord.includes(number)) return -1;
-        array.push(number);
+        results.push(number);
     }
 
-    return array.length / Math.min(6, chord.length);
+    return results.length / Math.min(6, chord.length);
 }
 
 export function getChordFrom(numbers) {
     // A chord must have more than 2 notes, otherwise it's an interval
     if (numbers.length < 3) return;
 
+    // If numbers is a chord identifier, fast out
+    const chordHSID = hsidFrom(numbers);
+    if (CHORDNAMES[chordHSID]) return CHORDNAMES[chordHSID];
+
     let hsid, s = 0, h;
-    // Here we must loop in the order of HSIDs declared in CHORDENTRIES
+    // Loop in the order of HSIDs declared in CHORDENTRIES, find the first of
+    // the highest scoring matches
     for (hsid of CHORDIDS) {
         const chord = hsidToNumbers(hsid);
         const score = scoreNumbers(chord, numbers);
         if (score <= s) continue;
-        h = hsid;
         s = score;
+        h = hsid;
     }
 
     return h && CHORDNAMES[h];

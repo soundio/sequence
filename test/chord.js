@@ -7,7 +7,7 @@ run('Chord maps have same number of entries', [Object.keys(CHORDNUMBERS).length]
     done();
 });
 
-run('Chord', [
+run('getChordOf(), getChordFrom()', [
     undefined,
     '+',
     '+',
