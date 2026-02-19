@@ -2,6 +2,7 @@
 import run from 'fn/test.js';
 import serialise from '../modules/events/serialise.js';
 import deserialise from '../modules/events/deserialise.js';
+import { CHORDNUMBERS } from '../modules/event/chords.js';
 
 run('Serialise "note" events', [
     [0, 'note', 69, Math.fround(0.8), 2],
@@ -22,7 +23,7 @@ run('Serialise "note" events', [
 run('Serialise "meter", "chord", "key" events', [
     [0, 'meter', 4, 1],
     [0, 'key', 2],
-    [4, 'chord', 0, 63921350, 4], // -7 chord symbol serializes to harmonic ID 63921350
+    [4, 'chord', 0, CHORDNUMBERS['-7'], 4],
 ], (test, done) => {
     const buffer = serialise([
         [0, 'meter', 4, 1],

@@ -1,6 +1,7 @@
 
 import run from 'fn/test.js';
 import importMusicXML from '../modules/parse/parse-music-xml.js';
+import { CHORDNUMBERS } from '../modules/event/chords.js';
 
 
 // Simple single-note MusicXML test
@@ -125,7 +126,7 @@ run('importMusicXML() - with harmony/chord symbols', [{
         "id": "section-0-P1",
         "name": "Lead",
         "events": [
-            [0, "chord", 0, 112, 4],
+            [0, "chord", 0, CHORDNUMBERS[''], 4],
             [0, "note", 64, 0.1, 4]
         ]
     }, {
