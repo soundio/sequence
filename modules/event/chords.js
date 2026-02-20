@@ -50,6 +50,7 @@ const CHORDENTRIES = [
     ['/{11}',     hsidOf(0, 1, 5, 8)],              // C/B                       - must come after -/{7}
     ['/{1}',      hsidOf(0, 3, 6, 11)],             // C/D♭
     ['7/{4}',     hsidOf(0, 3, 6, 8)],              // C7/E
+//    ['7/{7}',     hsidOf(0, 3, 5, 9)],              // C7/G
     ['ø',         hsidOf(0, 3, 6, 10)],
     ['∆6',        hsidOf(0, 4, 7, 9)],
     ['∆',         hsidOf(0, 2, 4, 7, 9, 11)],       // 1st mode major (ionian)   - must come before ∆♯11
