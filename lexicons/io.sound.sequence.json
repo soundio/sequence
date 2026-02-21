@@ -70,11 +70,12 @@
           },
           "tags": {
             "type": "array",
-            "description": "Array of strings used to tag the sequence.",
+            "description": "Array of strings used to classify the sequence.",
             "items": {
               "type": "string",
               "maxLength": 1280,
-              "maxGraphemes": 128
+              "maxGraphemes": 128,
+              "knownValues": ["afro","celtic","classical","country","folk","funk","latin","jazz","pop","punk","rock"]
             }
           }
         }
