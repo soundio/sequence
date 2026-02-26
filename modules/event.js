@@ -5,7 +5,7 @@ import mod12     from './number/mod-12.js';
 import { rflatsharp, toUnicode } from './pitch.js';
 import { toTypeName }  from './event/types.js';
 import { toCurveName } from './event/curves.js';
-import { toHSID, toChordName } from './event/chords.js';
+import { toChordHSID, toChordName } from './event/chords.js';
 import { toParamName } from './event/params.js';
 import { toKeyNumber, toKeyName } from './event/keys.js';
 import { toTransformName, TRANSFORMNUMBERS, TRANSFORMLENGTHS } from './event/transforms.js';
@@ -44,7 +44,7 @@ export default class Event {
                 // Root number
                 this[2] = toRootNumber(arguments[2]);
                 // Harmonic structure id - handle number or name string
-                this[3] = toHSID(arguments[3]);
+                this[3] = toChordHSID(arguments[3]);
                 // Duration
                 this[4] = arguments[4] || 0;
                 // Chord bass

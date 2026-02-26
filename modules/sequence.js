@@ -51,7 +51,15 @@ export default class Sequence {
     }
 
     select(beat, type) {
-        return this.events.filter(matches({ 0: beat, 1: type }));
+        return this.events.filter((event) => (
+            typeof beat === 'number' ?
+                event[0] === beat :
+                event[0] >= beat.min && event[0] < beat.max
+        ) && (
+            typeof type === 'string' ?
+                event[1] === type :
+                type.includes(event[1])
+        ));
     }
 
     static of(...events) {

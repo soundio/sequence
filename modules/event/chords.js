@@ -88,13 +88,13 @@ export const CHORDNUMBERS = Object.fromEntries(CHORDENTRIES);
 export const CHORDNAMES   = mirror(CHORDNUMBERS);
 
 /**
-toHSID(value)
+toChordHSID(value)
 Converts a chord name or harmonic structure of note numbers to an HSID.
 **/
 
 const rparenthesis = /[()]/g;
 
-export function toHSID(value) {
+export function toChordHSID(value) {
     return typeof value === 'string' ?
             CHORDNUMBERS[
                 value
@@ -108,7 +108,7 @@ export function toHSID(value) {
 
 
 export function toChordName(value) {
-    const hsid = toHSID(value);
+    const hsid = toChordHSID(value);
     return CHORDNAMES[hsid] || '';
 }
 
