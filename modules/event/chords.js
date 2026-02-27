@@ -33,7 +33,7 @@ be replaced with the chord bass note name, while the number denotes the interval
 from the bass note to the root note of the chord (within the range 1-12), which
 should be prepended to the symbol as usual.
 */
-
+/*
 const CHORDENTRIES = [
     // Chords without 7ths
     ['',          hsidOf(0, 2, 4, 7)],              // Before '+' so that 0,2,4 shows identifies with this
@@ -83,6 +83,25 @@ const CHORDENTRIES = [
     ['∆♯5',       hsidOf(0, 2, 4, 8, 11)],          // 3rd mode harmonic minor
     ['∆♭6',       hsidOf(0, 2, 4, 5, 7, 8, 11)],    // 1st mode harmonic major
 ];
+*/
+const CHORDENTRIES = [
+    ['∆♯11',      hsidOf(0, 6)],           // 4th mode major lydian)
+    ['',          hsidOf(0, 4)],           // Before '+' so that 0,2,4 shows identifies with this
+    ['∆6',        hsidOf(0, 4, 9)],
+    ['∆',         hsidOf(0, 4, 11)],       // 1st mode major (ionian)   - must come before ∆♯11
+    ['7sus',      hsidOf(0, 5, 10)],       // - must come before 7 to classify 0,2,7,10 (Gm/C) as 7sus
+    ['7♯11',      hsidOf(0, 6, 10)],       // 4th mode melodic minor
+    ['7',         hsidOf(0, 4, 10)],       // 5th mode major (myxolydian)
+    ['∆6/9',      hsidOf(0, 2, 9)],
+    ['7♯9',       hsidOf(0, 3, 4, 10)],    // Hendrix chord             - must come before 7alt and 7♭9
+    ['7♭9',       hsidOf(0, 1, 4, 10)],    // Half step / whole step no 13th
+    ['13',        hsidOf(0, 4, 9, 10)],
+    ['13♭9',      hsidOf(0, 1, 4, 9, 10)],       // Half step / whole step    - must come before 7♭9♭13
+    ['7alt',      hsidOf(0, 4, 8, 10)], // 7th mode melodic minor    - before 7♭9 if F♯ triad / C is to be classified as 7alt, after if it is to be classified as 7♭9
+];
+
+
+
 
 export const CHORDNUMBERS = Object.fromEntries(CHORDENTRIES);
 export const CHORDNAMES   = mirror(CHORDNUMBERS);
@@ -129,11 +148,11 @@ function scoreNumbers(chord, numbers) {
     while (n--) {
         const number = mod12(numbers[n] - r);
         if (results.includes(number)) continue;
-        if (!chord.includes(number)) return -1;
+        if (chord.includes(number)) ++score;
         results.push(number);
     }
-
-    return results.length / Math.min(6, chord.length);
+    return score;
+    //return results.length / Math.min(6, chord.length);
 }
 
 export function getChordFrom(numbers) {
