@@ -31,7 +31,7 @@ toTypeName(value)
 Converts a type name or number to a type name string.
 **/
 export function toTypeName(value) {
-    if (typeof value === 'string') return value;
+    if (typeof value === 'string' && value in TYPENUMBERS) return value;
     if (value in TYPENAMES) return TYPENAMES[value];
-    throw new Error(`Type ${ value } not recognised`);
+    throw new Error(`Event type ${ value } not recognised`);
 }

@@ -10,6 +10,13 @@ import { PARAMNUMBERS }             from '../event/params.js';
 
 
 /**
+VERSION
+**/
+
+export const VERSION = 0;
+
+
+/**
 serialise(events)
 Serialises an array of events to a Uint8Array binary format.
 Event structure: Float64 beat | Int16 address | data...

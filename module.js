@@ -1,6 +1,7 @@
 import Event       from './modules/event.js';
 import Sequence    from './modules/sequence.js';
-import { toRecord, fromRecord, validateRecord, VERSION } from './modules/record.js';
+import { VERSION } from './modules/events/serialise.js';
+import { toRecord, toATProtoRecord, fromRecord } from './modules/record.js';
 
 const assign = Object.assign;
 
@@ -26,16 +27,19 @@ Sequence.toRecord(sequence);
 const fromData = Sequence.from;
 
 Sequence.from = function from(data) {
-    return data.events && typeof data.events.$bytes === 'string' ?
-        fromRecord(data) :
+    // events is a Uint8Array
+    return data.events && data.events instanceof Uint8Array ? fromRecord(data) :
+    // events is an ATProto bytes object
+        data.events && typeof data.events.$bytes === 'string' ? fromRecord(data) :
+    // events is something else
         fromData(data) ;
 };
 
 assign(Sequence, {
     version: VERSION,
     toRecord,
-    fromRecord,
-    validateRecord
+    toATProtoRecord,
+    fromRecord
 });
 
 

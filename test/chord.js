@@ -31,6 +31,9 @@ run('getChordOf(), getChordFrom()', [
     '-/{3}',
     '-/{7}',
     '-/{7}',
+    '7/{4}',
+    '7/{7}',
+    '7/{7}',
     '∆♯11',
     '∆♯11',
     '∆♯11',
@@ -39,18 +42,20 @@ run('getChordOf(), getChordFrom()', [
     '∆6',
     '∆6/9',
     '7',
+    '7',
     '13',
     '13',
     '7sus',
     '7sus',
     '7sus',
     '7sus',
+    '13sus',
     '-7',
     '-7',
     '-7',
     '-6',
     '-11',
-    '-11',
+//    '-11',
     '-♭6',
     'sus♭9',
     'sus♭9',
@@ -87,7 +92,6 @@ run('getChordOf(), getChordFrom()', [
     '7♭9♭13',
     '7♭9♭13',
     '7♭9♭13',
-    '∆♯5',
     '∆♭6',
     '∆♭6',
     '7♯9',
@@ -103,7 +107,6 @@ run('getChordOf(), getChordFrom()', [
     '°7',
     '°7',
     '°7',
-    '+7',
     '+7'
 ], (test, done) => {
     test(getChordOf(0, 4));                     // undefined
@@ -129,6 +132,9 @@ run('getChordOf(), getChordFrom()', [
     test(getChordOf(0, 4, 9, 11));              // C-/Eb 1st inversion
     test(getChordOf(0, 5, 8));                  // C-/G  2nd inversion
     test(getChordOf(0, 5, 7, 8));               // C-/G  2nd inversion
+    test(getChordOf(0, 6, 8, 10));              // C7/E
+    test(getChordOf(0, 3, 5));                  // C7/G
+    test(getChordOf(0, 3, 9));                  // C7/G
     test(getChordOf(0, 9, 14, 18));             // ∆♯11
     test(getChordOf(0, 2, 6, 7));               // ∆♯11
     test(getChordOf(0, 2, 4, 6));               // ∆♯11  HMMM. TRICKY
@@ -136,6 +142,7 @@ run('getChordOf(), getChordFrom()', [
     test(getChordOf(0, 2, 7, 11));              // ∆
     test(getChordOf(0, 4, 7, 9));               // ∆6
     test(getChordOf(0, 4, 7, 9, 14));           // ∆6/9
+    test(getChordOf(0, 4, 10));                 // 7
     test(getChordOf(0, 4, 7, 10));              // 7
     test(getChordOf(0, 10, 16, 21));            // 13
     test(getChordOf(0, 10, 14, 16, 21));        // 13
@@ -143,12 +150,13 @@ run('getChordOf(), getChordFrom()', [
     test(getChordOf(0, 2, 5, 10));              // 7sus
     test(getChordOf(0, 2, 5, 7, 10));           // 7sus
     test(getChordOf(0, 2, 7, 10));              // 7sus
+    test(getChordOf(0, 2, 9, 10));              // 13sus
     test(getChordOf(0, 3, 7, 10));              // -7
     test(getChordOf(0, 2, 3, 7, 10));           // -7
     test(getChordOf(0, 3, 5, 7, 10));           // -7
     test(getChordOf(0, 3, 7, 9));               // -6
     test(getChordOf(0, 3, 5, 10));              // -11
-    test(getChordOf(0, 3, 5));                  // -11
+//    test(getChordOf(0, 3, 5, 7));               // -11
     test(getChordOf(0, 3, 7, 8));               // -♭6
     test(getChordOf(0, 1, 5, 7));               // sus♭9
     test(getChordOf(0, 1, 5));                  // sus♭9
@@ -185,9 +193,8 @@ run('getChordOf(), getChordFrom()', [
     test(getChordOf(0, 1, 4, 5, 7, 8, 10));     // 7♭9♭13
     test(getChordOf(0, 1, 4, 5, 8, 10));        // 7♭9♭13
     test(getChordOf(0, 1, 4, 7, 8, 10));        // 7♭9♭13
-    test(getChordOf(0, 2, 4, 8, 11));           // ∆♯5
-    test(getChordOf(0, 2, 4, 5, 7, 8, 11));     // ∆♭6
     test(getChordOf(0, 2, 4, 7, 8, 11));        // ∆♭6
+    test(getChordOf(0, 4, 7, 8, 11));           // ∆♭6
     test(getChordOf(0, 3, 4, 10));              // 7♯9
     test(getChordOf(0, 3, 4, 7, 10));           // 7♯9
     test(getChordOf(0, 3, 4, 7, 9, 10));        // 7♯9
@@ -202,6 +209,6 @@ run('getChordOf(), getChordFrom()', [
     test(getChordOf(0, 3, 6, 9, 11));           // °7
     test(getChordOf(0, 2, 3, 5, 6, 8, 9, 11));  // °7
     test(getChordOf(0, 4, 6, 8));               // +7  // POSSIBLE 7alt
-    test(getChordOf(0, 6, 8, 10));              // +7  // BUT THIS ONE SHOULD ALMOST CERTAINLY BE WHOLE TONE
+    /**/
     done();
 });
