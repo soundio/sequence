@@ -86,6 +86,18 @@ const CHORDENTRIES = [
 export const CHORDNUMBERS = Object.fromEntries(CHORDENTRIES);
 export const CHORDNAMES   = mirror(CHORDNUMBERS);
 
+// Aliases
+
+CHORDNUMBERS['aug']  = CHORDNUMBERS['+'];
+CHORDNUMBERS['dim']  = CHORDNUMBERS['°'];
+CHORDNUMBERS['dim7'] = CHORDNUMBERS['°7'];
+CHORDNUMBERS['maj']  = CHORDNUMBERS[''];
+CHORDNUMBERS['maj7'] = CHORDNUMBERS['∆'];
+CHORDNUMBERS['min']  = CHORDNUMBERS['-'];
+CHORDNUMBERS['min7'] = CHORDNUMBERS['-7'];
+CHORDNUMBERS['m7♭5'] = CHORDNUMBERS['ø'];
+CHORDNUMBERS['min7♭5'] = CHORDNUMBERS['ø'];
+
 /**
 toChordHSID(value)
 Converts a chord name or harmonic structure of note numbers to an HSID.
