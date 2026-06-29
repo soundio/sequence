@@ -18,6 +18,11 @@ const rdatetime = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2
 // Basic structure check: at://authority[/collection[/rkey]]
 const raturi = /^at:\/\/[^/\s]+(\/([\w.-]+)(\/[\w.-]+)?)?$/;
 
+// Generic RFC-3986 URI: a scheme (ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ))
+// followed by ":" and characters drawn from the URI set (unreserved, reserved
+// and pct-encoding). Flexible to any scheme — did, https, wss, ipfs, dns, at, …
+const ruri = /^[a-zA-Z][a-zA-Z0-9+.\-]*:[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]*$/;
+
 // Handle validation: max 253 chars, specific format
 const rhandle = /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
 
@@ -47,8 +52,10 @@ const validateFormat = overload(id, {
     },
 
     uri: (format, name, value) => {
+        // Maximum length in Lexicons is 8kB
         if (countBytes(value) > 8192) throw new Error(`Record "${ name }" URI exceeds 8KB maximum`);
-        try { new URL(value); } catch(e) { throw new Error(`Record "${ name }" ${ e.message }`); }
+        // Generic RFC-3986 URIs, including, but not limited to: did, https, wss, ipfs, dns and at
+        if (!ruri.test(value)) throw new Error(`Record "${ name }" invalid URI "${ value }"`);
     },
 
     'at-uri': (format, name, value) => {

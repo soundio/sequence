@@ -3,6 +3,7 @@ import Sequence    from './modules/sequence.js';
 import { VERSION } from './modules/events/serialise.js';
 import { toRecord, toATProtoRecord, fromRecord } from './modules/record.js';
 
+
 const assign = Object.assign;
 
 
