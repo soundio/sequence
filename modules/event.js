@@ -257,7 +257,7 @@ export function isSequenceEvent(event) {
 }
 
 export function isMeterEvent(event) {
-    return event[1] === 'timesig';
+    return event[1] === 'meter';
 }
 
 export function isKeyEvent(event) {
