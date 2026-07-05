@@ -236,8 +236,12 @@ export default class Event {
     }
 
     static isChord    = isChordEvent;
+    static isKey      = isKeyEvent;
     static isNote     = isNoteEvent;
+    static isParam    = isParamEvent;
+    static isRate     = isRateEvent;
     static isSequence = isSequenceEvent;
+    static isTimeSig  = isTimeSigEvent;
 }
 
 export function isChordEvent(event) {
@@ -250,4 +254,20 @@ export function isNoteEvent(event) {
 
 export function isSequenceEvent(event) {
     return event[1] === 'sequence';
+}
+
+export function isTimeSigEvent(event) {
+    return event[1] === 'timesig';
+}
+
+export function isKeyEvent(event) {
+    return event[1] === 'key';
+}
+
+export function isParamEvent(event) {
+    return event[1] === 'param';
+}
+
+export function isRateEvent(event) {
+    return event[1] === 'rate';
 }
