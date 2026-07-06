@@ -16,14 +16,20 @@ function toPriority(event) {
     return event[0] + '|' + priority(event);
 }
 
+function setEvents(event, n, events) {
+    event.events = events;
+}
+
 export default class Sequence {
     constructor(events, sequences) {
         this.events = events.map(Event.from);
+        this.events.forEach(setEvents);
         if (sequences) this.sequences = sequences.map(Sequence.from);
     }
 
     create() {
-        const event = new Event(...arguments);
+        const event = Event.from(arguments);
+        event.events = this.events;
         insert(this.events, event);
         return event;
     }

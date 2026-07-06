@@ -33,6 +33,30 @@ function getEvent(event) {
     return event;
 }
 
+// --------
+
+const getSet = {
+    // Transform beat
+    0: {
+        get() {}
+        set() {}
+    },
+
+    // Transform data
+    2: {
+        get() {}
+        set() {}
+    },
+    // etc
+};
+
+function TransformEvent(event) {
+    return Object.create(event, getSet);
+}
+
+// --------
+
+
 export default class Event {
     constructor(beat, type) {
         this[0] = beat;
@@ -120,10 +144,19 @@ export default class Event {
                 this[3] = arguments[3];
         }
 
-        define(this, 'event',  writable);
-        define(this, 'events', writable);
-        define(this, 'index',  writable);
-        define(this, 'target', writable);
+        // Set by Sequence.create()
+        //define(this, 'sequence', writable);
+        define(this, 'event',    writable);
+        define(this, 'events',   writable);
+        //define(this, 'index',    writable);
+        // Set by SequenceIterator
+        define(this, 'target',   writable);
+    }
+
+    transform(transforms) {
+        const transformedEvent = Object.create(this, {});
+        transformedEvent.transforms = transforms;
+        return transformedEvent;
     }
 
     move(n) {
@@ -224,14 +257,14 @@ export default class Event {
         return new Event(...data);
     }
 
-    static from(data, index, events) {
-        if (DEBUG && index  !== undefined && typeof index  !== 'number') throw new Error('Event() cannot create event with index ' + index);
-        if (DEBUG && events !== undefined && typeof events !== 'object') throw new Error('Event() cannot create event with events ' + events);
+    static from(data/*, index, events*/) {
+        //if (DEBUG && index  !== undefined && typeof index  !== 'number') throw new Error('Event() cannot create event with index ' + index);
+        //if (DEBUG && events !== undefined && typeof events !== 'object') throw new Error('Event() cannot create event with events ' + events);
 
         const event = new Event(...data) ;
-        event.event  = data; // Dodgy, what if we are making event from arguments object?
-        event.events = events;
-        event.index  = index;
+        //event.event  = data; // Dodgy, what if we are making event from arguments object, which we do?
+        //event.events = events;
+        //event.index  = index;
         return event;
     }
 
