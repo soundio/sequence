@@ -38,13 +38,13 @@ function getEvent(event) {
 const getSet = {
     // Transform beat
     0: {
-        get() {}
+        get() {},
         set() {}
     },
 
     // Transform data
     2: {
-        get() {}
+        get() {},
         set() {}
     },
     // etc
