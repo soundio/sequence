@@ -1,4 +1,5 @@
 
+import remove   from 'fn/remove.js';
 import { toNoteName, toNoteNumber, toRootName, toRootNumber } from 'midi/note.js';
 import parseGain from './parse/parse-gain.js';
 import mod12     from './number/mod-12.js';
@@ -157,6 +158,17 @@ export default class Event {
         const transformedEvent = Object.create(this, {});
         transformedEvent.transforms = transforms;
         return transformedEvent;
+    }
+
+    remove() {
+        const event  = getEvent(this);
+        const events = event.events;
+
+        if (events) {
+            remove(events, event);
+        }
+
+        return this;
     }
 
     move(n) {
