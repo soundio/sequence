@@ -4,9 +4,21 @@ import Event from './event.js';
 
 const define = Object.defineProperties;
 
+/**
+Calculate byte length for a text event including string
+**/
+export function getTextEventLength(event) {
+    const string = event[2];
+    const encoded = new TextEncoder().encode(string);
+    return EVENT_BASE_LENGTHS.text + encoded.length;
+}
+
+
 class TextEvent extends Event {
-    constructor(beat) {
+    constructor(beat, string, duration) {
         super(beat);
+        this.string   = string;
+        this.duration = duration;
     }
 
     get string()         { return ''; }

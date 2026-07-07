@@ -77,8 +77,9 @@ export function rootToKeyNumber(value) {
 
 
 export default class KeyEvent extends Event {
-    constructor(beat) {
+    constructor(beat, type, key) {
         super(beat);
+        this.key = key;
     }
 
     get key()            { return toKeyName(this[2]); }

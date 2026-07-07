@@ -179,8 +179,12 @@ export function getChordOf() {
 
 
 export default class ChordEvent extends Event {
-    constructor(beat) {
+    constructor(beat, type, root, extension, duration, bass) {
         super(beat);
+        this.root      = root;
+        this.extension = extension;
+        this.duration  = duration;
+        this.bass      = bass;
     }
 
     get root()           { return toRootName(this[2]); }

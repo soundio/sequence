@@ -50,8 +50,12 @@ export function toParamName(value) {
 
 
 export default class ParamEvent extends Event {
-    constructor(beat) {
+    constructor(beat, type, name, value, curve, duration) {
         super(beat);
+        this.name     = name;
+        this.value    = value;
+        this.curve    = curve;
+        this.duration = duration;
     }
 
     get name()           { return toParamName(this[2]); }

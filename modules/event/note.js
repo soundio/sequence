@@ -8,8 +8,11 @@ import Event from './event.js';
 const define = Object.defineProperties;
 
 class NoteEvent extends Event {
-    constructor(beat) {
+    constructor(beat, type, name, gain, duration) {
         super(beat);
+        this.name = name;
+        this.gain = gain;
+        this.duration = duration;
     }
 
     get name()           { return toNoteName(this.number); }
