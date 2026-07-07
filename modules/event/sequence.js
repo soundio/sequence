@@ -3,6 +3,8 @@ import Event from './event.js';
 import { toTransformName, TRANSFORMNUMBERS, TRANSFORMLENGTHS } from './transforms.js';
 
 
+const define = Object.defineProperties;
+
 /**
 Calculate byte length for a sequence event including transforms
 **/
@@ -53,7 +55,7 @@ export default class SequenceEvent extends Event {
     }
 }
 
-defineProperties(SequenceEvent.prototype, {
+define(SequenceEvent.prototype, {
     1:    { value: Event.TYPENUMBERS.sequence, enumerable: true },
     type: { value: 'sequence' }
 });
