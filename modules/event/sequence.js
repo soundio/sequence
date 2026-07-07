@@ -54,6 +54,6 @@ export default class SequenceEvent extends Event {
 }
 
 defineProperties(SequenceEvent.prototype, {
-    1:    { value: Event.TYPENUMBERS.sequence, enumerable: true }
+    1:    { value: Event.TYPENUMBERS.sequence, enumerable: true },
     type: { value: 'sequence' }
 });

@@ -264,7 +264,6 @@ export default function deserialise(buffer) {
 
             default:
                 throw new Error(`Cannot deserialise unknown address ${ route }.${ param }.${ toCurveNumber(address) }`);
-                break;
         }
     }
 
