@@ -98,7 +98,7 @@ export default class Event {
     static of() { return this.from(arguments); }
     static from(data) {
         const type = toTypeName(data[1]);
-        return new this.constructors[type](...data);
+        return new Event.constructors[type](...data);
     }
 
     static isChord(event)    { return event[1] === TYPENUMBERS.chord; }
