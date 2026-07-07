@@ -71,7 +71,7 @@ export default class SequenceIterator {
     }
 
     next() {
-        const { events, sequences, transforms, n } = this;
+        const { events, transforms, n } = this;
         const event = events[n + 1];
 
         let value;

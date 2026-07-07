@@ -3,9 +3,7 @@ import Event, { TYPENUMBERS, TYPENAMES, TYPEBYTES } from '../event.js';
 import { packAddress }              from './address.js';
 import { CURVENUMBERS, CURVEBYTES } from '../event/curves.js';
 import { TRANSFORMNUMBERS, TRANSFORMBYTES, TRANSFORMLENGTHS } from '../event/transforms.js';
-import { CHORDNUMBERS }             from '../event/chord.js';
-import { KEYNUMBERS, toKeyNumber }  from '../event/key.js';
-import { PARAMNUMBERS }             from '../event/param.js';
+import { toKeyNumber }  from '../event/key.js';
 
 
 /**
