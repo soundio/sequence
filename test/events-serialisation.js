@@ -2,7 +2,7 @@
 import run from 'fn/test.js';
 import serialise from '../modules/events/serialise.js';
 import deserialise from '../modules/events/deserialise.js';
-import { CHORDNUMBERS } from '../modules/event/chords.js';
+import { CHORDNUMBERS } from '../modules/event/chord.js';
 
 run('Serialise "note" events', [
     [0, 'note', 69, Math.fround(0.8), 2],

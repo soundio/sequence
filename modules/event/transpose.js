@@ -2,7 +2,7 @@
 import id       from 'fn/id.js';
 import overload from 'fn/overload.js';
 import { toNoteNumber, toRootNumber } from 'midi/note.js';
-import { rootToKeyNumber, keyToRootNumber } from './keys.js';
+import { rootToKeyNumber, keyToRootNumber } from './key.js';
 
 export default overload((n, event) => event[1], {
     note: (n, event) => {

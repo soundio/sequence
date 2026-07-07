@@ -4,9 +4,9 @@ import { packAddress }              from './address.js';
 import { CURVENUMBERS, CURVEBYTES } from '../event/curves.js';
 import { TYPENUMBERS, TYPEBYTES }   from '../event/types.js';
 import { TRANSFORMNUMBERS, TRANSFORMBYTES, TRANSFORMLENGTHS } from '../event/transforms.js';
-import { CHORDNUMBERS }             from '../event/chords.js';
-import { KEYNUMBERS, toKeyNumber }  from '../event/keys.js';
-import { PARAMNUMBERS }             from '../event/params.js';
+import { CHORDNUMBERS }             from '../event/chord.js';
+import { KEYNUMBERS, toKeyNumber }  from '../event/key.js';
+import { PARAMNUMBERS }             from '../event/param.js';
 
 
 /**

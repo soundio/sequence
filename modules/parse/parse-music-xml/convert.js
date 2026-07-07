@@ -12,7 +12,7 @@ import { toNoteNumber } from 'midi/note.js';
 import parseGain from '../../parse/parse-gain.js';
 import toGain from 'fn/to-gain.js';
 import dB from 'fn/to-db.js';
-import { toKeyName } from '../../event/keys.js';
+import { toKeyName } from '../../event/key.js';
 import { clefToName } from './clef.js';
 
 

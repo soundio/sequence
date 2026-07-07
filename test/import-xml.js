@@ -1,7 +1,7 @@
 
 import run from 'fn/test.js';
 import importMusicXML from '../modules/parse/parse-music-xml.js';
-import { CHORDNUMBERS } from '../modules/event/chords.js';
+import { CHORDNUMBERS } from '../modules/event/chord.js';
 
 
 // Simple single-note MusicXML test

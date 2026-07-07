@@ -1,6 +1,6 @@
 
 import run   from 'fn/test.js';
-import { CHORDNUMBERS, CHORDNAMES, getChordOf } from '../modules/event/chords.js';
+import { CHORDNUMBERS, CHORDNAMES, getChordOf } from '../modules/event/chord.js';
 
 run('Chord maps have same number of entries', [Object.keys(CHORDNUMBERS).length], (test, done) => {
     test(Object.keys(CHORDNUMBERS).length);
