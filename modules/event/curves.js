@@ -47,7 +47,7 @@ export function toCurveName(value) {
 toCurveNumber(name)
 Converts a curve name or number to a curve number.
 **/
-export function toCurveName(name) {
+export function toCurveNumber(name) {
     return typeof name === 'string' ?
         (CURVENUMBERS[name] || 'step') :
         name;
