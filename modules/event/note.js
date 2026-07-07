@@ -7,7 +7,7 @@ import Event from './event.js';
 
 const define = Object.defineProperties;
 
-class NoteEvent extends Event {
+export default class NoteEvent extends Event {
     constructor(beat, type, name, gain, duration) {
         super(beat);
         this.name = name;

@@ -14,7 +14,7 @@ export function getTextEventLength(event) {
 }
 
 
-class TextEvent extends Event {
+export default class TextEvent extends Event {
     constructor(beat, _type, string, duration) {
         super(beat);
         this.string   = string;
