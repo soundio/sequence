@@ -3,11 +3,11 @@ import get     from 'fn/get.js';
 import mod12   from '../number/mod-12.js';
 import mirror  from '../object/mirror.js';
 import { rflatsharp, toUnicode } from '../pitch.js';
-import Event, { TYPENUMBERS } from './event.js';
+import Event   from './event.js';
 import { hsidOf, hsidFrom, hsidToNumbers } from './hsid.js';
 
 
-const DEBUG = globalThis.DEBUG;
+const DEBUG  = globalThis.DEBUG;
 const define = Object.defineProperties;
 
 /*
@@ -136,7 +136,7 @@ const results = [];
 
 function scoreNumbers(chord, numbers) {
     const r = numbers[0];
-    let n = numbers.length, score = 0;
+    let n = numbers.length;
     results.length = 0;
     while (n--) {
         const number = mod12(numbers[n] - r);
@@ -203,6 +203,6 @@ export default class ChordEvent extends Event {
 }
 
 define(ChordEvent.prototype, {
-    1:    { value: Event.TYPENUMBERS.chord, enumerable: true }
+    1:    { value: Event.TYPENUMBERS.chord, enumerable: true },
     type: { value: 'chord' }
 });

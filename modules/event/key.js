@@ -91,6 +91,6 @@ export default class KeyEvent extends Event {
 }
 
 define(KeyEvent.prototype, {
-    1:    { value: Event.TYPENUMBERS.key, enumerable: true }
+    1:    { value: Event.TYPENUMBERS.key, enumerable: true },
     type: { value: 'key' }
 });

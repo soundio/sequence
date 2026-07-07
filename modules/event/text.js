@@ -15,7 +15,7 @@ export function getTextEventLength(event) {
 
 
 class TextEvent extends Event {
-    constructor(beat, string, duration) {
+    constructor(beat, _type, string, duration) {
         super(beat);
         this.string   = string;
         this.duration = duration;
@@ -32,6 +32,6 @@ class TextEvent extends Event {
 }
 
 define(TextEvent.prototype, {
-    1:    { value: Event.TYPENUMBERS.text, enumerable: true }
+    1:    { value: Event.TYPENUMBERS.text, enumerable: true },
     type: { value: 'text' }
 });

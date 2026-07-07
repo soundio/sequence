@@ -1,5 +1,6 @@
 
 import { names } from 'midi/control.js';
+import { toCurveName, toCurveNumber } from './curves.js';
 import Event from './event.js';
 
 
@@ -50,7 +51,7 @@ export function toParamName(value) {
 
 
 export default class ParamEvent extends Event {
-    constructor(beat, type, name, value, curve, duration) {
+    constructor(beat, _type, name, value, curve, duration) {
         super(beat);
         this.name     = name;
         this.value    = value;
@@ -73,6 +74,6 @@ export default class ParamEvent extends Event {
 }
 
 define(ParamEvent.prototype, {
-    1:    { value: Event.TYPENUMBERS.param, enumerable: true }
+    1:    { value: Event.TYPENUMBERS.param, enumerable: true },
     type: { value: 'param' }
 });

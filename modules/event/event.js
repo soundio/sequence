@@ -75,7 +75,7 @@ export default class Event {
     toJSON() {
         const array = [];
         let n = -1;
-        while (event[++n] !== undefined) array.push(event[n]);
+        while (this[++n] !== undefined) array.push(this[n]);
         return array;
     }
 
@@ -110,7 +110,7 @@ export default class Event {
     static isSequence(event) { return event[1] === TYPENUMBERS.sequence; }
 }
 
-define(MeterEvent.prototype, {
-    1:    { value: 0, enumerable: true }
-    type: { value: 'unkown' }
+define(Event.prototype, {
+    1:    { value: 0, enumerable: true },
+    type: { value: 'unknown' }
 });

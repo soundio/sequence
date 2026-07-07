@@ -1,5 +1,5 @@
 
-import Event, { TYPENUMBERS, TYPEBYTES } from '../event.js';
+import Event, { TYPENUMBERS, TYPENAMES, TYPEBYTES } from '../event.js';
 import { packAddress }              from './address.js';
 import { CURVENUMBERS, CURVEBYTES } from '../event/curves.js';
 import { TRANSFORMNUMBERS, TRANSFORMBYTES, TRANSFORMLENGTHS } from '../event/transforms.js';
@@ -38,20 +38,19 @@ function truncateUTF8(bytes, maxLength) {
 
 function getEventBytes(event) {
     const type = event[1];
-    const t    = TYPENUMBERS[type];
 
     let bytes = 10; // beat 8 | address 2
-    if (t in TYPEBYTES) return bytes + TYPEBYTES[t];
+    if (type in TYPEBYTES) return bytes + TYPEBYTES[t];
 
     let i;
     switch(type) {
-        case 'text': {
+        case TYPENUMBERS.text: {
             const encoded   = new TextEncoder().encode(event[2]);
             const truncated = truncateUTF8(encoded, MAX_TEXT_BYTES);
             return bytes + 8 + 1 + truncated.length; // duration(8) + length(1) + string(N)
         }
 
-        case 'sequence': {
+        case TYPENUMBERS.sequence: {
             bytes += 13; // id 2 | target 2 | duration 8 | byteslength 1
             i = 4;
             while (event[++i] !== undefined) {
@@ -62,19 +61,17 @@ function getEventBytes(event) {
             return bytes;
         }
 
-        case 'param':
+        case TYPENUMBERS.param:
             i = 4;
-        case 'rate':
+        case TYPENUMBERS.rate:
             if (i === undefined) i = 3;
 
         default: {
             // Different curves take up different bytelengths
-            const number = typeof event[i] === 'string' ?
-                (CURVENUMBERS[event[i]] || 0) :
-                (event[i] || 0);
+            const number = event[i];
 
             // For curve type, always include length field (array is at i-1)
-            return number === CURVENUMBERS['curve'] ?
+            return number === CURVENUMBERS.curve ?
                 bytes + 8 + 2 + event[i - 1].length * 4 :
                 bytes + CURVEBYTES[number] ;
         }
@@ -85,25 +82,20 @@ function getAddressFromEvent(event) {
     const type = event[1];
 
     switch (type) {
-        case 'param': {
-            const p = typeof event[2] === 'string' ? (PARAMNUMBERS[event[2]] || 0) : event[2];
-            const c = typeof event[4] === 'string' ? (CURVENUMBERS[event[4]] || 0) : event[4];
+        case TYPENUMBERS.param: {
             // Param event route 1
-            return packAddress(1, p, c);
+            return packAddress(1, event[2], event[4]);
         }
 
-        case 'rate': {
-            const t = TYPENUMBERS[type];
-            const c = typeof event[3] === 'string' ? (CURVENUMBERS[event[3]] || 0) : (event[3] || 0);
+        case TYPENUMBERS.rate: {
             // Param event route 0
-            return packAddress(0, t, c);
+            return packAddress(0, type, event[3]);
         }
 
         default: {
-            const number = TYPENUMBERS[type];
-            if (number === undefined) throw new Error(`Event type ${ type } not recognised`);
+            if (TYPENAMES[type] === undefined) throw new Error(`Event type ${ TYPENAMES[type] } not recognised`);
             // Other sequence targeted events route 0
-            return packAddress(0, number, 0);
+            return packAddress(0, type, 0);
         }
     }
 }
@@ -134,37 +126,35 @@ export default function serialise(events) {
 
         // Write event-specific data
         switch(event[1]) {
-            case 'note':
+            case TYPENUMBERS.note:
                 view.setFloat32(offset, event[2], true);      // pitch
                 view.setFloat32(offset + 4, event[3], true);  // dynamic
                 view.setFloat64(offset + 8, event[4], true);  // duration
                 offset += 16;
                 break;
 
-            case 'param':
-            case 'rate': {
-                const i = event[1] === 'rate' ? 2 : 3;
-                const number = typeof event[i + 1] === 'string' ?
-                    (CURVENUMBERS[event[i + 1]] || 0) :
-                    (event[i + 1] || 0);
+            case TYPENUMBERS.param:
+            case TYPENUMBERS.rate: {
+                const i = event[1] === TYPENUMBERS.rate ? 2 : 3;
+                const number = event[i + 1];
 
                 switch (number) {
-                    case CURVENUMBERS['step']:
-                    case CURVENUMBERS['linear']:
-                    case CURVENUMBERS['exponential']:
+                    case CURVENUMBERS.step:
+                    case CURVENUMBERS.linear:
+                    case CURVENUMBERS.exponential:
                         // step/linear/exponential: value(4) only
                         view.setFloat32(offset, event[i], true);
                         offset += 4;
                         break;
 
-                    case CURVENUMBERS['target']:
+                    case CURVENUMBERS.target:
                         // target: value(4) + timeConstant(8)
                         view.setFloat32(offset, event[i], true);
                         view.setFloat64(offset + 4, event[i + 2] || 0, true);
                         offset += 12;
                         break;
 
-                    case CURVENUMBERS['curve']:
+                    case CURVENUMBERS.curve:
                         // curve: duration(8) + byteslength(2) + values(n * 4)
                         view.setFloat64(offset, event[i + 2] || 0, true);
                         offset += 8;
@@ -191,31 +181,31 @@ export default function serialise(events) {
                 break;
             }
 
-            case 'meter':
+            case TYPENUMBERS.meter:
                 view.setFloat16(offset, event[2], true);      // duration
                 view.setFloat16(offset + 2, event[3], true);  // divisor
                 offset += 4;
                 break;
 
-            case 'chord': {
-                const rootId = typeof event[2] === 'number' ? event[2] : 0;
+            case TYPENUMBERS.chord: {
+                const rootId = event[2];
                 buffer[offset] = rootId;                      // root
-                const hsId   = typeof event[3] === 'string' ? (CHORDNUMBERS[event[3]] || 0) : event[3];
+                const hsId   = event[3];
                 view.setFloat64(offset + 1, hsId, true);      // hsid
                 view.setFloat64(offset + 9, event[4], true);  // duration
-                const bassId = typeof event[5] === 'number' ? event[5] : 0;
+                const bassId = event[5];
                 buffer[offset + 17] = bassId;                 // bass
                 offset += 18;
                 break;
             }
 
-            case 'key': {
+            case TYPENUMBERS.key: {
                 view.setInt8(offset, toKeyNumber(event[2]));
                 offset += 1;
                 break;
             }
 
-            case 'sequence': {
+            case TYPENUMBERS.sequence: {
                 view.setUint16(offset, event[2], true);       // id
                 view.setUint16(offset + 2, event[3], true);   // target
                 view.setFloat64(offset + 4, event[4], true);  // duration
@@ -228,31 +218,28 @@ export default function serialise(events) {
                 // Write transforms
                 let i = 4;
                 while (event[++i] !== undefined) {
-                    const name = event[i];
-                    const n = typeof name === 'string' ?
-                        TRANSFORMNUMBERS[name] :
-                        name;
+                    const n = event[i];
 
-                    if (n === undefined) throw new Error(`Transform name "${ name }" not recognised`);
+                    if (TRANSFORMNAMES[n]) throw new Error(`Transform name "${ TRANSFORMNAMES[n] }" not recognised`);
 
                     buffer[offset] = n;
                     offset += 1;
 
                     // Write parameters based on transform number
                     switch(n) {
-                        case TRANSFORMNUMBERS['displace']:
+                        case TRANSFORMNUMBERS.displace:
                             view.setFloat64(offset, event[i + 1], true);
                             offset += 8;
                             break;
 
-                        case TRANSFORMNUMBERS['rate']:
-                        case TRANSFORMNUMBERS['gain']:
-                        case TRANSFORMNUMBERS['quantize']:
+                        case TRANSFORMNUMBERS.rate:
+                        case TRANSFORMNUMBERS.gain:
+                        case TRANSFORMNUMBERS.quantize:
                             view.setFloat32(offset, event[i + 1], true);
                             offset += 4;
                             break;
 
-                        case TRANSFORMNUMBERS['transpose']:
+                        case TRANSFORMNUMBERS.transpose:
                             view.setInt8(offset, event[i + 1]);
                             offset += 1;
                             break;
@@ -269,7 +256,7 @@ export default function serialise(events) {
                 break;
             }
 
-            case 'text': {
+            case TYPENUMBERS.text: {
                 const encoded = new TextEncoder().encode(event[2]);
                 const truncated = truncateUTF8(encoded, MAX_TEXT_BYTES);
                 view.setFloat64(offset, event[3], true);        // duration
@@ -279,8 +266,8 @@ export default function serialise(events) {
                 break;
             }
 
-            case 'start':
-            case 'stop':
+            case TYPENUMBERS.start:
+            case TYPENUMBERS.stop:
                 view.setFloat32(offset, event[2], true);      // pitch
                 view.setFloat32(offset + 4, event[3], true);  // dynamic
                 offset += 8;
@@ -291,7 +278,7 @@ export default function serialise(events) {
             // data signatures for unknown events ... but then we need to tell
             // the event how to be encoded ... not great. For now, we'll spec it
             // here.
-            case 'clef':
+            case TYPENUMBERS.clef:
                 const clefId = typeof event[2] === 'number' ? event[2] : 0;
                 buffer[offset] = clefId;
                 offset += 1;

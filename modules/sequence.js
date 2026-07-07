@@ -63,8 +63,8 @@ export default class Sequence {
                 event[0] >= beat.min && event[0] < beat.max
         ) && (
             typeof type === 'string' ?
-                event[1] === type :
-                type.includes(event[1])
+                event.type === type :
+                type.includes(event.type)
         ));
     }
 

@@ -79,7 +79,7 @@ run('importMusicXML() - diminuendo wedge interpolation', [{
 }], (test, done) => {
     const sequence = importMusicXML(diminuendoXML);
     const partSeq = sequence.sequences.find(s => s.id.includes('P1'));
-    const noteEvents = partSeq.events.filter(e => e[1] === 'note');
+    const noteEvents = partSeq.events.filter(e => e.type === 'note');
 
     test({
         beat0: noteEvents[0][3],   // C at beat 0
@@ -150,7 +150,7 @@ run('importMusicXML() - crescendo wedge interpolation', [{
 }], (test, done) => {
     const sequence = importMusicXML(crescendoXML);
     const partSeq = sequence.sequences.find(s => s.id.includes('P1'));
-    const noteEvents = partSeq.events.filter(e => e[1] === 'note');
+    const noteEvents = partSeq.events.filter(e => e.type === 'note');
 
     test({
         beat0: noteEvents[0][3],  // C at beat 0 (p)
@@ -202,7 +202,7 @@ run('importMusicXML() - constant dynamic without wedge', [{
 }], (test, done) => {
     const sequence = importMusicXML(noWedgeXML);
     const partSeq = sequence.sequences.find(s => s.id.includes('P1'));
-    const noteEvents = partSeq.events.filter(e => e[1] === 'note');
+    const noteEvents = partSeq.events.filter(e => e.type === 'note');
 
     test({
         allSame: noteEvents[0][3] === noteEvents[1][3],

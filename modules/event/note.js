@@ -1,6 +1,6 @@
 
 
-import { toNoteName, toNoteNumber, toRootName, toRootNumber } from 'midi/note.js';
+import { toNoteName, toNoteNumber } from 'midi/note.js';
 import parseGain from '../parse/parse-gain.js';
 import Event from './event.js';
 
@@ -30,6 +30,6 @@ class NoteEvent extends Event {
 }
 
 define(NoteEvent.prototype, {
-    1:    { value: Event.TYPENUMBERS.note, enumerable: true }
+    1:    { value: Event.TYPENUMBERS.note, enumerable: true },
     type: { value: 'note' }
 });

@@ -16,7 +16,7 @@ const types = {
         event[0] /= transforms[++n];
 
         // Transform duration
-        switch (event[1]) {
+        switch (event.type) {
             case "chord":
             case "note":
             case "sequence":
@@ -34,7 +34,7 @@ const types = {
         ++n;
 
         // Transform gain
-        switch (event[1]) {
+        switch (event.type) {
             case "note":
                 event[3] *= parseGain(transforms[n]);
                 break;

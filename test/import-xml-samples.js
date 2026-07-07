@@ -15,7 +15,7 @@ run('importMusicXML() - Chant.musicxml', [{
     const sequence = importMusicXML(chantXML);
 
     // Find sequence event
-    const sequenceEvent = sequence.events.find(e => e[1] === 'sequence');
+    const sequenceEvent = sequence.events.find(e => e.type === 'sequence');
 
     // Test structure
     test({
@@ -34,7 +34,7 @@ run('importMusicXML() - Chant.musicxml', [{
     if (!partSeq) {
         console.error('No part sequence found');
     } else {
-        const noteEvents = partSeq.events.filter(e => e[1] === 'note');
+        const noteEvents = partSeq.events.filter(e => e.type === 'note');
         if (noteEvents.length !== 27) {
             console.error(`Expected 27 notes, got ${noteEvents.length}`);
         }
@@ -57,9 +57,9 @@ run('importMusicXML() - BeetAnGeSample.musicxml structure', [{
 }], (test, done) => {
     const sequence = importMusicXML(beethovenXML);
 
-    const keyEvent = sequence.events.find(e => e[1] === 'key');
-    const meterEvent = sequence.events.find(e => e[1] === 'meter');
-    const sequenceEvent = sequence.events.find(e => e[1] === 'sequence');
+    const keyEvent = sequence.events.find(e => e.type === 'key');
+    const meterEvent = sequence.events.find(e => e.type === 'meter');
+    const sequenceEvent = sequence.events.find(e => e.type === 'sequence');
 
     // Find part sequences (not section sequences)
     const partSequences = sequence.sequences.filter(s => s.id.includes('P'));
@@ -89,7 +89,7 @@ run('importMusicXML() - Binchois.musicxml multi-part', [{
 
     const partSequences = sequence.sequences.filter(s => s.id.includes('P'));
     const allPartsHaveNotes = partSequences.every(part =>
-        part.events.some(e => e[1] === 'note')
+        part.events.some(e => e.type === 'note')
     );
 
     test({

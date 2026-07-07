@@ -77,7 +77,7 @@ run('importMusicXML() - dynamics parsing', [{
     const sequence = importMusicXML(dynamicXML);
     const partSeq = sequence.sequences.find(s => s.id.includes('P1'));
 
-    const noteEvents = partSeq.events.filter(e => e[1] === 'note');
+    const noteEvents = partSeq.events.filter(e => e.type === 'note');
 
     test({
         firstNoteDynamic: noteEvents[0][3],   // First note with p
@@ -120,7 +120,7 @@ run('importMusicXML() - default dynamic when no marking', [{
 }], (test, done) => {
     const sequence = importMusicXML(noMarkingXML);
     const partSeq = sequence.sequences.find(s => s.id.includes('P1'));
-    const noteEvent = partSeq.events.find(e => e[1] === 'note');
+    const noteEvent = partSeq.events.find(e => e.type === 'note');
 
     test({
         dynamic: noteEvent[3]
@@ -180,7 +180,7 @@ run('importMusicXML() - multiple dynamics pp, mf, fff', [{
 }], (test, done) => {
     const sequence = importMusicXML(multiDynamicXML);
     const partSeq = sequence.sequences.find(s => s.id.includes('P1'));
-    const noteEvents = partSeq.events.filter(e => e[1] === 'note');
+    const noteEvents = partSeq.events.filter(e => e.type === 'note');
 
     test({
         ppDynamic: noteEvents[0][3],

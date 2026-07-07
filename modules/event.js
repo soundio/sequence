@@ -9,6 +9,10 @@ import RateEvent     from './event/rate.js';
 import SequenceEvent from './event/sequence.js';
 import TextEvent     from './event/text.js';
 
+
+const assign = Object.assign;
+
+
 assign(Event.constructors, {
     chord:    ChordEvent,
     key:      KeyEvent,
