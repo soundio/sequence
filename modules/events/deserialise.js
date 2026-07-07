@@ -1,9 +1,8 @@
 
-import { TYPENUMBERS, TYPEBYTES } from '../event/types.js';
 import { TRANSFORMNUMBERS } from '../event/transforms.js';
 import { CURVENUMBERS, CURVEBYTES }     from '../event/curves.js';
 import { toRoute, toParamNumber, toCurveNumber } from './address.js';
-import Event from '../event.js';
+import Event, { TYPENUMBERS, TYPEBYTES } from '../event.js';
 
 
 /**

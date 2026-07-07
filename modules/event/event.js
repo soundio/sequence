@@ -92,8 +92,9 @@ export default class Event {
 
     static TYPENUMBERS = TYPENUMBERS;
     static TYPENAMES   = TYPENAMES;
-    static constructors = {};
+    static TYPEBYTES   = TYPEBYTES;
 
+    static constructors = {};
     static of() { return this.from(arguments); }
     static from(data) {
         const type = toTypeName(data[1]);

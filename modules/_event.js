@@ -6,9 +6,9 @@ import mod12     from './number/mod-12.js';
 import { rflatsharp, toUnicode } from './pitch.js';
 import { toTypeName, TYPENUMBERS }  from './event/types.js';
 import { toCurveName, toCurveNumber } from './event/curves.js';
-import { toChordHSID, toChordName }   from './event/chords.js';
-import { toParamName, toParamNumber } from './event/params.js';
-import { toKeyNumber, toKeyName }     from './event/keys.js';
+import { toChordHSID, toChordName }   from './event/chord.js';
+import { toParamName, toParamNumber } from './event/param.js';
+import { toKeyNumber, toKeyName }     from './event/key.js';
 import { toTransformName, TRANSFORMNUMBERS, TRANSFORMLENGTHS } from './event/transforms.js';
 
 

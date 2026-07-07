@@ -1,7 +1,7 @@
 
 import { CURVENAMES, CURVENUMBERS } from '../event/curves.js';
 import { PARAMNAMES, PARAMNUMBERS } from '../event/param.js';
-import { TYPENAMES, TYPENUMBERS }   from '../event/types.js';
+
 
 export const ROUTEBITS = 2;
 export const PARAMBITS = 10;

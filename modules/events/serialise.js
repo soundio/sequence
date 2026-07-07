@@ -1,8 +1,7 @@
 
-import Event                        from '../event.js';
+import Event, { TYPENUMBERS, TYPEBYTES } from '../event.js';
 import { packAddress }              from './address.js';
 import { CURVENUMBERS, CURVEBYTES } from '../event/curves.js';
-import { TYPENUMBERS, TYPEBYTES }   from '../event/types.js';
 import { TRANSFORMNUMBERS, TRANSFORMBYTES, TRANSFORMLENGTHS } from '../event/transforms.js';
 import { CHORDNUMBERS }             from '../event/chord.js';
 import { KEYNUMBERS, toKeyNumber }  from '../event/key.js';
