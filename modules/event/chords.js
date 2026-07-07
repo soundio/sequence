@@ -3,11 +3,12 @@ import get     from 'fn/get.js';
 import mod12   from '../number/mod-12.js';
 import mirror  from '../object/mirror.js';
 import { rflatsharp, toUnicode } from '../pitch.js';
+import Event, { TYPENUMBERS } from './event.js';
 import { hsidOf, hsidFrom, hsidToNumbers } from './hsid.js';
 
 
 const DEBUG = globalThis.DEBUG;
-
+const define = Object.defineProperties;
 
 /*
 Chord symbols
@@ -172,3 +173,32 @@ export function getChordFrom(numbers) {
 export function getChordOf() {
     return getChordFrom(arguments);
 }
+
+
+
+
+
+export default class ChordEvent extends Event {
+    constructor(beat) {
+        super(beat);
+    }
+
+    get root()           { return toRootName(this[2]); }
+    set root(number)     { this[2] = toRootNumber(number); }
+    get extension()      { return toChordName(this[3]); }
+    set extension(name)  { this[3] = toChordHSID(name); }
+    get duration()       { return this[4]; }
+    set duration(number) { this[4] = parseFloat(number); }
+    // TODO
+    get bass()           { return this[5]; }
+    set bass(number)     { this[5] = parseInt(number, 10); }
+
+    toString() {
+        return super.toString() + ' ' + this[2] + ' ' + this[3] + ' ' + this[4] + ' ' + this[5];
+    }
+}
+
+define(ChordEvent.prototype, {
+    1:    { value: Event.TYPENUMBERS.chord, enumerable: true }
+    type: { value: 'chord' }
+});

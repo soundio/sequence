@@ -34,28 +34,7 @@ function getEvent(event) {
     return event;
 }
 
-// --------
 
-const getSet = {
-    // Transform beat
-    0: {
-        get() {},
-        set() {}
-    },
-
-    // Transform data
-    2: {
-        get() {},
-        set() {}
-    },
-    // etc
-};
-
-function TransformEvent(event) {
-    return Object.create(event, getSet);
-}
-
-// --------
 
 export default class Event {
     constructor(beat, type) {
@@ -212,7 +191,7 @@ export default class Event {
 
     toString() {
         // Beat and type
-        let string = stringify(this[0]) + ' ' + this[1];
+        return stringify(this[0]) + ' ' + this[1];
 
         // Stringify rest of data based on event type
         switch (this[1]) {
@@ -291,158 +270,6 @@ export default class Event {
     static isSequence = isSequenceEvent;
 }
 
-class ChordEvent extends Event {
-    get root()           { return toRootName(this[2]); }
-    set root(number)     { this[2] = toRootNumber(number); }
-    get extension()      { return toChordName(this[3]); }
-    set extension(name)  { this[3] = toChordHSID(name); }
-    get duration()       { return this[4]; }
-    set duration(number) { this[4] = parseFloat(number); }
-    // TODO
-    get bass()           { return this[5]; }
-    set bass(number)     { this[5] = parseInt(number, 10); }
-}
-
-defineProperties(ChordEvent.prototype, {
-    1:    { value: TYPENUMBERS.chord, enumerable: true }
-    type: { value: 'chord' }
-});
-
-class NoteEvent extends Event {
-    // Make .name reference .number for reactive Signal graph to react to both
-    // Claude says:
-    /* The reactivity comment on NoteEvent is the crux — and it won't work
-    as-is. Your note "make .name reference .number so the Signal graph reacts to
-    both" is exactly the right intent, but the current Data proxy defeats it.
-    When you read Data.of(note).name in a compute, the trap computes the value
-    via object[name] (and PropertySignal.evaluate does this.object[this.name]) —
-    where object is the raw target. So the getter runs with this = raw event,
-    and its internal this.number → this[2] reads bypass the proxy entirely. They
-    never hit the get trap, so they never register on the signal graph. Net:
-    setting [2] invalidates the [2] signal, but your name/number accessors never
-    depended on it → .name doesn't re-evaluate. Same story on the write side:
-    proxy.number = 5 invokes the setter with this = raw, so this[2] = … skips
-    the set trap and invalidates nothing.
-
-    To make derived accessors reactive you'd have to change data.js to invoke
-    accessors with the proxy as receiver — Reflect.get(object, name, proxy) /
-    Reflect.set(..., proxy) (and thread the receiver into PropertySignal). Then
-    this inside the getter is the reactive proxy, and its slot reads route back
-    through the trap. That's the identical enabler the transformed-event
-    prototype idea needed — so these two features share one prerequisite in
-    data.js. I'd spike it before building all the classes: Data.of(note), read
-    .name in a Signal.from, set [2], see if it invalidates. I'm fairly sure it
-    currently won't.
-    */
-    get name()           { return toNoteName(this.number); }
-    set name(name)       { this.number = name; }
-    get number()         { return this[2]; }
-    set number(number)   { this[2] = toNoteNumber(number); }
-    get gain()           { return this[3]; }
-    set gain(name)       { this[3] = parseGain(name); }
-    get duration()       { return this[4]; }
-    set duration(number) { this[4] = parseFloat(number); }
-}
-
-defineProperties(NoteEvent.prototype, {
-    1:    { value: TYPENUMBERS.note, enumerable: true }
-    type: { value: 'note' }
-});
-
-class KeyEvent extends Event {
-    get key()            { return toKeyName(this[2]); }
-    set key(name)        { this[2] = toKeyNumber(name); }
-}
-
-defineProperties(KeyEvent.prototype, {
-    1:    { value: TYPENUMBERS.key, enumerable: true }
-    type: { value: 'key' }
-});
-
-class MeterEvent extends Event {
-    get timesig()        { return toTimeSig(this[2], this[3]); }
-    set timesig(string)  { console.log('TODO!! timesig'); assign(this, toMeter(string)); }
-}
-
-defineProperties(MeterEvent.prototype, {
-    1:    { value: TYPENUMBERS.meter, enumerable: true }
-    type: { value: 'meter' }
-});
-
-class ParamEvent extends Event {
-    get name()           { return toParamName(this[2]); }
-    set name(name)       { this[2] = toParamNumber(name); }
-    get value()          { return this[3]; }
-    set value(number)    { this[3] = fround(number); }
-    get curve()          { return toCurveName(this[4]); }
-    set curve(name)      { this[4] = toCurveNumber(name); }
-    get duration()       { return this[4] === CURVENAMES.target || this[4] === CURVENAMES.curve ? this[5] : 0 ; }
-    set duration(number) { this[5] = parseFloat(number); }
-}
-
-defineProperties(ParamEvent.prototype, {
-    1:    { value: TYPENUMBERS.param, enumerable: true }
-    type: { value: 'param' }
-});
-
-class RateEvent extends Event {
-    get value()          { return this[2]; }
-    set value(number)    { this[2] = fround(number); }
-    get curve()          { return toCurveName(this[3]); }
-    set curve(name)      { this[3] = toCurveNumber(name); }
-    get duration()       { return this[3] === CURVENAMES.target || this[3] === CURVENAMES.curve ? this[4] : 0 ; }
-    set duration(number) { this[4] = parseFloat(number); }
-}
-
-defineProperties(RateEvent.prototype, {
-    1:    { value: TYPENUMBERS.rate, enumerable: true }
-    type: { value: 'rate' }
-});
-
-class SequenceEvent extends Event {
-    get id()               { return this[2]; }
-    set id(number)         { this[2] = parseInt(number); }
-    get TARGET()           { return this[3]; }
-    set TARGET(name)       { this[3] = name; }
-    get duration()         { return this[4]; }
-    set duration(number)   { this[4] = parseFloat(number); }
-    get transforms()       {
-        console.log('TODO: parse transform numbers to array of instructions');
-    }
-    set transforms(array) {
-        // Split string by spaces and/or commas
-        if (typeof array === 'string') array = array.split(rcommaspace);
-
-        let n = 0;
-        while(array[n] !== undefined) {
-            // Get transform number for looking up parameter count
-            const name   = toTransformName(array[n]);
-            const number = TRANSFORMNUMBERS[name];
-            this[n + 5] = number;
-
-            // Copy parameters without conversion
-            const m = n + 5 + TRANSFORMLENGTHS[number];
-            while (n++ < m) this[n + 5] = array[n] || 0;
-        }
-    }
-}
-
-defineProperties(SequenceEvent.prototype, {
-    1:    { value: TYPENUMBERS.sequence, enumerable: true }
-    type: { value: 'sequence' }
-});
-
-class TextEvent extends Event {
-    get string()         { return ''; }
-    set string(name)     { console.log('TODO convert string to binary'); }
-    get duration()       { return this[3]; }
-    set duration(number) { this[3] = parseFloat(number); }
-}
-
-defineProperties(TextEvent.prototype, {
-    1:    { value: TYPENUMBERS.text, enumerable: true }
-    type: { value: 'text' }
-});
                 // String
 
 export function isChordEvent(event) {

@@ -3,6 +3,10 @@ import mod    from 'fn/mod.js';
 import mirror from '../object/mirror.js';
 import { rflatsharp, toUnicode }    from '../pitch.js';
 import { toRootName, toRootNumber } from 'midi/note.js';
+import Event from './event.js';
+
+
+const define = Object.defineProperties;
 
 export const KEYNUMBERS = {
     "F𝄫": -15,
@@ -69,3 +73,23 @@ export function rootToKeyNumber(value) {
     const name = toRootName(value);
     return KEYNUMBERS[name];
 }
+
+
+
+export default class KeyEvent extends Event {
+    constructor(beat) {
+        super(beat);
+    }
+
+    get key()            { return toKeyName(this[2]); }
+    set key(name)        { this[2] = toKeyNumber(name); }
+
+    toString() {
+        return super.toString() + ' ' + this[2];
+    }
+}
+
+define(KeyEvent.prototype, {
+    1:    { value: Event.TYPENUMBERS.key, enumerable: true }
+    type: { value: 'key' }
+});

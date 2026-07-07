@@ -1,7 +1,10 @@
 
 import { names } from 'midi/control.js';
+import Event from './event.js';
+
 
 const assign = Object.assign;
+const define = Object.defineProperties;
 
 export const PARAMNAMES = assign({}, names, {
     3:   'mute',
@@ -44,3 +47,28 @@ export function toParamName(value) {
         (PARAMNAMES[value] || value) :
         value;
 }
+
+
+export default class ParamEvent extends Event {
+    constructor(beat) {
+        super(beat);
+    }
+
+    get name()           { return toParamName(this[2]); }
+    set name(name)       { this[2] = toParamNumber(name); }
+    get value()          { return this[3]; }
+    set value(number)    { this[3] = fround(number); }
+    get curve()          { return toCurveName(this[4]); }
+    set curve(name)      { this[4] = toCurveNumber(name); }
+    get duration()       { return this[4] === CURVENAMES.target || this[4] === CURVENAMES.curve ? this[5] : 0 ; }
+    set duration(number) { this[5] = parseFloat(number); }
+
+    toString() {
+        return super.toString() + ' ' + this[2] + ' ' + this[3] + ' ' + this[4] + ' ' + this[5];
+    }
+}
+
+define(ParamEvent.prototype, {
+    1:    { value: Event.TYPENUMBERS.param, enumerable: true }
+    type: { value: 'param' }
+});
