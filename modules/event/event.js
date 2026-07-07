@@ -57,9 +57,11 @@ function getEvent(event) {
 export default class Event {
     constructor(beat) {
         this.beat = beat;
-        define(this, 'event',    writable);
-        define(this, 'events',   writable);
-        define(this, 'target',   writable);
+        define(this, {
+            event:  writable,
+            events: writable,
+            target: writable
+        });
     }
 
     get beat()       { return this[0]; }
