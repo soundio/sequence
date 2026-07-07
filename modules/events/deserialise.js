@@ -2,8 +2,9 @@
 import { TRANSFORMNUMBERS } from '../event/transforms.js';
 import { CURVENUMBERS, CURVEBYTES }     from '../event/curves.js';
 import { toRoute, toParamNumber, toCurveNumber } from './address.js';
-import Event, { TYPENUMBERS, TYPEBYTES } from '../event.js';
+import Event from '../event.js';
 
+const { TYPENUMBERS, TYPEBYTES } = Event;
 
 /**
 deserialise(buffer)

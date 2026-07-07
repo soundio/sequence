@@ -1,9 +1,12 @@
 
-import Event, { TYPENUMBERS, TYPENAMES, TYPEBYTES } from '../event.js';
+import Event from '../event.js';
 import { packAddress }              from './address.js';
 import { CURVENUMBERS, CURVEBYTES } from '../event/curves.js';
 import { TRANSFORMNUMBERS, TRANSFORMBYTES, TRANSFORMLENGTHS } from '../event/transforms.js';
 import { toKeyNumber }  from '../event/key.js';
+
+
+const { TYPENUMBERS, TYPENAMES, TYPEBYTES } = Event;
 
 
 /**
