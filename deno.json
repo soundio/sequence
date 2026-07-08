@@ -9,5 +9,13 @@
         "publish-lexicons": "goat lex publish --update ./lexicons"
     },
 
+    "lint": {
+        "include": ["modules/"],
+        "exclude": ["modules/parse/"],
+        "rules": {
+            "exclude": ["no-unused-vars", "no-fallthrough", "no-case-declarations", "no-cond-assign"]
+        }
+    },
+
     "lock": false
 }

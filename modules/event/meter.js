@@ -1,6 +1,7 @@
 import Event from './event.js';
 
 
+const assign = Object.assign;
 const define = Object.defineProperties;
 const rtimesig = /^(\d+)\/(\d+)$/;
 

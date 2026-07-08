@@ -1,4 +1,5 @@
 .claude/
+archive/*
 documents/*
 xmlsamples/
 CLAUDE.md
