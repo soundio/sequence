@@ -30,8 +30,8 @@ export default class MeterEvent extends Event {
     [1] = Event.TYPENUMBERS.meter;
 
     get numerator()         { return this[2]; }
-    set denominator(number) { this[2] = parseInt(number, 10); }
-    get numerator()         { return this[3]; }
+    set numerator(number)   { this[2] = parseInt(number, 10); }
+    get denominator()       { return this[3]; }
     set denominator(number) { this[3] = parseInt(number, 10); }
     get timesig()           { return meterToTimesig(this); }
     set timesig(string)     { assign(this, timesigToMeter(string)); }
