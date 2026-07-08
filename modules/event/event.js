@@ -1,3 +1,4 @@
+import remove from 'fn/remove.js';
 import mirror from '../object/mirror.js';
 
 
@@ -102,7 +103,7 @@ export default class Event {
 
     static from(object) {
         return object instanceof Event ?
-            // If data is an Event object fast clone it
+            // If data is an Event object fast clone it via its subclass
             new object.constructor(object) :
             // Otherwise destructure it to of()
             Event.of(...object) ;
