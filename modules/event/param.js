@@ -6,6 +6,7 @@ import Event from './event.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
+const { fround } = Math;
 
 export const PARAMNAMES = assign({}, names, {
     3:   'mute',
@@ -49,15 +50,19 @@ export function toParamName(value) {
         value;
 }
 
+function toParamNumber(value) {
+    if (typeof value === 'string' && value in PARAMNUMBERS) return PARAMNUMBERS[value];
+    if (value in PARAMNAMES) return value;
+    throw new Error(`Param name "${ value }" not recognised`);
+}
+
 
 export default class ParamEvent extends Event {
-    constructor(beat, _type, name, value, curve, duration) {
-        super(beat);
-        this.name     = name;
-        this.value    = value;
-        this.curve    = curve;
-        this.duration = duration;
+    static of(beat, name, value, curve = 0, duration = 0) {
+        return new ParamEvent({ beat, name, value, curve, duration });
     }
+
+    [1] = Event.TYPENUMBERS.param;
 
     get name()           { return toParamName(this[2]); }
     set name(name)       { this[2] = toParamNumber(name); }
@@ -74,6 +79,5 @@ export default class ParamEvent extends Event {
 }
 
 define(ParamEvent.prototype, {
-    1:    { value: Event.TYPENUMBERS.param, enumerable: true },
     type: { value: 'param' }
 });

@@ -22,9 +22,11 @@ export function meterToTimesig(meter) {
 }
 
 export default class MeterEvent extends Event {
-    constructor(beat) {
-        super(beat);
+    static of(beat, timesig) {
+        return new MeterEvent({ beat, timesig });
     }
+
+    [1] = Event.TYPENUMBERS.meter;
 
     get timesig()        { return meterToTimesig(this); }
     set timesig(string)  { assign(this, timesigToMeter(string)); }
@@ -35,6 +37,5 @@ export default class MeterEvent extends Event {
 }
 
 define(MeterEvent.prototype, {
-    1:    { value: Event.TYPENUMBERS.meter, enumerable: true },
     type: { value: 'meter' }
 });

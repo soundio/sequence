@@ -8,12 +8,11 @@ import Event from './event.js';
 const define = Object.defineProperties;
 
 export default class NoteEvent extends Event {
-    constructor(beat, type, name, gain, duration) {
-        super(beat);
-        this.name = name;
-        this.gain = gain;
-        this.duration = duration;
+    static of(beat, name, gain, duration) {
+        return new NoteEvent({ beat, name, gain, duration });
     }
+
+    [1] = Event.TYPENUMBERS.note;
 
     get name()           { return toNoteName(this.number); }
     set name(name)       { this.number = name; }
@@ -30,6 +29,5 @@ export default class NoteEvent extends Event {
 }
 
 define(NoteEvent.prototype, {
-    1:    { value: Event.TYPENUMBERS.note, enumerable: true },
     type: { value: 'note' }
 });

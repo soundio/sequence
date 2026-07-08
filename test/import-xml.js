@@ -1,5 +1,11 @@
 
-import run from 'fn/test.js';
+import {
+    assert,
+    assertEquals as equals,
+    assertStrictEquals as is,
+    assertObjectMatch as matches
+} from 'jsr:@std/assert@1';
+
 import importMusicXML from '../modules/parse/parse-music-xml.js';
 import { CHORDNUMBERS } from '../modules/event/chord.js';
 
@@ -48,31 +54,29 @@ const simpleXML = `<?xml version="1.0" encoding="UTF-8"?>
 </score-partwise>`;
 
 
-run('importMusicXML() - simple single-part piece', [{
-    "name": "Test Piece",
-    "events": [
-        [0, "key", 0],
-        [0, "rate", 2],
-        [0, "meter", 4, 1],
-        [0, "sequence", "section-0", 0, 4]
-    ],
-    "sequences": [{
-        "id": "section-0-P1",
-        "name": "Piano",
+Deno.test('importMusicXML() - simple single-part piece', () => {
+    equals(importMusicXML(simpleXML), {
+        "name": "Test Piece",
         "events": [
-            [0, "note", 60, 0.1, 1],
-            [1, "note", 62, 0.1, 1]
-        ]
-    }, {
-        "id": "section-0",
-        "events": [
-            [0, "sequence", "section-0-P1", 0, 4]
-        ]
-    }]
-}], (test, done) => {
-    const sequence = importMusicXML(simpleXML);
-    test(sequence);
-    done();
+            [0, "key", 0],
+            [0, "rate", 2],
+            [0, "meter", 4, 1],
+            [0, "sequence", "section-0", 0, 4]
+        ],
+        "sequences": [{
+            "id": "section-0-P1",
+            "name": "Piano",
+            "events": [
+                [0, "note", 60, 0.1, 1],
+                [1, "note", 62, 0.1, 1]
+            ]
+        }, {
+            "id": "section-0",
+            "events": [
+                [0, "sequence", "section-0-P1", 0, 4]
+            ]
+        }]
+    });
 });
 
 
@@ -116,29 +120,27 @@ const chordXML = `<?xml version="1.0" encoding="UTF-8"?>
 </score-partwise>`;
 
 
-run('importMusicXML() - with harmony/chord symbols', [{
-    "events": [
-        [0, "key", 0],
-        [0, "meter", 4, 1],
-        [0, "sequence", "section-0", 0, 4]
-    ],
-    "sequences": [{
-        "id": "section-0-P1",
-        "name": "Lead",
+Deno.test('importMusicXML() - with harmony/chord symbols', () => {
+    equals(importMusicXML(chordXML), {
         "events": [
-            [0, "chord", 0, CHORDNUMBERS[''], 4],
-            [0, "note", 64, 0.1, 4]
-        ]
-    }, {
-        "id": "section-0",
-        "events": [
-            [0, "sequence", "section-0-P1", 0, 4]
-        ]
-    }]
-}], (test, done) => {
-    const sequence = importMusicXML(chordXML);
-    test(sequence);
-    done();
+            [0, "key", 0],
+            [0, "meter", 4, 1],
+            [0, "sequence", "section-0", 0, 4]
+        ],
+        "sequences": [{
+            "id": "section-0-P1",
+            "name": "Lead",
+            "events": [
+                [0, "chord", 0, CHORDNUMBERS[''], 4],
+                [0, "note", 64, 0.1, 4]
+            ]
+        }, {
+            "id": "section-0",
+            "events": [
+                [0, "sequence", "section-0-P1", 0, 4]
+            ]
+        }]
+    });
 });
 
 
@@ -176,29 +178,27 @@ const keyXML = `<?xml version="1.0" encoding="UTF-8"?>
 </score-partwise>`;
 
 
-run('importMusicXML() - key signature conversion', [{
-    "events": [
-        [0, "key", 2],
-        [0, "meter", 4, 1],
-        [0, "sequence", "section-0", 0, 4]
-    ],
-    "sequences": [{
-        "id": "section-0-P1",
-        "name": "Test",
+Deno.test('importMusicXML() - key signature conversion', () => {
+    equals(importMusicXML(keyXML), {
         "events": [
-            [0, "note", 62, 0.1, 1]
-        ]
-    },
-    {
-        "id": "section-0",
-        "events": [
-            [0, "sequence", "section-0-P1", 0, 4]
-        ]
-    }]
-}], (test, done) => {
-    const sequence = importMusicXML(keyXML);
-    test(sequence);
-    done();
+            [0, "key", 2],
+            [0, "meter", 4, 1],
+            [0, "sequence", "section-0", 0, 4]
+        ],
+        "sequences": [{
+            "id": "section-0-P1",
+            "name": "Test",
+            "events": [
+                [0, "note", 62, 0.1, 1]
+            ]
+        },
+        {
+            "id": "section-0",
+            "events": [
+                [0, "sequence", "section-0-P1", 0, 4]
+            ]
+        }]
+    });
 });
 
 
@@ -232,32 +232,30 @@ const clefXML = `<?xml version="1.0" encoding="UTF-8"?>
 </score-partwise>`;
 
 
-run('importMusicXML() - clef extraction', [{
-    "events": [
-        [0, "key", 0],
-        [0, "meter", 4, 1],
-        [0, "sequence", "section-0", 0, 4]
-    ],
-    "sequences": [{
-        "id": "section-0-P1",
-        "name": "Bass",
+Deno.test('importMusicXML() - clef extraction', () => {
+    equals(importMusicXML(clefXML), {
         "events": [
-            [0, "note", 40, 0.1, 1]
-        ]
-    }, {
-        "id": "section-0",
-        "events": [
-            [0, "clef", "bass"],
-            [0, "sequence", "section-0-P1", 0, 4]
-        ]
-    }],
-    "display": {
-        "clef": "bass"
-    }
-}], (test, done) => {
-    const sequence = importMusicXML(clefXML);
-    test(sequence);
-    done();
+            [0, "key", 0],
+            [0, "meter", 4, 1],
+            [0, "sequence", "section-0", 0, 4]
+        ],
+        "sequences": [{
+            "id": "section-0-P1",
+            "name": "Bass",
+            "events": [
+                [0, "note", 40, 0.1, 1]
+            ]
+        }, {
+            "id": "section-0",
+            "events": [
+                [0, "clef", "bass"],
+                [0, "sequence", "section-0-P1", 0, 4]
+            ]
+        }],
+        "display": {
+            "clef": "bass"
+        }
+    });
 });
 
 
@@ -304,32 +302,30 @@ const clefChangeXML = `<?xml version="1.0" encoding="UTF-8"?>
 </score-partwise>`;
 
 
-run('importMusicXML() - clef change mid-piece', [{
-    "events": [
-        [0, "key", 0],
-        [0, "meter", 4, 1],
-        [0, "sequence", "section-0", 0, 5]
-    ],
-    "sequences": [{
-        "id": "section-0-P1",
-        "name": "Piano",
+Deno.test('importMusicXML() - clef change mid-piece', () => {
+    equals(importMusicXML(clefChangeXML), {
         "events": [
-            [0, "note", 72, 0.1, 1],
-            [4, "note", 48, 0.1, 1]
-        ]
-    }, {
-        "id": "section-0",
-        "events": [
-            [0, "clef", "treble"],
-            [4, "clef", "bass"],
-            [0, "sequence", "section-0-P1", 0, 5]
-        ]
-    }],
-    "display": {
-        "clef": "treble"
-    }
-}], (test, done) => {
-    const sequence = importMusicXML(clefChangeXML);
-    test(sequence);
-    done();
+            [0, "key", 0],
+            [0, "meter", 4, 1],
+            [0, "sequence", "section-0", 0, 5]
+        ],
+        "sequences": [{
+            "id": "section-0-P1",
+            "name": "Piano",
+            "events": [
+                [0, "note", 72, 0.1, 1],
+                [4, "note", 48, 0.1, 1]
+            ]
+        }, {
+            "id": "section-0",
+            "events": [
+                [0, "clef", "treble"],
+                [4, "clef", "bass"],
+                [0, "sequence", "section-0-P1", 0, 5]
+            ]
+        }],
+        "display": {
+            "clef": "treble"
+        }
+    });
 });

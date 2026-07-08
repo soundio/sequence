@@ -1,6 +1,9 @@
 import mirror from '../object/mirror.js';
 
-const define = Object.defineProperties;
+
+const assign   = Object.assign;
+const define   = Object.defineProperties;
+const writable = { writable: true };
 
 export const TYPENUMBERS = {
     sequence: 1,
@@ -28,6 +31,7 @@ export const TYPEBYTES = {
     11: 1   // clef    1 clef
 }
 
+
 /**
 toTypeName(value)
 Converts a type name or number to a type name string.
@@ -37,12 +41,6 @@ export function toTypeName(value) {
     if (value in TYPENAMES) return TYPENAMES[value];
     throw new Error(`Event type ${ value } not recognised`);
 }
-
-
-
-
-
-const writable = { writable: true };
 
 function stringify(number) {
     return number.toFixed(4).replace(/\.?0+$/, '');
@@ -55,8 +53,8 @@ function getEvent(event) {
 }
 
 export default class Event {
-    constructor(beat) {
-        this.beat = beat;
+    constructor(data) {
+        assign(this, data);
         define(this, {
             event:  writable,
             events: writable,
@@ -96,11 +94,18 @@ export default class Event {
     static TYPENAMES   = TYPENAMES;
     static TYPEBYTES   = TYPEBYTES;
 
-    static constructors = {};
-    static of() { return this.from(arguments); }
-    static from(data) {
-        const type = toTypeName(data[1]);
-        return new Event.constructors[type](...data);
+    static of(beat, type, ...data) {
+        // Send data through Event.type() where it is validated
+        const name = toTypeName(type);
+        return Event[name](beat, ...data);
+    }
+
+    static from(object) {
+        return object instanceof Event ?
+            // If data is an Event object fast clone it
+            new object.constructor(object) :
+            // Otherwise destructure it to of()
+            Event.of(...object) ;
     }
 
     static isChord(event)    { return event[1] === TYPENUMBERS.chord; }
@@ -113,6 +118,5 @@ export default class Event {
 }
 
 define(Event.prototype, {
-    1:    { value: 0, enumerable: true },
     type: { value: 'unknown' }
 });

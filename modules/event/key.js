@@ -77,13 +77,16 @@ export function rootToKeyNumber(value) {
 
 
 export default class KeyEvent extends Event {
-    constructor(beat, type, key) {
-        super(beat);
-        this.key = key;
+    static of(beat, name) {
+        return new KeyEvent({ beat, name });
     }
 
-    get key()            { return toKeyName(this[2]); }
-    set key(name)        { this[2] = toKeyNumber(name); }
+    [1] = Event.TYPENUMBERS.key;
+
+    get name()       { return toKeyName(this[2]); }
+    set name(name)   { this[2] = toKeyNumber(name); }
+    get root()       { return mod(12, this[2] * 7); }
+    set root(number) { this[2] = rootToKeyNumber(number); }
 
     toString() {
         return super.toString() + ' ' + this[2];
@@ -91,6 +94,5 @@ export default class KeyEvent extends Event {
 }
 
 define(KeyEvent.prototype, {
-    1:    { value: Event.TYPENUMBERS.key, enumerable: true },
     type: { value: 'key' }
 });

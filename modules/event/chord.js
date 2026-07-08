@@ -1,5 +1,6 @@
 
 import get     from 'fn/get.js';
+import { toRootName, toRootNumber } from 'midi/note.js';
 import mod12   from '../number/mod-12.js';
 import mirror  from '../object/mirror.js';
 import { rflatsharp, toUnicode } from '../pitch.js';
@@ -179,13 +180,11 @@ export function getChordOf() {
 
 
 export default class ChordEvent extends Event {
-    constructor(beat, type, root, extension, duration, bass) {
-        super(beat);
-        this.root      = root;
-        this.extension = extension;
-        this.duration  = duration;
-        this.bass      = bass;
+    static of(beat, root, extension, duration, bass = 0) {
+        return new ChordEvent({ beat, root, extension, duration, bass });
     }
+
+    [1] = Event.TYPENUMBERS.chord;
 
     get root()           { return toRootName(this[2]); }
     set root(number)     { this[2] = toRootNumber(number); }
@@ -203,6 +202,5 @@ export default class ChordEvent extends Event {
 }
 
 define(ChordEvent.prototype, {
-    1:    { value: Event.TYPENUMBERS.chord, enumerable: true },
     type: { value: 'chord' }
 });

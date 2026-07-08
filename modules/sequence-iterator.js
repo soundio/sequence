@@ -141,7 +141,8 @@ export default class SequenceIterator {
                     sequence.sequences.concat(sequences) :
                     sequences ,
                 // Transforms
-                slice(5, event)
+                //slice(5, event)
+                event.transforms
             );
 
             // Store info about the event on the iterator object

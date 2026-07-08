@@ -31,7 +31,7 @@ toTransformName(value)
 Converts a transform name or number to a transform name string.
 **/
 export function toTransformName(value) {
-    return typeof value === 'number' ?
-        (TRANSFORMNAMES[value] || value) :
-        value;
+    if (typeof value === 'string' && value in TRANSFORMNUMBERS) return value;
+    if (typeof value === 'number' && value in TRANSFORMNAMES) return TRANSFORMNAMES[value];
+    throw new Error(`Transform "${ value }" not recognised`);
 }

@@ -15,14 +15,14 @@ export function getTextEventLength(event) {
 
 
 export default class TextEvent extends Event {
-    constructor(beat, _type, string, duration) {
-        super(beat);
-        this.string   = string;
-        this.duration = duration;
+    static of(beat, text, duration) {
+        return new TextEvent({ beat, text, duration });
     }
 
-    get string()         { return ''; }
-    set string(name)     { console.log('TODO convert string to binary'); }
+    [1] = Event.TYPENUMBERS.text;
+
+    get text()           { return ''; }
+    set text(name)       { console.log('TODO convert string to binary'); }
     get duration()       { return this[3]; }
     set duration(number) { this[3] = parseFloat(number); }
 
@@ -32,6 +32,5 @@ export default class TextEvent extends Event {
 }
 
 define(TextEvent.prototype, {
-    1:    { value: Event.TYPENUMBERS.text, enumerable: true },
     type: { value: 'text' }
 });

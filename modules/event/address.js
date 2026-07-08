@@ -35,43 +35,25 @@ export function unpackAddress(address) {
 }
 
 /**
-toRoute(address)
+getRoute(address)
 Extracts the 2-bit route from packed address.
 **/
-export function toRoute(address) {
+export function getRoute(address) {
     return address >> 14;
 }
 
 /**
-toParamNumber(address)
+getParamNumber(address)
 Extracts the 10-bit param/name number from packed address.
 **/
-export function toParamNumber(address) {
+export function getParamNumber(address) {
     return (address >> CURVEBITS) & PARAMMASK;
 }
 
 /**
-toCurveNumber(address)
+getCurveNumber(address)
 Extracts the 4-bit curve number from packed address.
 **/
-export function toCurveNumber(address) {
+export function getCurveNumber(address) {
     return address & CURVEMASK;
-}
-
-/**
-toParamName(address)
-Extracts the param name string from packed address (for route 1).
-**/
-export function toParamName(address) {
-    const nameNumber = toParamNumber(address);
-    return PARAMNAMES[nameNumber] || nameNumber;
-}
-
-/**
-toCurveName(address)
-Extracts the curve name string from packed address.
-**/
-export function toCurveName(address) {
-    const curveNumber = toCurveNumber(address);
-    return CURVENAMES[curveNumber];
 }

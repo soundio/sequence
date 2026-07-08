@@ -1,6 +1,6 @@
 
 import Event from './event.js';
-import { toTransformName, TRANSFORMNUMBERS, TRANSFORMLENGTHS } from './transforms.js';
+import { toTransformName, TRANSFORMNUMBERS, TRANSFORMNAMES, TRANSFORMLENGTHS } from './transforms.js';
 
 
 const define = Object.defineProperties;
@@ -28,34 +28,50 @@ export function getSequenceEventLength(event) {
 
 
 export default class SequenceEvent extends Event {
+    static of(beat, id, TARGET, duration, ...transforms) {
+        return new SequenceEvent({ beat, id, TARGET, duration, transforms });
+    }
+
+    [1] = Event.TYPENUMBERS.sequence;
+
     get id()               { return this[2]; }
     set id(number)         { this[2] = parseInt(number); }
     get TARGET()           { return this[3]; }
     set TARGET(name)       { this[3] = name; }
     get duration()         { return this[4]; }
     set duration(number)   { this[4] = parseFloat(number); }
+
     get transforms()       {
-        console.log('TODO: parse transform numbers to array of instructions');
+        const array = [];
+        let n = 4;
+        while(this[++n] !== undefined) {
+            const name = TRANSFORMNAMES[this[n]];
+            array.push(name);
+            let m = TRANSFORMLENGTHS[this[n]];
+            while (m--) array.push(this[++n]);
+        }
+        return array;
     }
+
     set transforms(array) {
         // Split string by spaces and/or commas
         if (typeof array === 'string') array = array.split(rcommaspace);
-
-        let n = 0;
-        while(array[n] !== undefined) {
+        let n = -1;
+        while(array[++n] !== undefined) {
             // Get transform number for looking up parameter count
             const name   = toTransformName(array[n]);
             const number = TRANSFORMNUMBERS[name];
             this[n + 5] = number;
-
-            // Copy parameters without conversion
-            const m = n + 5 + TRANSFORMLENGTHS[number];
-            while (n++ < m) this[n + 5] = array[n] || 0;
+            // Copy transform parameters without conversion
+            let m = TRANSFORMLENGTHS[number];
+            while (m--) {
+                ++n;
+                this[n + 5] = array[n] || 0;
+            }
         }
     }
 }
 
 define(SequenceEvent.prototype, {
-    1:    { value: Event.TYPENUMBERS.sequence, enumerable: true },
     type: { value: 'sequence' }
 });

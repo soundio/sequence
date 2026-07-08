@@ -13,15 +13,22 @@ import TextEvent     from './event/text.js';
 const assign = Object.assign;
 
 
-assign(Event.constructors, {
-    chord:    ChordEvent,
-    key:      KeyEvent,
-    meter:    MeterEvent,
-    note:     NoteEvent,
-    param:    ParamEvent,
-    rate:     RateEvent,
-    sequence: SequenceEvent,
-    text:     TextEvent
-});
+Event.ChordEvent    = ChordEvent;
+Event.KeyEvent      = KeyEvent;
+Event.MeterEvent    = MeterEvent;
+Event.NoteEvent     = NoteEvent;
+Event.ParamEvent    = ParamEvent;
+Event.RateEvent     = RateEvent;
+Event.SequenceEvent = SequenceEvent;
+Event.TextEvent     = TextEvent;
+
+Event.chord    = ChordEvent.of;
+Event.key      = KeyEvent.of;
+Event.meter    = MeterEvent.of;
+Event.note     = NoteEvent.of;
+Event.param    = ParamEvent.of;
+Event.rate     = RateEvent.of;
+Event.sequence = SequenceEvent.of;
+Event.text     = TextEvent.of;
 
 export default Event;

@@ -1,11 +1,15 @@
 
-import run from 'fn/test.js';
+import {
+    assert,
+    assertEquals as equals,
+    assertStrictEquals as is,
+    assertObjectMatch as matches
+} from 'jsr:@std/assert@1';
+
 import { Sequence } from '../module.js';
 
-run('Sequence.toATProtoRecord() and Sequence.fromRecord()', [
-    [0, 'note', 69, Math.fround(0.8), 2],
-    [2, 'note', 72, Math.fround(0.6), 1.5]
-], (test, done) => {
+
+Deno.test('Sequence.toATProtoRecord() and Sequence.fromRecord()', () => {
     // Create a sequence
     const sourceSequence = new Sequence([
         [0, 'note', 69, 0.8, 2],
@@ -26,7 +30,8 @@ run('Sequence.toATProtoRecord() and Sequence.fromRecord()', [
     const decodedSequence = Sequence.fromRecord(record);
 
     // Check events match expected values
-    for (const event of decodedSequence.events) test(event);
-
-    done();
+    equals([...decodedSequence.events], [
+        [0, 'note', 69, Math.fround(0.8), 2],
+        [2, 'note', 72, Math.fround(0.6), 1.5]
+    ]);
 });

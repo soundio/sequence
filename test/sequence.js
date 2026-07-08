@@ -1,28 +1,29 @@
 
-import run from 'fn/test.js';
+import {
+    assert,
+    assertEquals as equals,
+    assertStrictEquals as is,
+    assertObjectMatch as matches
+} from 'jsr:@std/assert@1';
+
+
+import Event    from '../modules/event.js';
 import Sequence from '../modules/sequence.js';
 
 
-run('Sequence(events)', [
-    [5, "note", 69, 0.1, 1],
-    [6, "note", 71, 0.1, 1]
-], (test, done) => {
+Deno.test('Sequence(events)', () => {
     const sequence = Sequence.of(
         [5, "note", "A4", 0.1, 1],
         [6, "note", "B4", 0.1, 1],
     );
 
-    let e;
-    for (e of sequence) test(e);
-    done();
+    matches([...sequence], [
+        { 0: 5, 1: Event.TYPENUMBERS.note, 2: 69, 3: 0.1, 4: 1 },
+        { 0: 6, 1: Event.TYPENUMBERS.note, 2: 71, 3: 0.1, 4: 1 }
+    ]);
 });
 
-
-run('Sequence(events, sequences)', [
-    [4, "sequence", 1, 0, 2],
-    [4, "note", 69, 0.1, 1],
-    [5, "note", 71, 0.1, 1]
-], (test, done) => {
+Deno.test('Sequence(events, sequences)', () => {
     const sequence = new Sequence([
         [4, "sequence", 1, 0, 2]
     ], [{
@@ -35,18 +36,14 @@ run('Sequence(events, sequences)', [
         ]
     }]);
 
-    let e;
-    for (e of sequence) test(e);
-    done();
+    matches([...sequence], [
+        { 0: 4, 1: Event.TYPENUMBERS.sequence, 2: 1,  3: 0,   4: 2 },
+        { 0: 4, 1: Event.TYPENUMBERS.note,     2: 69, 3: 0.1, 4: 1 },
+        { 0: 5, 1: Event.TYPENUMBERS.note,     2: 71, 3: 0.1, 4: 1 }
+    ]);
 });
 
-run('Sequence(events, sequences) transforms', [
-    [4,   "sequence", 1, 0, 2, "rate", 2],
-    [4,   "note", 69, 0.1, 0.5],
-    [4.5, "note", 71, 0.1, 0.5],
-    [5,   "note", 72, 0.1, 0.5],
-    [5.5, "note", 74, 0.1, 0.5]
-], (test, done) => {
+Deno.test('Sequence(events, sequences) transforms', () => {
     const sequence = new Sequence([
         [4, "sequence", 1, 0, 2, "rate", 2]
     ], [{
@@ -59,7 +56,12 @@ run('Sequence(events, sequences) transforms', [
         ]
     }]);
 
-    let e;
-    for (e of sequence) test(e);
-    done();
+    matches([...sequence], [
+        { 0: 4,   1: Event.TYPENUMBERS.sequence, 2: 1,  3: 0,   4: 2, 5: 2, 6: 2 },
+        { 0: 4,   1: Event.TYPENUMBERS.note,     2: 69, 3: 0.1, 4: 0.5 },
+        { 0: 4.5, 1: Event.TYPENUMBERS.note,     2: 71, 3: 0.1, 4: 0.5 },
+        { 0: 5,   1: Event.TYPENUMBERS.note,     2: 72, 3: 0.1, 4: 0.5 },
+        { 0: 5.5, 1: Event.TYPENUMBERS.note,     2: 74, 3: 0.1, 4: 0.5 }
+    ]);
 });
+

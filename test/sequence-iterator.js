@@ -1,28 +1,28 @@
 
-import run from 'fn/test.js';
+import {
+    assert,
+    assertEquals as equals,
+    assertStrictEquals as is,
+    assertObjectMatch as matches
+} from 'jsr:@std/assert@1';
+
 import SequenceIterator from '../modules/sequence-iterator.js';
 
 
-run('SequenceIterator(events)', [
-    [5, "note", 69, 0.1, 1],
-    [6, "note", 71, 0.1, 1]
-], (test, done) => {
+Deno.test('SequenceIterator(events)', () => {
     const iterator = new SequenceIterator([
         [5, "note", "A4", 0.1, 1],
         [6, "note", "B4", 0.1, 1],
     ]);
 
-    let e;
-    for (e of iterator) test(e);
-    done();
+    equals([...iterator], [
+        [5, "note", 69, 0.1, 1],
+        [6, "note", 71, 0.1, 1]
+    ]);
 });
 
 
-run('SequenceIterator(events, sequences)', [
-    [4, "sequence", 1, 0, 2],
-    [4, "note", 69, 0.1, 1],
-    [5, "note", 71, 0.1, 1]
-], (test, done) => {
+Deno.test('SequenceIterator(events, sequences)', () => {
     const iterator = new SequenceIterator([
         [4, "sequence", 1, 0, 2]
     ], [{
@@ -35,18 +35,14 @@ run('SequenceIterator(events, sequences)', [
         ]
     }]);
 
-    let e;
-    for (e of iterator) test(e);
-    done();
+    equals([...iterator], [
+        [4, "sequence", 1, 0, 2],
+        [4, "note", 69, 0.1, 1],
+        [5, "note", 71, 0.1, 1]
+    ]);
 });
 
-run('SequenceIterator(events, sequences) transforms', [
-    [4,   "sequence", 1, 0, 2, "rate", 2],
-    [4,   "note", 69, 0.1, 0.5],
-    [4.5, "note", 71, 0.1, 0.5],
-    [5,   "note", 72, 0.1, 0.5],
-    [5.5, "note", 74, 0.1, 0.5]
-], (test, done) => {
+Deno.test('SequenceIterator(events, sequences) transforms', () => {
     const iterator = new SequenceIterator([
         [4, "sequence", 1, 0, 2, "rate", 2]
     ], [{
@@ -59,7 +55,11 @@ run('SequenceIterator(events, sequences) transforms', [
         ]
     }]);
 
-    let e;
-    for (e of iterator) test(e);
-    done();
+    equals([...iterator], [
+        [4,   "sequence", 1, 0, 2, "rate", 2],
+        [4,   "note", 69, 0.1, 0.5],
+        [4.5, "note", 71, 0.1, 0.5],
+        [5,   "note", 72, 0.1, 0.5],
+        [5.5, "note", 74, 0.1, 0.5]
+    ]);
 });

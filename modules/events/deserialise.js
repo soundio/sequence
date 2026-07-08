@@ -1,7 +1,7 @@
 
 import { TRANSFORMNUMBERS } from '../event/transforms.js';
 import { CURVENUMBERS, CURVEBYTES }     from '../event/curves.js';
-import { toRoute, toParamNumber, toCurveNumber } from './address.js';
+import { getRoute, getParamNumber, getCurveNumber } from '../event/address.js';
 import Event from '../event.js';
 
 const { TYPENUMBERS, TYPEBYTES } = Event;
@@ -27,8 +27,8 @@ export default function deserialise(buffer) {
         const address = view.getUint16(offset, true);
         offset += 2;
 
-        const route = toRoute(address);
-        const param = toParamNumber(address);
+        const route = getRoute(address);
+        const param = getParamNumber(address);
 
         // Read event data based on route
         switch (route) {
@@ -162,7 +162,7 @@ export default function deserialise(buffer) {
 
                     default: {
                         // Default handler for route 0 events with variable-length encoding (rate, etc.)
-                        const curveNumber = toCurveNumber(address);
+                        const curveNumber = getCurveNumber(address);
 
                         switch (curveNumber) {
                             case CURVENUMBERS['step']:
@@ -214,7 +214,7 @@ export default function deserialise(buffer) {
 
             // Route 1: param event
             case 1: {
-                const number = toCurveNumber(address);
+                const number = getCurveNumber(address);
 
                 switch (number) {
                     case CURVENUMBERS['step']:
@@ -264,7 +264,7 @@ export default function deserialise(buffer) {
             }
 
             default:
-                throw new Error(`Cannot deserialise unknown address ${ route }.${ param }.${ toCurveNumber(address) }`);
+                throw new Error(`Cannot deserialise unknown address ${ route }.${ param }.${ getCurveNumber(address) }`);
         }
     }
 

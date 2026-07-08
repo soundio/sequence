@@ -8,12 +8,11 @@ const { fround } = Math;
 
 
 export default class RateEvent extends Event {
-    constructor(beat, _type, value, curve, duration) {
-        super(beat);
-        this.value    = value;
-        this.curve    = curve;
-        this.duration = duration;
+    static of(beat, value, curve = 0, duration = 0) {
+        return new RateEvent({ beat, value, curve, duration });
     }
+
+    [1] = Event.TYPENUMBERS.rate;
 
     get value()          { return this[2]; }
     set value(number)    { this[2] = fround(number); }
@@ -28,6 +27,5 @@ export default class RateEvent extends Event {
 }
 
 define(RateEvent.prototype, {
-    1:    { value: Event.TYPENUMBERS.rate, enumerable: true },
     type: { value: 'rate' }
 });
