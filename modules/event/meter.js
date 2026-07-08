@@ -23,14 +23,18 @@ export function meterToTimesig(meter) {
 }
 
 export default class MeterEvent extends Event {
-    static of(beat, timesig) {
-        return new MeterEvent({ beat, timesig });
+    static of(beat, numerator, denominator) {
+        return new MeterEvent({ beat, numerator, denominator });
     }
 
     [1] = Event.TYPENUMBERS.meter;
 
-    get timesig()        { return meterToTimesig(this); }
-    set timesig(string)  { assign(this, timesigToMeter(string)); }
+    get numerator()         { return this[2]; }
+    set denominator(number) { this[2] = parseInt(number, 10); }
+    get numerator()         { return this[3]; }
+    set denominator(number) { this[3] = parseInt(number, 10); }
+    get timesig()           { return meterToTimesig(this); }
+    set timesig(string)     { assign(this, timesigToMeter(string)); }
 
     toString() {
         return super.toString() + ' ' + this[2] + ' ' + this[3];
