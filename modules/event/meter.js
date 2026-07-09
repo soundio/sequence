@@ -1,4 +1,5 @@
-import Event from './event.js';
+import Event     from './event.js';
+import roundPow2 from '../number/round-pow-2.js';
 
 
 const assign = Object.assign;
@@ -32,7 +33,7 @@ export default class MeterEvent extends Event {
     get numerator()         { return this[2]; }
     set numerator(number)   { this[2] = parseInt(number, 10); }
     get denominator()       { return this[3]; }
-    set denominator(number) { this[3] = parseInt(number, 10); }
+    set denominator(number) { this[3] = roundPow2(number); }
     get timesig()           { return meterToTimesig(this); }
     set timesig(string)     { assign(this, timesigToMeter(string)); }
 
