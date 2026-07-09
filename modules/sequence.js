@@ -34,9 +34,9 @@ export default class Sequence {
         }
 
         // Enforce sequence rules
-        switch (event.type) {
+        switch (event[1]) {
             // No overlapping chords
-            case chord: {
+            case Event.TYPES.chord: {
                 // Find previous chord
                 let n = -1, chord;
                 while (this.events[++n] && this.events[n][0] <= event[0]) {

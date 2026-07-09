@@ -12,7 +12,7 @@ export default class NoteEvent extends Event {
         return new NoteEvent({ beat, name, gain, duration });
     }
 
-    [1] = Event.TYPENUMBERS.note;
+    [1] = Event.TYPES.note;
 
     get name()           { return toNoteName(this.number); }
     set name(name)       { this.number = name; }

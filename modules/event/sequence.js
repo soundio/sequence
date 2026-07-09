@@ -32,7 +32,7 @@ export default class SequenceEvent extends Event {
         return new SequenceEvent({ beat, id, TARGET, duration, transforms });
     }
 
-    [1] = Event.TYPENUMBERS.sequence;
+    [1] = Event.TYPES.sequence;
 
     get id()               { return this[2]; }
     set id(number)         { this[2] = parseInt(number); }

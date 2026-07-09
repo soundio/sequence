@@ -11,7 +11,7 @@ const properties = {
     target: writable
 };
 
-export const TYPENUMBERS = {
+export const TYPES = {
     sequence: 1,
     note:     2,
     param:    3,
@@ -25,7 +25,7 @@ export const TYPENUMBERS = {
     clef:     11
 };
 
-export const TYPENAMES = mirror(TYPENUMBERS);
+export const TYPENAMES = mirror(TYPES);
 
 export const TYPEBYTES = {
     2:  16, // note    4 pitch     4 dynamic  8 duration
@@ -43,7 +43,7 @@ toTypeName(value)
 Converts a type name or number to a type name string.
 **/
 export function toTypeName(value) {
-    if (typeof value === 'string' && value in TYPENUMBERS) return value;
+    if (typeof value === 'string' && value in TYPES) return value;
     if (value in TYPENAMES) return TYPENAMES[value];
     throw new Error(`Event type ${ value } not recognised`);
 }
@@ -92,7 +92,7 @@ export default class Event {
         while (this[++i] !== undefined) yield this[i];
     }
 
-    static TYPENUMBERS = TYPENUMBERS;
+    static TYPES       = TYPES;
     static TYPENAMES   = TYPENAMES;
     static TYPEBYTES   = TYPEBYTES;
 
@@ -116,13 +116,13 @@ export default class Event {
             && !Number.isNaN(event[2]);
     }
 
-    static isChord(event)    { return event[1] === TYPENUMBERS.chord; }
-    static isKey(event)      { return event[1] === TYPENUMBERS.key; }
-    static isMeter(event)    { return event[1] === TYPENUMBERS.meter; }
-    static isNote(event)     { return event[1] === TYPENUMBERS.note; }
-    static isParam(event)    { return event[1] === TYPENUMBERS.param; }
-    static isRate(event)     { return event[1] === TYPENUMBERS.rate; }
-    static isSequence(event) { return event[1] === TYPENUMBERS.sequence; }
+    static isChord(event)    { return event[1] === TYPES.chord; }
+    static isKey(event)      { return event[1] === TYPES.key; }
+    static isMeter(event)    { return event[1] === TYPES.meter; }
+    static isNote(event)     { return event[1] === TYPES.note; }
+    static isParam(event)    { return event[1] === TYPES.param; }
+    static isRate(event)     { return event[1] === TYPES.rate; }
+    static isSequence(event) { return event[1] === TYPES.sequence; }
 }
 
 define(Event.prototype, {

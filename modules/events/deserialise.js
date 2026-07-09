@@ -4,7 +4,7 @@ import { CURVENUMBERS, CURVEBYTES }     from '../event/curves.js';
 import { getRoute, getParamNumber, getCurveNumber } from '../event/address.js';
 import Event from '../event.js';
 
-const { TYPENUMBERS, TYPEBYTES } = Event;
+const { TYPES, TYPEBYTES } = Event;
 
 /**
 deserialise(buffer)
@@ -35,7 +35,7 @@ export default function deserialise(buffer) {
             // Route 0: sequence control event
             case 0:
                 switch (param) {
-                    case TYPENUMBERS['note']:
+                    case TYPES['note']:
                         events.push(Event.of(
                             beat,
                             param,
@@ -46,7 +46,7 @@ export default function deserialise(buffer) {
                         offset += 16;
                         break;
 
-                    case TYPENUMBERS['meter']:
+                    case TYPES['meter']:
                         events.push(Event.of(
                             beat,
                             param,
@@ -56,7 +56,7 @@ export default function deserialise(buffer) {
                         offset += 4;
                         break;
 
-                    case TYPENUMBERS['chord']:
+                    case TYPES['chord']:
                         events.push(Event.of(
                             beat,
                             param,
@@ -68,7 +68,7 @@ export default function deserialise(buffer) {
                         offset += 18;
                         break;
 
-                    case TYPENUMBERS['key']:
+                    case TYPES['key']:
                         events.push(Event.of(
                             beat,
                             param,
@@ -77,7 +77,7 @@ export default function deserialise(buffer) {
                         offset += 1;
                         break;
 
-                    case TYPENUMBERS['clef']:
+                    case TYPES['clef']:
                         events.push(Event.of(
                             beat,
                             param,
@@ -87,7 +87,7 @@ export default function deserialise(buffer) {
                         break;
 
                     // id | target | duration | bytelength | transforms...
-                    case TYPENUMBERS['sequence']: {
+                    case TYPES['sequence']: {
                         const id       = view.getUint16(offset, true);
                         const target   = view.getUint16(offset + 2, true);
                         const duration = view.getFloat64(offset + 4, true);
@@ -132,7 +132,7 @@ export default function deserialise(buffer) {
                     }
 
                     // duration | bytelength | string...
-                    case TYPENUMBERS['text']: {
+                    case TYPES['text']: {
                         const duration = view.getFloat64(offset, true);
                         const bytes    = buffer[offset + 8];
                         offset += 9;
@@ -149,8 +149,8 @@ export default function deserialise(buffer) {
                         break;
                     }
 
-                    case TYPENUMBERS['start']:
-                    case TYPENUMBERS['stop']:
+                    case TYPES['start']:
+                    case TYPES['stop']:
                         events.push(Event.of(
                             beat,
                             param,

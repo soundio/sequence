@@ -12,7 +12,7 @@ export default class RateEvent extends Event {
         return new RateEvent({ beat, value, curve, duration });
     }
 
-    [1] = Event.TYPENUMBERS.rate;
+    [1] = Event.TYPES.rate;
 
     get value()          { return this[2]; }
     set value(number)    { this[2] = fround(number); }

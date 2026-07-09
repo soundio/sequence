@@ -62,7 +62,7 @@ export default class ParamEvent extends Event {
         return new ParamEvent({ beat, name, value, curve, duration });
     }
 
-    [1] = Event.TYPENUMBERS.param;
+    [1] = Event.TYPES.param;
 
     get name()           { return toParamName(this[2]); }
     set name(name)       { this[2] = toParamNumber(name); }

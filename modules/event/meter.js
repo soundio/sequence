@@ -27,7 +27,7 @@ export default class MeterEvent extends Event {
         return new MeterEvent({ beat, numerator, denominator });
     }
 
-    [1] = Event.TYPENUMBERS.meter;
+    [1] = Event.TYPES.meter;
 
     get numerator()         { return this[2]; }
     set numerator(number)   { this[2] = parseInt(number, 10); }

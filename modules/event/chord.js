@@ -188,7 +188,7 @@ export default class ChordEvent extends Event {
             new ChordEvent({ beat, root, extension, duration, bass }) ;
     }
 
-    [1] = Event.TYPENUMBERS.chord;
+    [1] = Event.TYPES.chord;
 
     get root()           { return toRootName(this[2]); }
     set root(name)       { this[2] = toRootNumber(name); }

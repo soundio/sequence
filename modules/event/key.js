@@ -81,7 +81,7 @@ export default class KeyEvent extends Event {
         return new KeyEvent({ beat, name });
     }
 
-    [1] = Event.TYPENUMBERS.key;
+    [1] = Event.TYPES.key;
 
     get name()       { return toKeyName(this[2]); }
     set name(name)   { this[2] = toKeyNumber(name); }

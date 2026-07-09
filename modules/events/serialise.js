@@ -6,7 +6,7 @@ import { TRANSFORMNUMBERS, TRANSFORMBYTES, TRANSFORMLENGTHS } from '../event/tra
 import { toKeyNumber }  from '../event/key.js';
 
 
-const { TYPENUMBERS, TYPENAMES, TYPEBYTES } = Event;
+const { TYPES, TYPENAMES, TYPEBYTES } = Event;
 
 
 /**
@@ -45,13 +45,13 @@ function getEventBytes(event) {
 
     let i;
     switch(type) {
-        case TYPENUMBERS.text: {
+        case TYPES.text: {
             const encoded   = new TextEncoder().encode(event[2]);
             const truncated = truncateUTF8(encoded, MAX_TEXT_BYTES);
             return bytes + 8 + 1 + truncated.length; // duration(8) + length(1) + string(N)
         }
 
-        case TYPENUMBERS.sequence: {
+        case TYPES.sequence: {
             bytes += 13; // id 2 | target 2 | duration 8 | byteslength 1
             i = 4;
             while (event[++i] !== undefined) {
@@ -62,9 +62,9 @@ function getEventBytes(event) {
             return bytes;
         }
 
-        case TYPENUMBERS.param:
+        case TYPES.param:
             i = 4;
-        case TYPENUMBERS.rate:
+        case TYPES.rate:
             if (i === undefined) i = 3;
 
         default: {
@@ -83,12 +83,12 @@ function getAddressFromEvent(event) {
     const type = event[1];
 
     switch (type) {
-        case TYPENUMBERS.param: {
+        case TYPES.param: {
             // Param event route 1
             return packAddress(1, event[2], event[4]);
         }
 
-        case TYPENUMBERS.rate: {
+        case TYPES.rate: {
             // Param event route 0
             return packAddress(0, type, event[3]);
         }
@@ -127,16 +127,16 @@ export default function serialise(events) {
 
         // Write event-specific data
         switch(event[1]) {
-            case TYPENUMBERS.note:
+            case TYPES.note:
                 view.setFloat32(offset, event[2], true);      // pitch
                 view.setFloat32(offset + 4, event[3], true);  // dynamic
                 view.setFloat64(offset + 8, event[4], true);  // duration
                 offset += 16;
                 break;
 
-            case TYPENUMBERS.param:
-            case TYPENUMBERS.rate: {
-                const i = event[1] === TYPENUMBERS.rate ? 2 : 3;
+            case TYPES.param:
+            case TYPES.rate: {
+                const i = event[1] === TYPES.rate ? 2 : 3;
                 const number = event[i + 1];
 
                 switch (number) {
@@ -182,13 +182,13 @@ export default function serialise(events) {
                 break;
             }
 
-            case TYPENUMBERS.meter:
+            case TYPES.meter:
                 view.setFloat16(offset, event[2], true);      // duration
                 view.setFloat16(offset + 2, event[3], true);  // divisor
                 offset += 4;
                 break;
 
-            case TYPENUMBERS.chord: {
+            case TYPES.chord: {
                 const rootId = event[2];
                 buffer[offset] = rootId;                      // root
                 const hsId   = event[3];
@@ -200,13 +200,13 @@ export default function serialise(events) {
                 break;
             }
 
-            case TYPENUMBERS.key: {
+            case TYPES.key: {
                 view.setInt8(offset, toKeyNumber(event[2]));
                 offset += 1;
                 break;
             }
 
-            case TYPENUMBERS.sequence: {
+            case TYPES.sequence: {
                 view.setUint16(offset, event[2], true);       // id
                 view.setUint16(offset + 2, event[3], true);   // target
                 view.setFloat64(offset + 4, event[4], true);  // duration
@@ -257,7 +257,7 @@ export default function serialise(events) {
                 break;
             }
 
-            case TYPENUMBERS.text: {
+            case TYPES.text: {
                 const encoded = new TextEncoder().encode(event[2]);
                 const truncated = truncateUTF8(encoded, MAX_TEXT_BYTES);
                 view.setFloat64(offset, event[3], true);        // duration
@@ -267,8 +267,8 @@ export default function serialise(events) {
                 break;
             }
 
-            case TYPENUMBERS.start:
-            case TYPENUMBERS.stop:
+            case TYPES.start:
+            case TYPES.stop:
                 view.setFloat32(offset, event[2], true);      // pitch
                 view.setFloat32(offset + 4, event[3], true);  // dynamic
                 offset += 8;
@@ -279,7 +279,7 @@ export default function serialise(events) {
             // data signatures for unknown events ... but then we need to tell
             // the event how to be encoded ... not great. For now, we'll spec it
             // here.
-            case TYPENUMBERS.clef:
+            case TYPES.clef:
                 const clefId = typeof event[2] === 'number' ? event[2] : 0;
                 buffer[offset] = clefId;
                 offset += 1;
