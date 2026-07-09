@@ -110,6 +110,12 @@ export default class Event {
             Event.of(...object) ;
     }
 
+    static isValid(event) {
+        return event instanceof Event
+            && event[2] !== undefined
+            && !Number.isNaN(event[2]);
+    }
+
     static isChord(event)    { return event[1] === TYPENUMBERS.chord; }
     static isKey(event)      { return event[1] === TYPENUMBERS.key; }
     static isMeter(event)    { return event[1] === TYPENUMBERS.meter; }

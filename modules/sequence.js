@@ -29,9 +29,38 @@ export default class Sequence {
 
     add(event) {
         // Validate event TODO: improve validation
-        if (!(event instanceof Event) || event[2] === undefined || Number.isNaN(event[2])) {
-            throw new Error(`Sequence.add() cannot add invalid event ${ event.constructor.name } ${ JSON.stringify(event.toJSON) }`);
+        if (!Event.isValid(event)) {
+            throw new Error(`Sequence.add() cannot add invalid ${ event.constructor.name } ${ JSON.stringify(event.toJSON) }`);
         }
+
+        // Enforce sequence rules
+        switch (event.type) {
+            // No overlapping chords
+            case chord: {
+                // Find previous chord
+                let n = -1, chord;
+                while (this.events[++n] && this.events[n][0] <= event[0]) {
+                    if (Event.isChord(this.events[n])) chord = this.events[n];
+                }
+                // Existing chord on same beat, remove it
+                if (chord && chord[0] === event[0]) {
+                    chord.remove();
+                    break;
+                }
+                // If overlapping chord found truncate it
+                if (chord && chord[0] + chord[4] > event[0]) {
+                    chord[4] = event[0] - chord[0];
+                }
+                // Find next chord
+                --n;
+                while (this.events[++n] && !Event.isChord(this.events[n]));
+                // If event overlaps next chord truncate it
+                if (chord && event[0] + event[4] > chord[0]) {
+                    event[4] = chord[0] - event[0];
+                }
+            }
+        }
+
         event.events = this.events;
         insert(this.events, event);
         return this;
