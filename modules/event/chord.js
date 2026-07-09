@@ -180,14 +180,14 @@ export function getChordOf() {
 
 
 export default class ChordEvent extends Event {
-    static of(beat, root, extension, duration, bass = 0) {
+    static of(beat, root, extension = '', duration = 1, bass = 0) {
         return new ChordEvent({ beat, root, extension, duration, bass });
     }
 
     [1] = Event.TYPENUMBERS.chord;
 
     get root()           { return toRootName(this[2]); }
-    set root(number)     { this[2] = toRootNumber(number); }
+    set root(name)       { this[2] = toRootNumber(name); }
     get extension()      { return toChordName(this[3]); }
     set extension(name)  { this[3] = toChordHSID(name); }
     get duration()       { return this[4]; }

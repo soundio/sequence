@@ -27,10 +27,16 @@ export default class Sequence {
         if (sequences) this.sequences = sequences.map(Sequence.from);
     }
 
-    create() {
-        const event = Event.from(arguments);
+    add(event) {
+        // TODO: validate event
         event.events = this.events;
         insert(this.events, event);
+        return this;
+    }
+
+    create() {
+        const event = Event.from(arguments);
+        this.add(event);
         return event;
     }
 
