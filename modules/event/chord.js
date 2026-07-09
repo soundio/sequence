@@ -181,7 +181,11 @@ export function getChordOf() {
 
 export default class ChordEvent extends Event {
     static of(beat, root, extension = '', duration = 1, bass = 0) {
-        return new ChordEvent({ beat, root, extension, duration, bass });
+        return root === undefined ?
+            // Create invalid event
+            new ChordEvent({ beat, extension, duration, bass }) :
+            // Create valid event
+            new ChordEvent({ beat, root, extension, duration, bass }) ;
     }
 
     [1] = Event.TYPENUMBERS.chord;

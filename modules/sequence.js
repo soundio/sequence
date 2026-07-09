@@ -28,7 +28,10 @@ export default class Sequence {
     }
 
     add(event) {
-        // TODO: validate event
+        // Validate event TODO: improve validation
+        if (!(event instanceof Event) || event[2] === undefined || Number.isNaN(event[2])) {
+            throw new Error(`Sequence.add() cannot add invalid event ${ event.constructor.name } ${ JSON.stringify(event.toJSON) }`);
+        }
         event.events = this.events;
         insert(this.events, event);
         return this;

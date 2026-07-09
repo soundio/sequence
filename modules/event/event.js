@@ -2,9 +2,14 @@ import remove from 'fn/remove.js';
 import mirror from '../object/mirror.js';
 
 
-const assign   = Object.assign;
-const define   = Object.defineProperties;
-const writable = { writable: true };
+const assign     = Object.assign;
+const define     = Object.defineProperties;
+const writable   = { writable: true };
+const properties = {
+    event:  writable,
+    events: writable,
+    target: writable
+};
 
 export const TYPENUMBERS = {
     sequence: 1,
@@ -56,11 +61,7 @@ function getEvent(event) {
 export default class Event {
     constructor(data) {
         assign(this, data);
-        define(this, {
-            event:  writable,
-            events: writable,
-            target: writable
-        });
+        define(this, properties);
     }
 
     get beat()       { return this[0]; }
