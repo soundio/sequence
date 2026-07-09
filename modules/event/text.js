@@ -19,7 +19,7 @@ export default class TextEvent extends Event {
         return new TextEvent({ beat, text, duration });
     }
 
-    [1] = Event.TYPENUMBERS.text;
+    [1] = Event.TYPES.text;
 
     get text()           { return ''; }
     set text(name)       { console.log('TODO convert string to binary'); }

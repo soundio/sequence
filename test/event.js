@@ -68,6 +68,24 @@ Deno.test('Event.from(note)', () => {
     equals(Event.from(event).toJSON(), [0, Event.TYPES.note, 48, 1, 1]);
 });
 
+Deno.test('Event.from(note).gain', () => {
+    // Test round-trip gain conversion
+    const e1  = Event.of(0, "note", "C", "0dB",   1);   equals(e1.gain,  "0dB");
+    const e2  = Event.of(0, "note", "C", "-4.5dB", 1);  equals(e2.gain,  "-4.5dB");
+    const e3  = Event.of(0, "note", "C", "-6dB",  1);   equals(e3.gain,  "-6dB");
+    const e4  = Event.of(0, "note", "C", "-9dB",  1);   equals(e4.gain,  "-9dB");
+    const e5  = Event.of(0, "note", "C", "-12dB", 1);   equals(e5.gain,  "-12dB");
+    const e6  = Event.of(0, "note", "C", "-18dB", 1);   equals(e6.gain,  "-18dB");
+    const e7  = Event.of(0, "note", "C", "-20dB", 1);   equals(e7.gain,  "-20dB");
+    const e8  = Event.of(0, "note", "C", "-24dB", 1);   equals(e8.gain,  "-24dB");
+    const e9  = Event.of(0, "note", "C", "-30dB", 1);   equals(e9.gain,  "-30dB");
+    const e10 = Event.of(0, "note", "C", "-31.5dB", 1); equals(e10.gain, "-31.5dB");
+    const e11 = Event.of(0, "note", "C", "-36dB", 1);   equals(e11.gain, "-36dB");
+    const e12 = Event.of(0, "note", "C", "-40dB", 1);   equals(e12.gain, "-40dB");
+    const e13 = Event.of(0, "note", "C", "-48dB", 1);   equals(e13.gain, "-48dB");
+    const e14 = Event.of(0, "note", "C", "-60dB", 1);   equals(e14.gain, "-60dB");
+});
+
 Deno.test('Event.from(param)', () => {
     const e1 = Event.of(0, "param", "gain", 2);
     equals(Event.from(e1).toJSON(), [0, Event.TYPES.param, 6, 2, 0, 0]);
