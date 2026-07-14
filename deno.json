@@ -1,6 +1,6 @@
 {
     "imports": {
-        "fn/":   "https://cdn.jsdelivr.net/gh/stephband/fn@1.5.20/modules/",
+        "fn/":   "https://cdn.jsdelivr.net/gh/stephband/fn@1.6.4/modules/",
         "midi/": "https://cdn.jsdelivr.net/gh/stephband/midi@1.1.x/modules/"
     },
 

@@ -1,5 +1,5 @@
 
-import cache from 'fn/cache.js';
+import cache from 'fn/cache-by-key.js';
 
 
 const DEBUG = globalThis.DEBUG;
@@ -18,7 +18,7 @@ for:
 **/
 
 const BASE         = 36;                            // 36
-const MAX_INTERVAL = BASE - 1;                      // 35
+export const MAX_INTERVAL = BASE - 1;                      // 35
 
 // How many times you can multiply BASE by itself before exceeding
 // MAX_SAFE_INTEGER, plus 1 (for the root note)

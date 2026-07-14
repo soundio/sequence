@@ -1,7 +1,7 @@
 
 import Sequence      from './sequence.js';
-import serialise, { VERSION } from './events/serialise.js';
-import deserialise   from './events/deserialise.js';
+import serialise, { VERSION } from './record/serialise.js';
+import deserialise   from './record/deserialise.js';
 import validate      from './validate.js';
 
 

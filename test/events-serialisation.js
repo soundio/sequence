@@ -6,8 +6,8 @@ import {
     assertObjectMatch as matches
 } from 'jsr:@std/assert@1';
 
-import serialise from '../modules/events/serialise.js';
-import deserialise from '../modules/events/deserialise.js';
+import serialise from '../modules/record/serialise.js';
+import deserialise from '../modules/record/deserialise.js';
 import { CHORDNUMBERS } from '../modules/event/chord.js';
 
 
