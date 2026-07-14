@@ -5,7 +5,7 @@ import mod12   from '../number/mod-12.js';
 import mirror  from '../object/mirror.js';
 import { rflatsharp, toUnicode } from '../pitch.js';
 import Event   from './event.js';
-import { hsidOf, hsidFrom, hsidToNumbers } from './hsid.js';
+import { hsidOf, hsidFrom, hsidToNumbers } from '../harmony/hsid.js';
 
 
 const DEBUG  = globalThis.DEBUG;
