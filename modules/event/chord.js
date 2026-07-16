@@ -10,6 +10,7 @@ import { hsidOf, hsidFrom, hsidToNumbers } from '../harmony/hsid.js';
 
 const DEBUG  = globalThis.DEBUG;
 const define = Object.defineProperties;
+const { round } = Math;
 
 /*
 Chord symbols
@@ -199,6 +200,11 @@ export default class ChordEvent extends Event {
     // TODO
     get bass()           { return this[5]; }
     set bass(number)     { this[5] = parseInt(number, 10); }
+
+    transpose(n) {
+        this[2] = mod12(this[2] + round(n));
+        return this;
+    }
 
     toString() {
         return super.toString() + ' ' + this[2] + ' ' + this[3] + ' ' + this[4] + ' ' + this[5];

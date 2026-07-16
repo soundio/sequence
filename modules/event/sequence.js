@@ -70,6 +70,20 @@ export default class SequenceEvent extends Event {
             }
         }
     }
+
+    transpose(n) {
+        const { transforms } = this;
+        // If the last transform is already a transpose, use it
+        if (transforms[transforms.length - 2] === 'transpose') {
+            transforms[transforms.length - 1] += parseFloat(n);
+        }
+        // Otherwise append a transpose transform
+        else {
+            transforms.push('transpose', parseFloat(n));
+            this.transforms = transforms;
+        }
+        return this;
+    }
 }
 
 define(SequenceEvent.prototype, {

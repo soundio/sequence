@@ -7,6 +7,7 @@ import Event from './event.js';
 
 
 const define = Object.defineProperties;
+const { round } = Math;
 
 export const KEYNUMBERS = {
     "F𝄫": -15,
@@ -87,6 +88,11 @@ export default class KeyEvent extends Event {
     set name(name)   { this[2] = toKeyNumber(name); }
     get root()       { return mod(12, this[2] * 7); }
     set root(number) { this[2] = rootToKeyNumber(number); }
+
+    transpose(n) {
+        this.root += round(n);
+        return this;
+    }
 
     toString() {
         return super.toString() + ' ' + this[2];

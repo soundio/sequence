@@ -27,6 +27,11 @@ export default class NoteEvent extends Event {
     get duration()       { return this[4]; }
     set duration(number) { this[4] = parseFloat(number); }
 
+    transpose(n) {
+        this[2] = this[2] + parseFloat(n);
+        return this;
+    }
+
     toString() {
         return super.toString() + ' ' + this[2] + ' ' + this[3]  + ' ' + this[4];
     }

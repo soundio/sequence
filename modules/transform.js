@@ -1,14 +1,14 @@
 
 import { toNoteNumber, toRootNumber } from 'midi/note.js';
 import parseGain from './parse/parse-gain.js';
-import transpose from './event/transpose.js';
 import { toTransformName } from './event/transforms.js';
 import mod12 from './number/mod-12.js';
 
 
 const types = {
     displace: (transforms, n, event) => {
-        event[0] -= transforms[++n];
+        // TODO: Why -ve????
+        event.displace(-1 * transforms[++n]);
         return n;
     },
 
@@ -49,8 +49,8 @@ const types = {
     },
 
     transpose: (transforms, n, event) => {
-        transpose(transforms[n + 1], event);
-        return n + 1;
+        event.transpose(transforms[++n]);
+        return n;
     }
 };
 

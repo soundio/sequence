@@ -67,6 +67,15 @@ export default class Event {
     get beat()       { return this[0]; }
     set beat(number) { this[0] = parseFloat(number); }
 
+    displace(n) {
+        this[0] += parseFloat(n);
+        return this;
+    }
+
+    transpose() {
+        return this;
+    }
+
     remove() {
         const event  = getEvent(this);
         const events = event.events;
