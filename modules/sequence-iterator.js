@@ -20,7 +20,7 @@ const priorities = {
     default: 0
 };
 
-const temp = {};
+//const temp = {};
 
 
 function priority(event) {
@@ -66,7 +66,7 @@ export default class SequenceIterator {
 
         // Set n to index before first event falling on or after beat
         let n = -1, event;
-        while ((event = events[++n]) && transform(transforms, assign(temp, event))[0] < 0);
+        while ((event = events[++n]) && transform(transforms, Event.from(event))[0] < 0);
         this.n = n - 1;
     }
 
@@ -77,7 +77,7 @@ export default class SequenceIterator {
         let value;
 
         if (event) {
-            value = transform(transforms, Event.from(event/*, n + 1, events*/));
+            value = transform(transforms, Event.from(event));
             value.events = events;
             value.event = event;
         }

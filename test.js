@@ -7,4 +7,3 @@ import './test/event.js';
 import './test/sequence.js';
 import './test/record.js';
 //import './test/import-xml.js';
-//import './test/sequence-serialisation.js';
