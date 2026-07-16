@@ -3,8 +3,8 @@ import Event from '../event.js';
 import { packAddress }              from '../event/address.js';
 import { CURVENUMBERS, CURVEBYTES } from '../event/curves.js';
 import { TRANSFORMNUMBERS, TRANSFORMBYTES, TRANSFORMLENGTHS } from '../event/transforms.js';
-import { toKeyNumber }  from '../event/key.js';
-
+import { toKeyNumber } from '../event/key.js';
+import { MAX_TEXT_BYTES } from '../event/text.js';
 
 const { TYPES, TYPENAMES, TYPEBYTES } = Event;
 
@@ -23,10 +23,6 @@ Event structure: Float64 beat | Int16 address | data...
 Address structure: 2-bit route | 10-bit name | 4-bit curve
 **/
 
-// Maximum string bytes for text events
-// length field stores string bytes only (0-255)
-const MAX_TEXT_BYTES = 255;
-
 function truncateUTF8(bytes, maxLength) {
     if (bytes.length <= maxLength) return bytes;
 
@@ -41,12 +37,13 @@ function getEventBytes(event) {
     const type = event[1];
 
     let bytes = 10; // beat 8 | address 2
-    if (type in TYPEBYTES) return bytes + TYPEBYTES[t];
+    if (type in TYPEBYTES) return bytes + TYPEBYTES[type];
 
     let i;
     switch(type) {
         case TYPES.text: {
-            const encoded   = new TextEncoder().encode(event[2]);
+            // Layout: duration at [2], text string at [3]
+            const encoded   = new TextEncoder().encode(event[3]);
             const truncated = truncateUTF8(encoded, MAX_TEXT_BYTES);
             return bytes + 8 + 1 + truncated.length; // duration(8) + length(1) + string(N)
         }
@@ -55,7 +52,8 @@ function getEventBytes(event) {
             bytes += 13; // id 2 | target 2 | duration 8 | byteslength 1
             i = 4;
             while (event[++i] !== undefined) {
-                const n = TRANSFORMNUMBERS[event[i]];
+                // Transforms are stored as numbers on the event
+                const n = event[i];
                 bytes += TRANSFORMBYTES[n];
                 i += TRANSFORMLENGTHS[n];
             }
@@ -219,9 +217,8 @@ export default function serialise(events) {
                 // Write transforms
                 let i = 4;
                 while (event[++i] !== undefined) {
+                    // Transforms are stored as numbers on the event
                     const n = event[i];
-
-                    if (TRANSFORMNAMES[n]) throw new Error(`Transform name "${ TRANSFORMNAMES[n] }" not recognised`);
 
                     buffer[offset] = n;
                     offset += 1;
@@ -258,9 +255,10 @@ export default function serialise(events) {
             }
 
             case TYPES.text: {
-                const encoded = new TextEncoder().encode(event[2]);
+                // Layout: duration at [2], text string at [3]
+                const encoded = new TextEncoder().encode(event[3]);
                 const truncated = truncateUTF8(encoded, MAX_TEXT_BYTES);
-                view.setFloat64(offset, event[3], true);        // duration
+                view.setFloat64(offset, event[2], true);        // duration
                 buffer[offset + 8] = truncated.length;          // length byte (string bytes only)
                 buffer.set(truncated, offset + 9);              // string bytes
                 offset += 9 + truncated.length;

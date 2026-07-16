@@ -1,30 +1,23 @@
 
 import Event from './event.js';
 
+// Maximum string bytes for text events
+// length field stores string bytes only (0-255)
+export const MAX_TEXT_BYTES = 255;
 
 const define = Object.defineProperties;
 
-/**
-Calculate byte length for a text event including string
-**/
-export function getTextEventLength(event) {
-    const string = event[2];
-    const encoded = new TextEncoder().encode(string);
-    return EVENT_BASE_LENGTHS.text + encoded.length;
-}
-
-
 export default class TextEvent extends Event {
-    static of(beat, text, duration) {
-        return new TextEvent({ beat, text, duration });
+    static of(beat, duration, text) {
+        return new TextEvent({ beat, duration, text });
     }
 
     [1] = Event.TYPES.text;
 
-    get text()           { return ''; }
-    set text(name)       { console.log('TODO convert string to binary'); }
-    get duration()       { return this[3]; }
-    set duration(number) { this[3] = parseFloat(number); }
+    get duration()       { return this[2]; }
+    set duration(number) { this[2] = parseFloat(number); }
+    get text()           { return this[3]; }
+    set text(string)     { this[3] = string + ''; }
 
     toString() {
         return super.toString() + ' ' + this[2] + ' ' + this[3];

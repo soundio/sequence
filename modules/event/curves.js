@@ -49,6 +49,8 @@ Converts a curve name or number to a curve number.
 **/
 export function toCurveNumber(name) {
     return typeof name === 'string' ?
-        (CURVENUMBERS[name] || 'step') :
+        // CURVENUMBERS.step is 0, so `||` would wrongly fall through - test for
+        // presence of the key instead
+        (name in CURVENUMBERS ? CURVENUMBERS[name] : CURVENUMBERS.step) :
         name;
 }

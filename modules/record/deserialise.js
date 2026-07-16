@@ -142,8 +142,8 @@ export default function deserialise(buffer) {
                         events.push(Event.of(
                             beat,
                             param,
-                            new TextDecoder().decode(data),
-                            duration
+                            duration,
+                            new TextDecoder().decode(data)
                         ));
                         offset += bytes;
                         break;
