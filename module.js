@@ -1,6 +1,6 @@
 import Event       from './modules/event.js';
 import Sequence    from './modules/sequence.js';
-import { VERSION } from './modules/ record/serialise.js';
+import { VERSION } from './modules/record/serialise.js';
 import { toRecord, toATProtoRecord, fromRecord } from './modules/record.js';
 
 
