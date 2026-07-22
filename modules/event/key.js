@@ -95,7 +95,7 @@ export default class KeyEvent extends Event {
     }
 
     toString() {
-        return super.toString() + ' ' + this[2];
+        return `${ super.toString() } ${ this.name }`;
     }
 }
 

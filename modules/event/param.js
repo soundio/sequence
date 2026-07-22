@@ -74,7 +74,7 @@ export default class ParamEvent extends Event {
     set duration(number) { this[5] = parseFloat(number); }
 
     toString() {
-        return super.toString() + ' ' + this[2] + ' ' + this[3] + ' ' + this[4] + ' ' + this[5];
+        return `${ super.toString() } ${ this.name } ${ this.value } ${ this.curve } ${ this.duration }`;
     }
 }
 

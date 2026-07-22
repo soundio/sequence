@@ -92,7 +92,7 @@ export default class Event {
 
     toString() {
         // Beat and type
-        return stringify(this[0]) + ' ' + this[1];
+        return stringify(this[0]) + ' ' + TYPENAMES[this[1]];
     }
 
     // Enable event object to be spread by making it iterable

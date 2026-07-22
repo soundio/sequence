@@ -20,7 +20,7 @@ export default class TextEvent extends Event {
     set text(string)     { this[3] = string + ''; }
 
     toString() {
-        return super.toString() + ' ' + this[2] + ' ' + this[3];
+        return `${ super.toString() } ${ this.duration } ${ this.text }`;
     }
 }
 

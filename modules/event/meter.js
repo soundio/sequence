@@ -38,7 +38,7 @@ export default class MeterEvent extends Event {
     set timesig(string)     { assign(this, timesigToMeter(string)); }
 
     toString() {
-        return super.toString() + ' ' + this[2] + ' ' + this[3];
+        return `${ super.toString() } ${ this.timesig }`;
     }
 }
 

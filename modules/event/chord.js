@@ -207,7 +207,7 @@ export default class ChordEvent extends Event {
     }
 
     toString() {
-        return super.toString() + ' ' + this[2] + ' ' + this[3] + ' ' + this[4] + ' ' + this[5];
+        return `${ super.toString() } ${ this.root }${ this.extension } ${ this.duration }`;
     }
 }
 

@@ -33,7 +33,7 @@ export default class NoteEvent extends Event {
     }
 
     toString() {
-        return super.toString() + ' ' + this[2] + ' ' + this[3]  + ' ' + this[4];
+        return `${ super.toString() } ${ this.name } ${ this.gain } ${ this.duration }`;
     }
 }
 
