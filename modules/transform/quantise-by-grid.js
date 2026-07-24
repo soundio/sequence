@@ -4,10 +4,10 @@ import mod from 'fn/mod.js';
 /**
 function quantise(grid, amount, beat)
 
-A quantise `grid` is an array of positive 64-bit beat numbers in ascending order.
-There is no implicit beat 0, it should be included in the grid if desired. The
-last number in the array is the grid's duration, not a quantisation beat. The
-grid is looped, both forwards and backwards in time, at this duration.
+A quantise `grid` is an array of positive (Float64) beat numbers in ascending
+order. There is no implicit beat 0, it should be included in the grid if desired.
+The last number in the array is the grid's duration, not a quantisation beat.
+The grid is looped, both forwards and backwards in time, at this duration.
 
 Quantisation `amount` scales the amount of quantisation applied to `beat`.
 **/
