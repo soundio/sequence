@@ -2,6 +2,7 @@
 import { toNoteNumber, toRootNumber } from 'midi/note.js';
 import parseGain from './parse/parse-gain.js';
 import { toTransformName } from './event/transforms.js';
+import { quantiseReversedSin } from './transform/quantise-sin.js';
 import mod12 from './number/mod-12.js';
 
 
@@ -44,8 +45,24 @@ const types = {
         return n;
     },
 
-    quantize: (transforms, n, event) => {
-        // TODO: Quantise!
+    swing: (transforms, n, event) => {
+        // TODO Combine with beat detection - we should only be swinging duplets,
+        // triplets should probably be quantised to triplets, other tuplets
+        // should be left alone.
+        const ratio     = transforms[++n]; // Swing ratio 0-1
+        const strength  = transforms[++n]; // Quantisation strength 0-1
+        const beat      = event[0];
+
+        event[0] = quantiseReversedSin(ratio, strength, beat);
+
+        switch (event.type) {
+            case "chord":
+            case "note":
+                // TODO: Do duration better ??
+                event[4] = quantiseReversedSin(ratio, strength, beat + event[4]) - event[0];
+                break;
+        }
+        return n;
     },
 
     transpose: (transforms, n, event) => {

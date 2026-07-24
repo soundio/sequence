@@ -11,7 +11,7 @@
 // const swungBeats = quantiseBeats(sixteenthBeats, 1.7095);
 
 
-const { asin, sin, log, pow, round, PI } = Math;
+const { asin, sin, log, pow, floor, round, PI } = Math;
 const tau = 2 * PI;
 
 
@@ -52,15 +52,16 @@ Examples plotted at https://www.desmos.com/calculator/lgjq6btx2y
 **/
 
 export function quantiseSin(swing, strength, beat) {
+    const b     = floor(beat);
     const n     = swingToExponent(swing);
-    const x1    = pow(beat, n) * tau;
+    const x1    = pow(beat - b, n) * tau;
     const scale = 1 - strength;
     const x2    = qsin(scale, x1);
-    return pow(x2 / tau, 1 / n);
+    return b + pow(x2 / tau, 1 / n);
 }
 
 /**
-quantiseSinReverse(swing, strength, beat)
+quantiseReversedSin(swing, strength, beat)
 
 Quantises `beat` 0-1 to beat with `swing` 0-1 (where 0.5 means straight eighths)
 by `strength` 0-1 (where 0 has no effect and 1 is full quantisation), and using
@@ -69,10 +70,11 @@ the formula `1 - sin(2π * (1 - beat)^n)`, where n is derived from `swing`.
 Examples plotted at https://www.desmos.com/calculator/lgjq6btx2y
 **/
 
-export function quantiseSinReverse(swing, strength, beat) {
+export function quantiseReversedSin(swing, strength, beat) {
+    const b     = floor(beat);
     const n     = swingToExponent(1 - swing);
-    const x1    = pow(1 - beat, n) * tau;
+    const x1    = pow(1 - (beat - b), n) * tau;
     const scale = 1 - strength;
     const x2    = qsin(scale, x1);
-    return 1 - pow(x2 / tau, 1 / n);
+    return b + 1 - pow(x2 / tau, 1 / n);
 }
