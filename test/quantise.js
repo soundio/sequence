@@ -7,7 +7,7 @@ import {
     assertObjectMatch as matches
 } from 'jsr:@std/assert@1';
 
-import { qsin, quantiseSinReverse as quantise } from '../modules/rhythm/quantise-by-sin.js';
+import { qsin, quantiseSinReverse as quantise } from '../modules/transform/quantise-by-sin.js';
 
 Deno.test('qsin()', () => {
     equals(qsin(1, -0.5 * Math.PI), -0.5 * Math.PI);
