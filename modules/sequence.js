@@ -82,16 +82,26 @@ export default class Sequence {
         return this;
     }
 
-    find(beat, type) {
-        if (type === 'note' && arguments[2] !== undefined) {
-            arguments[2] = toNoteNumber(arguments[2]);
-        }
-
-        return this.events.find(matches(arguments));
+    find(object) {
+        return typeof object === 'object' ?
+            // Allow find by object keys
+            this.events.find(matches(object)) :
+            // Allow find by argument values
+            this.events.find(matches(arguments)) ;
     }
 
     get(id) {
         return this.sequences && this.sequences.find(matches({ id }));
+    }
+
+    getSequence(id) {
+        return this.sequences && this.sequences.find(matches({ id }));
+    }
+
+    split(beat) {
+        const i = this.events.findIndex((event) => event.beat >= beat);
+        const events = this.events.splice(i);
+        return Sequence.from({ events });
     }
 
     select(beat, type) {
