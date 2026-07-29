@@ -32,7 +32,6 @@ export default class SequenceIterator extends Iterator {
 
         // Set n to index before first event falling on or after beat
         let n = -1, event;
-        //while ((event = events[++n]) && transform(transforms, Event.from(event))[0] < 0);
         while ((event = events[++n]) && transform.apply(Event.from(event))[0] < 0);
         this.n = n - 1;
     }
