@@ -4,6 +4,7 @@
 
 import './test/chord.js';
 import './test/event.js';
+import './test/transform.js';
 import './test/quantise.js';
 import './test/sequence.js';
 import './test/record.js';

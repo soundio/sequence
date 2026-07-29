@@ -5,7 +5,9 @@ import parseGain from '../parse/parse-gain.js';
 import Event from './event.js';
 
 
+const { fround } = Math;
 const define = Object.defineProperties;
+
 
 export default class NoteEvent extends Event {
     static of(beat, name, gain, duration) {
@@ -19,11 +21,10 @@ export default class NoteEvent extends Event {
     get number()         { return this[2]; }
     set number(number)   { this[2] = toNoteNumber(number); }
     get gain() {
-        // Crudely deal with rounding errors to get nice dB strings from
-        // 32-bit floats
+        // Crudely deal with rounding errors to get nice dB strings from Float32
         return dB(this[3]).toFixed(5).replace(/\.?[0]+$/, '') + 'dB';
     }
-    set gain(value)      { this[3] = parseGain(value); }
+    set gain(value)      { this[3] = fround(parseGain(value)); }
     get duration()       { return this[4]; }
     set duration(number) { this[4] = parseFloat(number); }
 

@@ -1,6 +1,8 @@
 
-import Event     from './event.js';
-import transform from './transform.js';
+import get        from 'fn/get.js';
+import Event      from './event.js';
+import Transform  from './transform.js';
+import byPriority from './events/by-priority.js';
 
 
 const assign = Object.assign;
@@ -12,50 +14,14 @@ const done = {
     value: undefined
 };
 
-const priorities = {
-    // The higher the priority, the earlier an event is ordered when
-    // sorting events
-    key: 2,
-    meter: 1,
-    default: 0
-};
-
-//const temp = {};
-
-
-function priority(event) {
-    return priorities[event.type] || priorities.default;
-}
-
-function byPriority(b, a) {
-        // a is before b
-    return a[0] < b[0] ? 1 :
-        // a is after b
-        a[0] > b[0] ? -1 :
-        // a and b are at the same time, prioritise by event type
-        priority(a) - priority(b) ;
-}
-
-export function insert(array, object) {
-    let n = -1;
-    while (array[++n] && byPriority(array[n], object) < 1);
-    array.splice(n, 0, object);
-    return n;
-}
-
-function slice(n, event) {
-    const array = [];
-    let i = n - 1;
-    while (event[++i] !== undefined) array.push(event[i]);
-    return array;
-}
-
 function getSequence(sequences, id) {
     return sequences.find((sequence) => sequence.id === id);
 }
 
-export default class SequenceIterator {
-    constructor(events, sequences = nothing, transforms = nothing) {
+export default class SequenceIterator extends Iterator {
+    constructor(events, sequences = nothing, transforms = nothing, TTT, index = 0) {
+        super();
+
         // Sort events by beat and type
         events.sort(byPriority);
 
@@ -66,7 +32,8 @@ export default class SequenceIterator {
 
         // Set n to index before first event falling on or after beat
         let n = -1, event;
-        while ((event = events[++n]) && transform(transforms, Event.from(event))[0] < 0);
+        //while ((event = events[++n]) && transform(transforms, Event.from(event))[0] < 0);
+        while ((event = events[++n]) && Transform.from(TTT, index).apply(Event.from(event))[0] < 0);
         this.n = n - 1;
     }
 
@@ -132,7 +99,7 @@ export default class SequenceIterator {
         if (Event.isSequence(event)) {
             const sequences = this.sequences;
             const sequence  = getSequence(sequences, event[2]);
-            if (!sequence) throw new Error('Sequence id "' + event[2] + '" not found');
+            if (!sequence) throw new Error(`Sequence id ${ typeof event[2] === 'string' ? `"${ event[2] }"` : event[2] } not found in sequences ids ${ sequences.map(get('id')) }`);
 
             const iterator = new SequenceIterator(
                 sequence.events,
@@ -141,8 +108,9 @@ export default class SequenceIterator {
                     sequence.sequences.concat(sequences) :
                     sequences ,
                 // Transforms
-                //slice(5, event)
-                event.transforms
+                event.transforms,
+                event,
+                5
             );
 
             // Store info about the event on the iterator object

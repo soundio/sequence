@@ -1,13 +1,14 @@
 
-import Event from '../event.js';
+import Event     from '../event.js';
+import Transform from '../transform.js';
 import { packAddress }              from '../event/address.js';
 import { CURVENUMBERS, CURVEBYTES } from '../event/curves.js';
-import { TRANSFORMNUMBERS, TRANSFORMBYTES, TRANSFORMLENGTHS } from '../event/transforms.js';
 import { toKeyNumber } from '../event/key.js';
 import { MAX_TEXT_BYTES } from '../event/text.js';
 
-const { TYPES, TYPENAMES, TYPEBYTES } = Event;
 
+const { TYPES, TYPENAMES, TYPEBYTES } = Event;
+const { TRANSFORMNUMBERS, TRANSFORMBYTES, TRANSFORMLENGTHS } = Transform;
 
 /**
 VERSION

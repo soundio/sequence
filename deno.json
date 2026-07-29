@@ -10,11 +10,14 @@
     },
 
     "lint": {
-        "include": ["modules/"],
-        "exclude": ["modules/parse/"],
+        "enable": true,
         "rules": {
             "exclude": ["no-unused-vars", "no-fallthrough", "no-case-declarations", "no-cond-assign"]
         }
+    },
+
+    "compilerOptions": {
+        "strict": true
     },
 
     "lock": false

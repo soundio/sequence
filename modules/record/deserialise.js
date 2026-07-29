@@ -1,10 +1,13 @@
 
-import { TRANSFORMNUMBERS } from '../event/transforms.js';
-import { CURVENUMBERS, CURVEBYTES }     from '../event/curves.js';
+import Event     from '../event.js';
+import Transform from '../transform.js';
+import { CURVENUMBERS }     from '../event/curves.js';
 import { getRoute, getParamNumber, getCurveNumber } from '../event/address.js';
-import Event from '../event.js';
 
-const { TYPES, TYPEBYTES } = Event;
+
+const { TRANSFORMNUMBERS } = Transform;
+const { TYPES } = Event;
+
 
 /**
 deserialise(buffer)

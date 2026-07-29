@@ -1,9 +1,10 @@
 
-import Event from './event.js';
-import { toTransformName, TRANSFORMNUMBERS, TRANSFORMNAMES, TRANSFORMLENGTHS } from './transforms.js';
+import Event     from './event.js';
+import Transform from '../transform.js';
 
 
 const define = Object.defineProperties;
+
 
 /**
 Calculate byte length for a sequence event including transforms
@@ -11,7 +12,7 @@ Calculate byte length for a sequence event including transforms
 export function getSequenceEventLength(event) {
     let length = EVENT_BASE_LENGTHS.sequence;
 
-    // Transforms start at index 5: [beat, "sequence", id, target, duration, transform1, param1, ...]
+    // Transforms start at index 5: [beat, "sequence", identifier, address, duration, transform1, param1, ...]
     for (let i = 5; i < event.length; ) {
         const transformType = event[i];
         const paramCount = TRANSFORM_PARAM_COUNTS[transformType] || 0;
@@ -26,49 +27,44 @@ export function getSequenceEventLength(event) {
     return length;
 }
 
+const $transform = Symbol('transform');
 
 export default class SequenceEvent extends Event {
-    static of(beat, id, TARGET, duration, ...transforms) {
-        return new SequenceEvent({ beat, id, TARGET, duration, transforms });
+    [$transform] = null;
+
+    constructor(object) {
+        super(object);
+        // Validate event
+        if (!this.identifier) throw new Error(`SequenceEvent() bad id ${ this.identifier }`);
+        if (!this.TARGET && this.TARGET !== 0) throw new Error(`SequenceEvent() bad TARGET ${ this.TARGET }`);
+        if (!this.duration) throw new Error(`SequenceEvent() bad duration ${ this.duration }`);
+    }
+
+    static of(beat, identifier, TARGET, duration, ...transforms) {
+        return new SequenceEvent({ beat, identifier, TARGET, duration, transforms });
     }
 
     [1] = Event.TYPES.sequence;
 
-    get id()               { return this[2]; }
-    set id(number)         { this[2] = parseInt(number); }
+    get id()               { console.trace('GET id deprecated, now GET identifier'); return this[2]; }
+    set id(number)         { console.trace('SET id deprecated, now SET identifier'); this[2] = parseInt(number); }
+    get identifier()       { return this[2]; }
+    set identifier(number) { this[2] = parseInt(number); }
     get TARGET()           { return this[3]; }
     set TARGET(name)       { this[3] = name; }
     get duration()         { return this[4]; }
     set duration(number)   { this[4] = parseFloat(number); }
 
-    get transforms()       {
-        const array = [];
-        let n = 4;
-        while(this[++n] !== undefined) {
-            const name = TRANSFORMNAMES[this[n]];
-            array.push(name);
-            let m = TRANSFORMLENGTHS[this[n]];
-            while (m--) array.push(this[++n]);
+    get transforms() {
+        if (!this[$transform]) {
+            this[$transform] = Transform.from(this, 5);
         }
-        return array;
+        return this[$transform].toJSON();
     }
 
     set transforms(array) {
-        // Split string by spaces and/or commas
-        if (typeof array === 'string') array = array.split(rcommaspace);
         let n = -1;
-        while(array[++n] !== undefined) {
-            // Get transform number for looking up parameter count
-            const name   = toTransformName(array[n]);
-            const number = TRANSFORMNUMBERS[name];
-            this[n + 5] = number;
-            // Copy transform parameters without conversion
-            let m = TRANSFORMLENGTHS[number];
-            while (m--) {
-                ++n;
-                this[n + 5] = array[n] || 0;
-            }
-        }
+        while (array[++n] !== undefined) this[n + 5] = array[n];
     }
 
     transpose(n) {

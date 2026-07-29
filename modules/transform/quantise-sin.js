@@ -49,6 +49,8 @@ by `strength` 0-1 (where 0 has no effect and 1 is full quantisation), and using
 the formula `sin(2π * beat^n)`, where n is derived from `swing`.
 
 Examples plotted at https://www.desmos.com/calculator/lgjq6btx2y
+
+Reverse quantisation can be achieved by passing `1/strength`.
 **/
 
 export function quantiseSin(swing, strength, beat) {
@@ -68,6 +70,8 @@ by `strength` 0-1 (where 0 has no effect and 1 is full quantisation), and using
 the formula `1 - sin(2π * (1 - beat)^n)`, where n is derived from `swing`.
 
 Examples plotted at https://www.desmos.com/calculator/lgjq6btx2y
+
+Reverse quantisation can be achieved by passing `1/strength`.
 **/
 
 export function quantiseReversedSin(swing, strength, beat) {
