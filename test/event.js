@@ -6,7 +6,8 @@ import {
     assertObjectMatch as matches
 } from 'jsr:@std/assert@1';
 
-import Event from '../modules/event.js';
+import Event     from '../modules/event.js';
+import Transform from '../modules/transform.js';
 
 /*
 Deno.test('Event()', () => {
@@ -147,6 +148,6 @@ Deno.test('Event.of(sequence).transforms', () => {
     equals(e2.transforms, ["displace", 2]);
 
     const e3 = Event.of(0, "sequence", 1, 1, 1, "displace", 2, "transpose", 4);
-    equals(e3.toJSON(), [0, Event.TYPES.sequence, 1, 1, 1, 1, 2, 5, 4]);
+    equals(e3.toJSON(), [0, Event.TYPES.sequence, 1, 1, 1, Transform.TYPES.displace, 2, Transform.TYPES.transpose, 4]);
     equals(e3.transforms, ["displace", 2, "transpose", 4]);
 });

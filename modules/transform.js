@@ -13,23 +13,3 @@ Transform.register(gain);
 Transform.register(swing);
 
 export default Transform;
-
-
-
-
-/**
-toTransformName(value)
-Converts a transform name or number to a transform name string.
-**/
-export function toTransformName(value) {
-    if (typeof value === 'string' && value in TRANSFORMNUMBERS) return value;
-    if (typeof value === 'number' && value in TRANSFORMNAMES) return TRANSFORMNAMES[value];
-    throw new Error(`Transform "${ value }" not recognised`);
-}
-
-
-export function transform(transforms, event) {
-    let n = -1, type;
-    while (type = transforms[++n]) n = types[type](transforms, n, event);
-    return event;
-}

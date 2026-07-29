@@ -8,7 +8,7 @@ import { MAX_TEXT_BYTES } from '../event/text.js';
 
 
 const { TYPES, TYPENAMES, TYPEBYTES } = Event;
-const { TRANSFORMNUMBERS, TRANSFORMBYTES, TRANSFORMLENGTHS } = Transform;
+const { TRANSFORMBYTES, TRANSFORMLENGTHS } = Transform;
 
 /**
 VERSION
@@ -63,9 +63,10 @@ function getEventBytes(event) {
 
         case TYPES.param:
             i = 4;
+            // Falls through
         case TYPES.rate:
             if (i === undefined) i = 3;
-
+            // Falls through
         default: {
             // Different curves take up different bytelengths
             const number = event[i];
@@ -154,7 +155,7 @@ export default function serialise(events) {
                         offset += 12;
                         break;
 
-                    case CURVENUMBERS.curve:
+                    case CURVENUMBERS.curve: {
                         // curve: duration(8) + byteslength(2) + values(n * 4)
                         view.setFloat64(offset, event[i + 2] || 0, true);
                         offset += 8;
@@ -174,6 +175,7 @@ export default function serialise(events) {
 
                         offset += bytes;
                         break;
+                    }
 
                     // hold/cancel: no data, no offset change
                 }
@@ -226,19 +228,19 @@ export default function serialise(events) {
 
                     // Write parameters based on transform number
                     switch(n) {
-                        case TRANSFORMNUMBERS.displace:
+                        case Transform.TYPES.displace:
                             view.setFloat64(offset, event[i + 1], true);
                             offset += 8;
                             break;
 
-                        case TRANSFORMNUMBERS.rate:
-                        case TRANSFORMNUMBERS.gain:
-                        case TRANSFORMNUMBERS.quantize:
+                        case Transform.TYPES.rate:
+                        case Transform.TYPES.gain:
+                        case Transform.TYPES.quantize:
                             view.setFloat32(offset, event[i + 1], true);
                             offset += 4;
                             break;
 
-                        case TRANSFORMNUMBERS.transpose:
+                        case Transform.TYPES.transpose:
                             view.setInt8(offset, event[i + 1]);
                             offset += 1;
                             break;
@@ -278,11 +280,12 @@ export default function serialise(events) {
             // data signatures for unknown events ... but then we need to tell
             // the event how to be encoded ... not great. For now, we'll spec it
             // here.
-            case TYPES.clef:
+            case TYPES.clef: {
                 const clefId = typeof event[2] === 'number' ? event[2] : 0;
                 buffer[offset] = clefId;
                 offset += 1;
                 break;
+            }
         }
     }
 

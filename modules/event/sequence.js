@@ -4,7 +4,7 @@ import Transform from '../transform.js';
 
 
 const define = Object.defineProperties;
-
+const { TRANSFORMLENGTHS } = Transform;
 
 /**
 Calculate byte length for a sequence event including transforms
@@ -27,6 +27,7 @@ export function getSequenceEventLength(event) {
     return length;
 }
 
+// Hackaround - cant set #private members before super() is complete
 const $transform = Symbol('transform');
 
 export default class SequenceEvent extends Event {
@@ -55,16 +56,35 @@ export default class SequenceEvent extends Event {
     get duration()         { return this[4]; }
     set duration(number)   { this[4] = parseFloat(number); }
 
+    get transform() {
+        if (!this[$transform]) this[$transform] = Transform.from(this, 5);
+        return this[$transform];
+    }
+
     get transforms() {
-        if (!this[$transform]) {
-            this[$transform] = Transform.from(this, 5);
-        }
+        if (!this[$transform]) this[$transform] = Transform.from(this, 5);
         return this[$transform].toJSON();
     }
 
     set transforms(array) {
+        // Split string by spaces and/or commas
+        if (typeof array === 'string') array = array.split(rcommaspace);
         let n = -1;
-        while (array[++n] !== undefined) this[n + 5] = array[n];
+        while(array[++n] !== undefined) {
+            // Get transform number for looking up parameter count
+            const number = typeof array[n] === 'string' ?
+                Transform.TYPES[array[n]] :
+                array[n] ;
+
+            this[n + 5] = number;
+
+            // Copy transform parameters without conversion
+            let m = TRANSFORMLENGTHS[number];
+            while (m--) {
+                ++n;
+                this[n + 5] = array[n] || 0;
+            }
+        }
     }
 
     transpose(n) {

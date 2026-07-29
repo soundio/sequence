@@ -5,7 +5,6 @@ import { CURVENUMBERS }     from '../event/curves.js';
 import { getRoute, getParamNumber, getCurveNumber } from '../event/address.js';
 
 
-const { TRANSFORMNUMBERS } = Transform;
 const { TYPES } = Event;
 
 
@@ -107,19 +106,19 @@ export default function deserialise(buffer) {
 
                             // Read parameters based on transform number
                             switch(number) {
-                                case TRANSFORMNUMBERS['displace']:
+                                case Transform.TYPES.displace:
                                     params.push(view.getFloat64(offset + o, true));
                                     o += 8;
                                     break;
 
-                                case TRANSFORMNUMBERS['rate']:
-                                case TRANSFORMNUMBERS['gain']:
-                                case TRANSFORMNUMBERS['quantize']:
+                                case Transform.TYPES.rate:
+                                case Transform.TYPES.gain:
+                                case Transform.TYPES.quantize:
                                     params.push(view.getFloat32(offset + o, true));
                                     o += 4;
                                     break;
 
-                                case TRANSFORMNUMBERS['transpose']:
+                                case Transform.TYPES.transpose:
                                     params.push(view.getInt8(offset + o));
                                     o += 1;
                                     break;

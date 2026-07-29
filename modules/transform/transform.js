@@ -1,26 +1,5 @@
-//import Transform from './transform/transforms.js';
-//import Displace  from './transform/displace.js';
-//import Rate      from './transform/rate.js';
-//import Transpose from './transform/transpose.js';
-//import Gain      from './transform/gain.js';
-//import Swing     from './transform/swing.js';
-//
-//Transform.register(Displace);
-//Transform.register(Rate);
-//Transform.register(Transpose);
-//Transform.register(Gain);
-//Transform.register(Swing);
 
-//export default Transform;
-
-
-
-
-
-// ---------------------
-
-
-
+import * as identity from './identity.js';
 
 function applyTransform(object, transforms, n, fn) {
     switch (fn.length) {
@@ -41,13 +20,9 @@ function applyTransform(object, transforms, n, fn) {
 }
 
 function apply(registry, object, transforms, n = 0) {
-    const identifier = transforms[n];
+    const number = transforms[n];
     // No transforms left to read, return object
-    if (identifier === undefined) return object;
-    // Get transform number
-    const number = typeof identifier === 'string' ?
-        Transform.TRANSFORMNUMBERS[identifier] :
-        identifier ;
+    if (number === undefined) return object;
     // Find function
     const fn = registry[number].apply;
     // Apply current transform
@@ -57,13 +32,9 @@ function apply(registry, object, transforms, n = 0) {
 }
 
 function unapply(registry, object, transforms, n = 0) {
-    const identifier = transforms[n];
+    const number = transforms[n];
     // No transforms left to read
-    if (identifier === undefined) return object;
-    // Get transform number
-    const number = typeof identifier === 'string' ?
-        Transform.TRANSFORMNUMBERS[identifier] :
-        identifier ;
+    if (number === undefined) return object;
     // Find function
     const fn = registry[number].unapply;
     // Apply following transform first
@@ -74,6 +45,9 @@ function unapply(registry, object, transforms, n = 0) {
 
 export default class Transform {
     constructor(instructions, index = 0) {
+        // Validate
+        if (!instructions) throw new Error(`Transform() requires array, got ${ instructions}`);
+        // Set
         this.instructions = instructions;
         this.index = index;
     }
@@ -90,7 +64,15 @@ export default class Transform {
         const array = [];
         const instructions = this.instructions;
         let n = this.index - 1;
-        while (instructions[++n]) array.push(instructions[n]);
+        while (instructions[++n]) {
+            const id   = instructions[n];
+            // Push in transform name
+            const name = Transform.TRANSFORMNAMES[id];
+            array.push(name);
+            // Push in transform params
+            let p = Transform.TRANSFORMLENGTHS[id];
+            while (p--) array.push(instructions[++n]);
+        }
         return array;
     }
 
@@ -99,52 +81,56 @@ export default class Transform {
     }
 
     static from(array, index) { return new Transform(array, index); }
-    static of()               { return new Transform(arguments); }
+
+    static of() {
+        const array = [];
+        let n = -1;
+        while(arguments[++n] !== undefined) {
+            // Get transform number for looking up parameter count
+            const number = typeof arguments[n] === 'string' ?
+                Transform.TYPES[arguments[n]] :
+                arguments[n] ;
+            array.push(number);
+            // Copy transform parameters without conversion
+            let m = Transform.TRANSFORMLENGTHS[number];
+            while (m--) array.push(arguments[++n]);
+        }
+
+        return new Transform(array);
+    }
 
     static #registry = {};
-    static #id       = 0;
+    static #id       = -1;
 
     static register(transform) {
+        const { name, apply, unapply, BYTES } = transform;
+
         // Validate
-        const name  = transform.name;
-        if (!name)              throw new Error(`Transform.register() transform must have name property`);
-        if (!transform.apply)   throw new Error(`Transform.register() transform must have function apply()`);
-        if (!transform.unapply) throw new Error(`Transform.register() transform must have function unapply()`);
-        if (!transform.BYTES)   throw new Error(`Transform.register() class ${ transform.BYTES } must have static property BYTES`);
-        if (transform.apply.length !== transform.unapply.length) throw new Error(`Transform.register() transform apply() and unapply() must take the same number of parmaeters`);
-        if (Transform.TRANSFORMNUMBERS[name]) throw new Error(`Transform.register() transform name ${ name } already registered`);
+        if (!name)    throw new Error(`Transform.register() transform must have name property`);
+        if (!apply)   throw new Error(`Transform.register() transform must have function apply()`);
+        if (!unapply) throw new Error(`Transform.register() transform must have function unapply()`);
+        if (!BYTES)   throw new Error(`Transform.register() class ${ BYTES } must have static property BYTES`);
+        if (apply.length !== unapply.length) throw new Error(`Transform.register() transform apply() and unapply() must take the same number of parmaeters`);
+        if (Transform.TYPES[name]) throw new Error(`Transform.register() transform name ${ name } already registered`);
 
         // Register
         const registry = Transform.#registry;
         const id       = ++Transform.#id;
 
-        console.log(`Transform registering ${ id } "${ name }" ${ constructor.BYTES } Bytes`);
+        console.log(`Transform registering id ${ id } - ${ BYTES } Bytes - "${ name }"`);
         registry[id] = transform;
-        Transform.TRANSFORMLENGTHS[id]   = transform.apply.length;
-        Transform.TRANSFORMBYTES[id]     = transform.BYTES;
-        Transform.TRANSFORMNAMES[id]     = name;
-        Transform.TRANSFORMNUMBERS[name] = id;
+        Transform.TRANSFORMLENGTHS[id] = apply.length - 1;
+        Transform.TRANSFORMBYTES[id]   = BYTES;
+        Transform.TRANSFORMNAMES[id]   = name;
+        Transform.TYPES[name]          = id;
     }
+
+    static identity = identity;
 
     static TRANSFORMBYTES   = {};
     static TRANSFORMLENGTHS = {};
     static TRANSFORMNAMES   = {};
-    static TRANSFORMNUMBERS = {};
+    static TYPES = {};
 }
 
-/**
-toTransformName(value)
-Converts a transform name or number to a transform name string.
-**/
-export function toTransformName(value) {
-    if (typeof value === 'string' && value in TRANSFORMNUMBERS) return value;
-    if (typeof value === 'number' && value in TRANSFORMNAMES) return TRANSFORMNAMES[value];
-    throw new Error(`Transform "${ value }" not recognised`);
-}
-
-
-export function transform(transforms, event) {
-    let n = -1, type;
-    while (type = transforms[++n]) n = types[type](transforms, n, event);
-    return event;
-}
+Transform.register(identity);

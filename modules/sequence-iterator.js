@@ -19,32 +19,32 @@ function getSequence(sequences, id) {
 }
 
 export default class SequenceIterator extends Iterator {
-    constructor(events, sequences = nothing, transforms = nothing, TTT, index = 0) {
+    constructor(events, sequences = nothing, transform = Transform.identity) {
         super();
 
         // Sort events by beat and type
         events.sort(byPriority);
 
         // Assign properties
-        this.events     = events,
-        this.sequences  = sequences;
-        this.transforms = transforms;
+        this.events    = events,
+        this.sequences = sequences;
+        this.transform = transform;
 
         // Set n to index before first event falling on or after beat
         let n = -1, event;
         //while ((event = events[++n]) && transform(transforms, Event.from(event))[0] < 0);
-        while ((event = events[++n]) && Transform.from(TTT, index).apply(Event.from(event))[0] < 0);
+        while ((event = events[++n]) && transform.apply(Event.from(event))[0] < 0);
         this.n = n - 1;
     }
 
     next() {
-        const { events, transforms, n } = this;
+        const { events, transform, n } = this;
         const event = events[n + 1];
 
         let value;
 
         if (event) {
-            value = transform(transforms, Event.from(event));
+            value = transform.apply(Event.from(event));
             value.events = events;
             value.event = event;
         }
@@ -61,7 +61,7 @@ export default class SequenceIterator extends Iterator {
             if (!value) {
                 // Get next value from iterator and transform it for current context
                 if (value = iterator.next().value) {
-                    transform(this.transforms, value);
+                    transform.apply(value);
                     value[0] += iterator.startBeat;
                     value.target = (value.target || 0) + iterator.target;
                 }
@@ -107,10 +107,8 @@ export default class SequenceIterator extends Iterator {
                 sequence.sequences ?
                     sequence.sequences.concat(sequences) :
                     sequences ,
-                // Transforms
-                event.transforms,
-                event,
-                5
+                // Transform
+                event.transform
             );
 
             // Store info about the event on the iterator object
