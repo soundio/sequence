@@ -38,3 +38,9 @@ Deno.test('Transform.of("gain")', () => {
     equals(transform.apply({ type: "note", 3: 1 }), { type: "note", 3: 0.5 });
     equals(transform.unapply({ type: "note", 3: 1 }), { type: "note", 3: 2 });
 });
+
+Deno.test("Transform === Transform", () => {
+    const transform1 = Transform.of('gain', 0.5);
+    const transform2 = Transform.of('gain', 0.5);
+    assert(transform1 + '' === transform2 + '');
+});

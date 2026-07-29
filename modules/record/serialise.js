@@ -8,7 +8,7 @@ import { MAX_TEXT_BYTES } from '../event/text.js';
 
 
 const { TYPES, TYPENAMES, TYPEBYTES } = Event;
-const { TRANSFORMBYTES, TRANSFORMLENGTHS } = Transform;
+const { TRANSFORMLENGTHS } = Transform;
 
 /**
 VERSION
@@ -55,7 +55,7 @@ function getEventBytes(event) {
             while (event[++i] !== undefined) {
                 // Transforms are stored as numbers on the event
                 const n = event[i];
-                bytes += TRANSFORMBYTES[n];
+                bytes += Transform.BYTES[n];
                 i += TRANSFORMLENGTHS[n];
             }
             return bytes;

@@ -10,6 +10,11 @@ import {
 import HarmonyNode from '../modules/harmony/harmony-node.js';
 import HarmonyLink from '../modules/harmony/harmony-link.js';
 
+
+// node -> link -> node
+// node -> link -> node
+
+
 Deno.test('HarmonyNode() cache', () => {
     const node1 = HarmonyNode.of(0, 1);
     const node2 = HarmonyNode.of(0, 1);
@@ -26,6 +31,17 @@ Deno.test('HarmonyNode.from(0)', () => {
     equals(node.density, 1);
     equals(node.range, 0);
     equals(node.close, node); // node.close refers to itself
+});
+
+Deno.test('HarmonyNode.modes', () => {
+    const node = HarmonyNode.of(0,2,4,7,10);
+    gte(node.modes.length, 2);
+});
+
+Deno.test('HarmonyNode.majorModes', () => {
+    const node = HarmonyNode.of(0,2,4,7,10);
+    equals(node.majorModes[0], HarmonyNode.of(0,2,4,5,7,9,10));  // Mixolydian
+    equals(node.majorModes[0], HarmonyNode.major.inversions[4]); // Mixolydian - 5th mode, or 4th inversion
 });
 
 Deno.test('HarmonyLink.subset, HarmonyLink.superset', () => {
@@ -60,16 +76,17 @@ Deno.test('HarmonyNode.chromaticLinks', () => {
     // Chromatics don't count if they merge over existing numbers
     const node2 = HarmonyNode.of(0, 1);
     equals(node2.chromaticLinks.size, 2); // [-1,1] and [-1,0] not [0] which doesn't count
-
     const node3 = HarmonyNode.of(0, 4, 7);
-    //console.log(node3.chromaticLinks);
+    equals(node3.chromaticLinks.size, 7); // [-1,4,7], [-1,3,7], [-1,3,6],[-1,4,6],[0,3,7],[0,3,6],[0,4,6]
 });
 
 Deno.test('harmonyNode.inversions', () => {
     const node1 = HarmonyNode.of(0, 4, 7, 11);
-    equals(node1.inversions.length, 3);
+    equals(node1.inversions.length, 4);
     const node2 = HarmonyNode.of(0, 7, 16);
-    equals(node2.inversions.length, 2);
+    equals(node2.inversions.length, 3);
+    const node3 = HarmonyNode.of(0, 1, 3);
+    equals(node3.inversions[0], node3); // Inversion 0 always refers to node
 });
 
 Deno.test('harmonyNode.close', () => {

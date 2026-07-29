@@ -67,7 +67,7 @@ export default class Transform {
         while (instructions[++n]) {
             const id   = instructions[n];
             // Push in transform name
-            const name = Transform.TRANSFORMNAMES[id];
+            const name = Transform.NAMES[id];
             array.push(name);
             // Push in transform params
             let p = Transform.TRANSFORMLENGTHS[id];
@@ -80,7 +80,9 @@ export default class Transform {
         return this.toJSON().join(' ');
     }
 
-    static from(array, index) { return new Transform(array, index); }
+    static from(array, index) {
+        return new Transform(array, index);
+    }
 
     static of() {
         const array = [];
@@ -102,35 +104,38 @@ export default class Transform {
     static #registry = {};
     static #id       = -1;
 
+    static BYTES = {};
+    static TRANSFORMLENGTHS = {};
+    static NAMES = {};
+    static TYPES = {};
+
+    static identity = identity;
+
     static register(transform) {
         const { name, apply, unapply, BYTES } = transform;
 
         // Validate
-        if (!name)    throw new Error(`Transform.register() transform must have name property`);
-        if (!apply)   throw new Error(`Transform.register() transform must have function apply()`);
-        if (!unapply) throw new Error(`Transform.register() transform must have function unapply()`);
-        if (!BYTES)   throw new Error(`Transform.register() class ${ BYTES } must have static property BYTES`);
-        if (apply.length !== unapply.length) throw new Error(`Transform.register() transform apply() and unapply() must take the same number of parmaeters`);
+        if (!name)    throw new Error(`Transform.register() transform must export const name`);
+        if (!apply)   throw new Error(`Transform.register() transform "${ name }" must export function apply()`);
+        if (!unapply) throw new Error(`Transform.register() transform "${ name }" must export function unapply()`);
+        if (!BYTES)   throw new Error(`Transform.register() transform "${ name }" must export const BYTES`);
+        if (apply.length !== unapply.length) throw new Error(`Transform.register() transform apply() and unapply() must take same parmaeters`);
         if (Transform.TYPES[name]) throw new Error(`Transform.register() transform name ${ name } already registered`);
 
         // Register
         const registry = Transform.#registry;
         const id       = ++Transform.#id;
 
-        console.log(`Transform registering id ${ id } - ${ BYTES } Bytes - "${ name }"`);
         registry[id] = transform;
         Transform.TRANSFORMLENGTHS[id] = apply.length - 1;
-        Transform.TRANSFORMBYTES[id]   = BYTES;
-        Transform.TRANSFORMNAMES[id]   = name;
-        Transform.TYPES[name]          = id;
+        Transform.BYTES[id]   = BYTES;
+        Transform.NAMES[id]   = name;
+        Transform.TYPES[name] = id;
+
+        console.log(`%cTransform %ctype ${ id } - ${ BYTES } bytes (${ apply.length - 1 } params) - "${ name }"`, 'color:#b5002f;font-weight:600;', 'color:#8e9e9d;');
+
+        return transform;
     }
-
-    static identity = identity;
-
-    static TRANSFORMBYTES   = {};
-    static TRANSFORMLENGTHS = {};
-    static TRANSFORMNAMES   = {};
-    static TYPES = {};
 }
 
-Transform.register(identity);
+Transform.identity = Transform.register(identity);
