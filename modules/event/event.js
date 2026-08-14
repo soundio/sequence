@@ -1,14 +1,16 @@
 import remove from 'fn/remove.js';
 import mirror from '../object/mirror.js';
+import { getParamNumber, unpackAddress } from './address.js';
+import { CURVENUMBERS, CURVENAMES } from './curves.js';
 
 
-const assign     = Object.assign;
 const define     = Object.defineProperties;
 const writable   = { writable: true };
 const properties = {
-    event:  writable,
-    events: writable,
-    target: writable
+    sequencer: writable,
+    event:     writable,
+    events:    writable,
+    target:    writable
 };
 
 export const TYPES = {
@@ -49,7 +51,7 @@ export function toTypeName(value) {
 }
 
 function stringify(number) {
-    return number.toFixed(4).replace(/\.?0+$/, '');
+    return number.toFixed(4)/*.replace(/\.?0+$/, '')*/;
 }
 
 function getEvent(event) {
@@ -60,12 +62,17 @@ function getEvent(event) {
 
 export default class Event {
     constructor(data) {
-        assign(this, data);
+        // Assign enumerable string properties
+        let key;
+        for (key in data) this[key] = data[key];
+        // Define instance properties
         define(this, properties);
     }
 
-    get beat()       { return this[0]; }
-    set beat(number) { this[0] = parseFloat(number); }
+    get beat()          { return this[0]; }
+    set beat(number)    { this[0] = parseFloat(number); }
+    //get address()       { return this[0]; }
+    //set address(number) { this[0] = parseFloat(number); }
 
     displace(n) {
         this[0] += parseFloat(n);
@@ -91,8 +98,9 @@ export default class Event {
     }
 
     toString() {
+        const { route, param, curve } = unpackAddress(this[1]);
         // Beat and type
-        return stringify(this[0]) + ' ' + TYPENAMES[this[1]];
+        return stringify(this[0]) + ' ' + route + ' ' + TYPENAMES[param] + (param === TYPES.rate ? ' ' + CURVENAMES[curve] : '');
     }
 
     // Enable event object to be spread by making it iterable
@@ -101,6 +109,7 @@ export default class Event {
         while (this[++i] !== undefined) yield this[i];
     }
 
+    static CURVES      = CURVENUMBERS;
     static TYPES       = TYPES;
     static TYPENAMES   = TYPENAMES;
     static TYPEBYTES   = TYPEBYTES;
@@ -125,13 +134,13 @@ export default class Event {
             && !Number.isNaN(event[2]);
     }
 
-    static isChord(event)    { return event[1] === TYPES.chord; }
-    static isKey(event)      { return event[1] === TYPES.key; }
-    static isMeter(event)    { return event[1] === TYPES.meter; }
-    static isNote(event)     { return event[1] === TYPES.note; }
-    static isParam(event)    { return event[1] === TYPES.param; }
-    static isRate(event)     { return event[1] === TYPES.rate; }
-    static isSequence(event) { return event[1] === TYPES.sequence; }
+    static isChord(event)    { return getParamNumber(event[1]) === TYPES.chord; }
+    static isKey(event)      { return getParamNumber(event[1]) === TYPES.key; }
+    static isMeter(event)    { return getParamNumber(event[1]) === TYPES.meter; }
+    static isNote(event)     { return getParamNumber(event[1]) === TYPES.note; }
+    static isParam(event)    { return getParamNumber(event[1]) === TYPES.param; }
+    static isRate(event)     { return getParamNumber(event[1]) === TYPES.rate; }
+    static isSequence(event) { return getParamNumber(event[1]) === TYPES.sequence; }
 }
 
 define(Event.prototype, {

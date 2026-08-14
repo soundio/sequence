@@ -9,10 +9,6 @@ import RateEvent     from './event/rate.js';
 import SequenceEvent from './event/sequence.js';
 import TextEvent     from './event/text.js';
 
-
-const assign = Object.assign;
-
-
 Event.ChordEvent    = ChordEvent;
 Event.KeyEvent      = KeyEvent;
 Event.MeterEvent    = MeterEvent;

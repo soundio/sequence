@@ -2,8 +2,9 @@
 import mod    from 'fn/mod.js';
 import mirror from '../object/mirror.js';
 import { rflatsharp, toUnicode }    from '../pitch.js';
-import { toRootName, toRootNumber } from 'midi/note.js';
-import Event from './event.js';
+import { toRootName } from 'midi/note.js';
+import { packAddress }  from './address.js';
+import Event  from './event.js';
 
 
 const define = Object.defineProperties;
@@ -82,7 +83,7 @@ export default class KeyEvent extends Event {
         return new KeyEvent({ beat, name });
     }
 
-    [1] = Event.TYPES.key;
+    [1] = packAddress(0, Event.TYPES.key, Event.CURVES.step);
 
     get name()       { return toKeyName(this[2]); }
     set name(name)   { this[2] = toKeyNumber(name); }

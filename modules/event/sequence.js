@@ -1,4 +1,5 @@
 
+import { packAddress } from './address.js';
 import Event     from './event.js';
 import Transform from '../transform.js';
 
@@ -34,8 +35,10 @@ export default class SequenceEvent extends Event {
     [$transform] = null;
 
     constructor(object) {
-        super(object);
+        const { transforms, ...o } = object;
+        super(o);
         // Validate event
+        if (transforms) this.transforms = transforms;
         if (!this.identifier) throw new Error(`SequenceEvent() bad id ${ this.identifier }`);
         if (!this.TARGET && this.TARGET !== 0) throw new Error(`SequenceEvent() bad TARGET ${ this.TARGET }`);
         if (!this.duration) throw new Error(`SequenceEvent() bad duration ${ this.duration }`);
@@ -45,7 +48,7 @@ export default class SequenceEvent extends Event {
         return new SequenceEvent({ beat, identifier, TARGET, duration, transforms });
     }
 
-    [1] = Event.TYPES.sequence;
+    [1] = packAddress(0, Event.TYPES.sequence, Event.CURVES.step);
 
     get id()               { console.trace('GET id deprecated, now GET identifier'); return this[2]; }
     set id(number)         { console.trace('SET id deprecated, now SET identifier'); this[2] = parseInt(number); }

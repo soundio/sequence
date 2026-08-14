@@ -3,8 +3,8 @@ import get     from 'fn/get.js';
 import matches from 'fn/matches.js';
 import { toNoteNumber } from 'midi/note.js';
 import SequenceIterator from './sequence-iterator.js';
-import Event     from './event.js';
-import insert    from './events/insert.js';
+import Event   from './event.js';
+import insert  from './events/insert.js';
 
 
 const assign = Object.assign;
@@ -155,6 +155,15 @@ export default class Sequence {
         while (events[++n]) events[n][0] -= b1;
         // Note we don't copy this sequence's id
         return Sequence.from({ name, events });
+    }
+
+    eventOfTypeAtBeat(type, beat) {
+        const events = this.events;
+        let n = -1, event;
+        while (events[++n] !== undefined && events[n][0] <= beat) {
+            if (events[n].type === type) event = events[n];
+        }
+        return event;
     }
 
     select(beat, type) {

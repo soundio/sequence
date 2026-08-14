@@ -10,7 +10,6 @@
     },
 
     "lint": {
-        "enable": true,
         "rules": {
             "exclude": ["no-unused-vars", "no-fallthrough", "no-case-declarations", "no-cond-assign"]
         }

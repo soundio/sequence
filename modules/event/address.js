@@ -1,6 +1,6 @@
 
-import { CURVENAMES, CURVENUMBERS } from '../event/curves.js';
-import { PARAMNAMES, PARAMNUMBERS } from '../event/param.js';
+//import { CURVENAMES, CURVENUMBERS } from '../event/curves.js';
+//import { PARAMNAMES, PARAMNUMBERS } from '../event/param.js';
 
 
 export const ROUTEBITS = 2;

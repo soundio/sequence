@@ -1,36 +1,109 @@
 
-import get        from 'fn/get.js';
-import Event      from './event.js';
-import Transform  from './transform.js';
-import byPriority from './events/by-priority.js';
+import get                from 'fn/get.js';
+import Event              from './event.js';
+import Transform          from './transform.js';
+import { beatAtLocation, locationAtBeat } from './location.js';
+import byPriority         from './events/by-priority.js';
+import { getCurveNumber } from './event/address.js';
+import { CURVENUMBERS }   from './event/curves.js';
 
 
-const assign = Object.assign;
-
+const DEBUG   = globalThis.DEBUG;
+const assign  = Object.assign;
 const nothing = [];
-
 const done = {
     done: true,
     value: undefined
 };
 
+
 function getSequence(sequences, id) {
     return sequences.find((sequence) => sequence.id === id);
 }
 
+function readRateEvents(rates, events) {
+//    // Read last rate event
+//    const br = rates[rates.length - 4];
+//
+//    // Get event location
+//    let location = sequencer.locationAtBeat(br);
+//    let type;
+//
+//    // If it was before the end of this frame
+//    if (location < l2) {
+//        // Advance n past it
+//        i = i - Events.SIZE;
+//        while (events[i += Events.SIZE] < br || (events[i] === br && !Event.isRate(events, i)));
+
+        // Read rate events into rates
+        let n = -1, event, address, curve;
+        while (event = events[++n]) {
+            // Ignore non-rate events
+            if (!Event.isRate(event)) continue;
+
+            // Get type number
+            address = event[1];
+            curve   = getCurveNumber(address);
+console.log('CURVE', curve, address);
+
+            // Read rate event into rates and get location at beat, re-route to set
+            rates.push(event[0], curve, event[2], event[3] || 0);
+//            location = sequencer.locationAtBeat(events[i]);
+//
+//            // Rate event is beyond end of frame
+//            if (l2 < location) {
+//                // If event is not a ramp truncate rates back down
+//                if (type !== CURVENUMBERS.linear && type !== CURVENUMBERS.exponential) rates.length -= 4;
+//                // Make like a tree (and get out of here)
+//                break;
+//            }
+        }
+//    }
+
+    return rates;
+}
+
+/**
+SequenceIterator(events, sequences, transform, parent = null, trigger = null)
+**/
+
 export default class SequenceIterator extends Iterator {
-    constructor(events, sequences = nothing, transform = Transform.identity) {
+    // Rates are represented as a flat array of 4-number param events
+    #rates = [0, CURVENUMBERS.step, 1, 0];
+    startBeat = 0;
+    stopBeat  = Infinity;
+
+    constructor(events, sequences = nothing, transform = Transform.identity, parent = null, trigger = null) {
         super();
+console.log('new Iterator()', events.length, sequences.length, '------------------------');
+        if (DEBUG) {
+            if (!(transform instanceof Transform))                         throw new TypeError(`SequenceIterator() transform must be an instance of Transform`);
+            if (parent  !== null && !(parent instanceof SequenceIterator)) throw new TypeError(`SequenceIterator() parent must be an instance of SequenceIterator or null`);
+            if (trigger !== null && !(trigger instanceof Event))           throw new TypeError(`SequenceIterator() trigger must be an instance of Event or null`);
+        }
 
         // Sort events by beat and type
         events.sort(byPriority);
 
-        // Assign properties
-        this.events    = events,
+        // The parent Sequencer
+        this.parent = parent;
+        // A reference to the sequence event that causes playback
+        if (trigger) {
+            this.event = trigger;
+            this.startBeat = trigger[0];
+            this.stopBeat  = trigger[0] + trigger[4];
+        }
+        // Events array to iterate over
+        this.events = events;
+        // Sequence library for lookups
         this.sequences = sequences;
+        // Transform that mutates playback events
         this.transform = transform;
 
-        // Set n to index before first event falling on or after beat
+        // Read rate events into #rates automation array
+        readRateEvents(this.#rates, events)
+
+        // Set n to index before first event falling on or after beat 0
         let n = -1, event;
         while ((event = events[++n]) && transform.apply(Event.from(event))[0] < 0);
         this.n = n - 1;
@@ -43,9 +116,21 @@ export default class SequenceIterator extends Iterator {
         let value;
 
         if (event) {
-            value = transform.apply(Event.from(event));
-            value.events = events;
-            value.event = event;
+            value = Event.from(event);
+//console.log(1, value);
+            // Modify event by sequence's rate events
+            value[0] = locationAtBeat(this.#rates, value[0]);
+//console.log(2, value);
+            // Modify event by sequence event's transforms
+            value = transform.apply(value);
+//console.log(3, value);
+            // Modify event sequence event's start beat
+            value[0] += this.startBeat;
+//console.log(4, value);
+            // Keep some internal data
+            value.events    = events;
+            value.event     = event;
+            value.sequencer = this;
         }
 
         //const value = event && transform(transforms, Event.from(event/*, n + 1, events*/));
@@ -60,8 +145,13 @@ export default class SequenceIterator extends Iterator {
             if (!value) {
                 // Get next value from iterator and transform it for current context
                 if (value = iterator.next().value) {
+                    // Modify event by sequence's rate events
+                    value[0] = locationAtBeat(this.#rates, value[0]);
+                    // Modify event by sequence event's transforms
                     transform.apply(value);
-                    value[0] += iterator.startBeat;
+                    // Modify event sequence event's start beat
+                    value[0] += this.startBeat;
+                    // Modify target destination
                     value.target = (value.target || 0) + iterator.target;
                 }
 
@@ -75,7 +165,7 @@ export default class SequenceIterator extends Iterator {
                 b = value[0];
             }
 
-            // Remove marked iterators by reassigning remaining iterators
+            // Remove marked iterators by reassigning remaining iterators on this
             if (j) this[i] = this[i + j];
         }
 
@@ -84,6 +174,7 @@ export default class SequenceIterator extends Iterator {
             this.value = x.value;
             // Mark child iterator as consumed
             x.value = undefined;
+            // Return this as next object
             return this;
         }
 
@@ -96,10 +187,11 @@ export default class SequenceIterator extends Iterator {
 
         // If it is a sequence event spawn a new iterator
         if (Event.isSequence(event)) {
+            // Find sequence
             const sequences = this.sequences;
             const sequence  = getSequence(sequences, event[2]);
             if (!sequence) throw new Error(`Sequence id ${ typeof event[2] === 'string' ? `"${ event[2] }"` : event[2] } not found in sequences ids ${ sequences.map(get('id')) }`);
-
+            // Create iterator
             const iterator = new SequenceIterator(
                 sequence.events,
                 // Join parent sequences to sequences
@@ -107,22 +199,32 @@ export default class SequenceIterator extends Iterator {
                     sequence.sequences.concat(sequences) :
                     sequences ,
                 // Transform
-                event.transform
+                event.transform,
+                // Parent SequenceIterator
+                this,
+                // Reference to original event
+                event
             );
-
             // Store info about the event on the iterator object
-            iterator.startBeat = value[0];
-            iterator.stopBeat  = value[0] + value[4];
+            //iterator.startBeat = value[0];
+            //iterator.stopBeat  = value[0] + value[4];
             iterator.target    = value[3];
-
             // Add iterator (indexed as -n) directly to this
             let i = -1;
             while (this[++i]);
             this[i] = iterator;
         }
 
-        // Return iterator
+        // Return iterator, as it has the required { value, done } structure
         return this;
+    }
+
+    beatAtLocation(location) {
+        return beatAtLocation(this.#rates, location - this.startLocation);
+    }
+
+    locationAtBeat(beat) {
+        return this.startLocation + locationAtBeat(this.#rates, beat)
     }
 
     static from(sequence) {

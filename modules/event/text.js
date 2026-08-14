@@ -1,4 +1,4 @@
-
+import { packAddress }  from './address.js';
 import Event from './event.js';
 
 // Maximum string bytes for text events
@@ -12,7 +12,7 @@ export default class TextEvent extends Event {
         return new TextEvent({ beat, duration, text });
     }
 
-    [1] = Event.TYPES.text;
+    [1] = packAddress(0, Event.TYPES.text, Event.CURVES.step);
 
     get duration()       { return this[2]; }
     set duration(number) { this[2] = parseFloat(number); }
