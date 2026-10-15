@@ -2,7 +2,6 @@
 import dB from 'fn/to-db.js';
 import { toDrumName, toNoteName, toNoteNumber } from 'midi/note.js';
 import parseGain from '../parse/parse-gain.js';
-import { packAddress }  from './address.js';
 import Event from './event.js';
 
 
@@ -16,7 +15,7 @@ export default class NoteEvent extends Event {
         return new NoteEvent({ beat, pitch, gain, duration });
     }
 
-    [1] = packAddress(0, Event.TYPES.note, Event.CURVES.step);
+    [1] = Event.TYPES.note;
 
     get name() {
         console.trace('Deprecated noteEvent.name now noteEvent.pitch');

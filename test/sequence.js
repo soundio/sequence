@@ -10,7 +10,8 @@ import {
 import Event    from '../modules/event.js';
 import Sequence from '../modules/sequence.js';
 
-
+const NOTE     = Event.TYPES.note;
+const SEQUENCE = Event.TYPES.sequence;
 const { fround } = Math;
 
 
@@ -21,8 +22,8 @@ Deno.test('Sequence(events)', () => {
     );
 
     matches([...sequence], [
-        { 0: 5, 1: Event.TYPES.note, 2: 69, 3: fround(0.1), 4: 1 },
-        { 0: 6, 1: Event.TYPES.note, 2: 71, 3: fround(0.1), 4: 1 }
+        { 0: 5, 1: NOTE, 2: 69, 3: fround(0.1), 4: 1 },
+        { 0: 6, 1: NOTE, 2: 71, 3: fround(0.1), 4: 1 }
     ]);
 });
 
@@ -40,9 +41,9 @@ Deno.test('Sequence(events, sequences)', () => {
     }]);
 
     matches([...sequence], [
-        { 0: 4, 1: Event.TYPES.sequence, 2: 1,  3: 0,   4: 2 },
-        { 0: 4, 1: Event.TYPES.note,     2: 69, 3: fround(0.1), 4: 1 },
-        { 0: 5, 1: Event.TYPES.note,     2: 71, 3: fround(0.1), 4: 1 }
+        { 0: 4, 1: SEQUENCE, 2: 1,  3: 0,   4: 2 },
+        { 0: 4, 1: NOTE,     2: 69, 3: fround(0.1), 4: 1 },
+        { 0: 5, 1: NOTE,     2: 71, 3: fround(0.1), 4: 1 }
     ]);
 });
 
@@ -60,11 +61,11 @@ Deno.test('Sequence(events, sequences) transforms', () => {
     }]);
 
     matches([...sequence], [
-        { 0: 4,   1: Event.TYPES.sequence, 2: 1,  3: 0,   4: 2, 5: 2, 6: 2 },
-        { 0: 4,   1: Event.TYPES.note,     2: 69, 3: fround(0.1), 4: 0.5 },
-        { 0: 4.5, 1: Event.TYPES.note,     2: 71, 3: fround(0.1), 4: 0.5 },
-        { 0: 5,   1: Event.TYPES.note,     2: 72, 3: fround(0.1), 4: 0.5 },
-        { 0: 5.5, 1: Event.TYPES.note,     2: 74, 3: fround(0.1), 4: 0.5 }
+        { 0: 4,   1: SEQUENCE, 2: 1,  3: 0,   4: 2, 5: 2, 6: 2 },
+        { 0: 4,   1: NOTE,     2: 69, 3: fround(0.1), 4: 0.5 },
+        { 0: 4.5, 1: NOTE,     2: 71, 3: fround(0.1), 4: 0.5 },
+        { 0: 5,   1: NOTE,     2: 72, 3: fround(0.1), 4: 0.5 },
+        { 0: 5.5, 1: NOTE,     2: 74, 3: fround(0.1), 4: 0.5 }
     ]);
 });
 

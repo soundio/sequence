@@ -111,19 +111,23 @@ Deno.test('Round-trip "sequence" events', () => {
 });
 
 
-Deno.test('Round-trip "param" events', () => {
+Deno.test('Round-trip "control" events', () => {
     assertRoundTrip([
-        [0,   'param', 'gain', 0.1, 'step'],
-        [0.7, 'param', 'gain', 0.5, 'exponential'],
-        [1.9, 'param', 'gain', 0,   'target', 3]
+        [0,   'control', 'gain', 'step', 0.1],
+        [0.7, 'control', 'gain', 'exponential', 0.5],
+        [1.9, 'control', 'gain', 'target', 0, 3],
+        [2.5, 'control', 'gain', 'hold'],
+        [3.0, 'control', 'gain', 'cancel']
     ]);
 });
 
 
 Deno.test('Round-trip "rate" events', () => {
     assertRoundTrip([
-        [0,  'rate', 120, 'step'],
-        [24, 'rate', 90, 'exponential']
+        [0,  'rate', 'step', 120],
+        [24, 'rate', 'exponential', 90],
+        [30, 'rate', 'hold'],
+        [32, 'rate', 'cancel']
     ]);
 });
 

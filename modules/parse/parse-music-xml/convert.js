@@ -47,7 +47,7 @@ export default function convertToEvents(parts, sections) {
         // Initial tempo (rate event)
         if (firstMeasure.tempo) {
             const rate = firstMeasure.tempo / 60; // Convert BPM to beats per second
-            mainEvents.push([0, 'rate', rate]);
+            mainEvents.push([0, 'rate', 'step', rate]);
         }
 
         // Initial meter

@@ -18,7 +18,7 @@ Deno.test('Sequence for...of iteration', () => {
         events: [
             [0,  "note", "A4", 0.1, 1],
             [10, "sequence", 1, 0, 4],
-            [12, "rate", 2, 0],
+            [12, "rate", "step", 2, 0],
             [20, "sequence", 1, 0, 4, "rate", 2]
         ],
 

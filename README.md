@@ -43,7 +43,7 @@ Here are the first two bars of Dolphin Dance represented as a sequence in JSON:
     "name": "Dolphin Dance",
     "events": [
         [0,   "meter", 4, 1],
-        [0,   "rate", 2, "step"],
+        [0,   "rate", "step", 2],
         [2,   "note", 76, 0.8, 0.5],
         [2.5, "note", 77, 0.6, 0.5],
         [3,   "note", 79, 1, 0.5],
@@ -124,8 +124,8 @@ the rest of its values:
 | beat   | type         | 2 | 3 | 4 | 5 |
 | :----- | :----------- | :--- | :--- | :--- | :--- |
 | `beat` | `"note"`     | `pitch` | `dynamic` | `duration` |  |
-| `beat` | `"param"`    | `name` | `value` | `curve` | `duration` |
-| `beat` | `"rate"`     | `number` |  |  |  |
+| `beat` | `"control"`  | `name` | `curve` | `value` | `duration` |
+| `beat` | `"rate"`     | `curve` | `value` | `duration` |  |
 | `beat` | `"meter"`    | `duration` | `divisor` |  |  |
 | `beat` | `"chord"`    | `root` | `hsid` | `duration` |  |
 | `beat` | `"clef"`     | `name` |  |  |  |
@@ -163,29 +163,31 @@ Represents the duration of the note in beats.
 
 ---
 
-### `"param"`
+### `"control"`
 
 ```js
-[beat, "param", name, value]
-[beat, "param", name, value, curve]
-[beat, "param", name, value, "target", duration]
+[beat, "control", name, "hold"]
+[beat, "control", name, "cancel"]
+[beat, "control", name, curve, value]
+[beat, "control", name, "target", value, duration]
+[beat, "control", name, "curve", values, duration]
 ```
 
 `name` – STRING<br/>
-The name of the param to control.
+The name of the parameter to control.
 In a WebAudio context this would typically map to an AudioParam on the
-instrument being targetted.
+instrument being targeted.
+
+`curve` – STRING `"step"`, `"linear"`, `"exponential"`, `"target"`, `"curve"`, `"hold"`, or `"cancel"`<br/>
+The ramp to use for transition to `value`. Where `curve` is `"hold"` or `"cancel"`,
+no value is required.
 
 `value` – FLOAT<br/>
-The destination value of the param. If `curve` is `"hold"` has no effect.
-
-`curve` – STRING `"step"`, `"linear"`, `"exponential"`, `"target"` or `"hold"`<br/>
-The ramp to use for transition to `value`. This parameter is optional. If it is
-not present the event describes a `"step"` curve. If `curve` is `"target"` the
-event requires a fifth parameter:
+The destination value of the parameter.
 
 `duration` – FLOAT<br/>
-The T60 decay time of a `"target"` curve with a value of `0`.
+Where `curve` is `"target"`, represents the time constant duration. Where `curve`
+is `"curve"`, represents the duration over which the `values` array is applied.
 
 > [!NOTE]
 > The WebAudio API defines a time constant as the time it takes for audio to
@@ -197,10 +199,16 @@ The T60 decay time of a `"target"` curve with a value of `0`.
 ### `"rate"`
 
 ```js
-[beat, "rate", rate]
-[beat, "rate", rate, curve]
-[beat, "rate", rate, "target", duration]
+[beat, "rate", "hold"]
+[beat, "rate", "cancel"]
+[beat, "rate", curve, rate]
+[beat, "rate", "target", rate, duration]
+[beat, "rate", "curve", values, duration]
 ```
+
+`curve` – STRING `"step"`, `"linear"`, `"exponential"`, `"target"`, `"curve"`, `"hold"`, or `"cancel"`<br/>
+Represents the type of ramp to use to transition to the new rate. Where `curve` is
+`"hold"` or `"cancel"`, no `rate` value is required.
 
 `rate`  – FLOAT<br/>
 Rate of playback of a sequence. Nominally in beats per second, but sequences may
@@ -208,16 +216,11 @@ be played from other sequences, and rates are accumulative. If sequence A is
 playing at rate `2` and contains sequence B playing at rate `1.5`, sequence B is
 playing at an absolute rate of `3`, or 3 beats per second, a tempo of 90bpm.
 
-`curve` – STRING, optional<br/>
-One of `"step"`, `"linear"`, `"exponential"` or `"target"`.
-Represents the type of ramp to use to transition to the new rate. Where `curve`
-is `"target"` a duration is required:
-
-`duration` – STRING, optional<br/>
-Where `curve` is `"target"`, represents the target duration of the target curve.
+`duration` – FLOAT, optional<br/>
+Where `curve` is `"target"` or `"curve"`, represents the duration.
 
 Where there is no `"rate"` event at beat `0`, consumers should assume a playback
-rate of `2`, as if there were an initial `[0, "rate", 2]` event in the data. A
+rate of `2`, as if there were an initial `[0, "rate", "step", 2]` event in the data. A
 rate of `2` is a tempo of 120bpm.
 
 

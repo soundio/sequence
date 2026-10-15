@@ -1,7 +1,6 @@
 
 import mod       from 'fn/mod.js';
 import nothing   from 'fn/nothing.js';
-import { packAddress } from './address.js';
 import Event     from './event.js';
 import roundPow2 from '../number/round-pow-2.js';
 
@@ -75,7 +74,7 @@ export default class MeterEvent extends Event {
         return new MeterEvent({ beat, numerator, denominator });
     }
 
-    [1] = packAddress(0, Event.TYPES.meter, Event.CURVES.step);
+    [1] = Event.TYPES.meter;
 
     get numerator()         { return this[2]; }
     set numerator(number)   { this[2] = parseInt(number, 10); }

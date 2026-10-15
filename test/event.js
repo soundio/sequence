@@ -8,6 +8,14 @@ import {
 
 import Event     from '../modules/event.js';
 import Transform from '../modules/transform.js';
+import { packAddress } from '../modules/event/address.js';
+
+const CHORD    = Event.TYPES.chord;
+const KEY      = Event.TYPES.key;
+const NOTE     = Event.TYPES.note;
+const CONTROL  = Event.TYPES.control;
+const RATE     = Event.TYPES.rate;
+const SEQUENCE = Event.TYPES.sequence;
 
 /*
 Deno.test('Event()', () => {
@@ -18,55 +26,55 @@ Deno.test('Event()', () => {
 
 Deno.test('Event.from(chord)', () => {
     const event = Event.of(0, "chord", "C", "-", 1);
-    equals(Event.from(event).toJSON(), [0, Event.TYPES.chord, 0, 5222, 1, 0]);
+    equals(Event.from(event).toJSON(), [0, CHORD, 0, 5222, 1, 0]);
 });
 
 Deno.test('Event.of(key)', () => {
-    equals(Event.of(0, "key", "F𝄫").toJSON(), [0, Event.TYPES.key, -15]);
-    equals(Event.of(0, "key", "C𝄫").toJSON(), [0, Event.TYPES.key, -14]);
-    equals(Event.of(0, "key", "G𝄫").toJSON(), [0, Event.TYPES.key, -13]);
-    equals(Event.of(0, "key", "D𝄫").toJSON(), [0, Event.TYPES.key, -12]);
-    equals(Event.of(0, "key", "A𝄫").toJSON(), [0, Event.TYPES.key, -11]);
-    equals(Event.of(0, "key", "E𝄫").toJSON(), [0, Event.TYPES.key, -10]);
-    equals(Event.of(0, "key", "B𝄫").toJSON(), [0, Event.TYPES.key, -9]);
-    equals(Event.of(0, "key", "F♭").toJSON(), [0, Event.TYPES.key, -8]);
-    equals(Event.of(0, "key", "C♭").toJSON(), [0, Event.TYPES.key, -7]);
-    equals(Event.of(0, "key", "G♭").toJSON(), [0, Event.TYPES.key, -6]);
-    equals(Event.of(0, "key", "D♭").toJSON(), [0, Event.TYPES.key, -5]);
-    equals(Event.of(0, "key", "A♭").toJSON(), [0, Event.TYPES.key, -4]);
-    equals(Event.of(0, "key", "E♭").toJSON(), [0, Event.TYPES.key, -3]);
-    equals(Event.of(0, "key", "B♭").toJSON(), [0, Event.TYPES.key, -2]);
-    equals(Event.of(0, "key", "F").toJSON(),  [0, Event.TYPES.key, -1]);
-    equals(Event.of(0, "key", "C").toJSON(),  [0, Event.TYPES.key, 0]);
-    equals(Event.of(0, "key", "G").toJSON(),  [0, Event.TYPES.key, 1]);
-    equals(Event.of(0, "key", "D").toJSON(),  [0, Event.TYPES.key, 2]);
-    equals(Event.of(0, "key", "A").toJSON(),  [0, Event.TYPES.key, 3]);
-    equals(Event.of(0, "key", "E").toJSON(),  [0, Event.TYPES.key, 4]);
-    equals(Event.of(0, "key", "B").toJSON(),  [0, Event.TYPES.key, 5]);
-    equals(Event.of(0, "key", "F♯").toJSON(), [0, Event.TYPES.key, 6]);
-    equals(Event.of(0, "key", "C♯").toJSON(), [0, Event.TYPES.key, 7]);
-    equals(Event.of(0, "key", "G♯").toJSON(), [0, Event.TYPES.key, 8]);
-    equals(Event.of(0, "key", "D♯").toJSON(), [0, Event.TYPES.key, 9]);
-    equals(Event.of(0, "key", "A♯").toJSON(), [0, Event.TYPES.key, 10]);
-    equals(Event.of(0, "key", "E♯").toJSON(), [0, Event.TYPES.key, 11]);
-    equals(Event.of(0, "key", "B♯").toJSON(), [0, Event.TYPES.key, 12]);
-    equals(Event.of(0, "key", "F𝄪").toJSON(), [0, Event.TYPES.key, 13]);
-    equals(Event.of(0, "key", "C𝄪").toJSON(), [0, Event.TYPES.key, 14]);
-    equals(Event.of(0, "key", "G𝄪").toJSON(), [0, Event.TYPES.key, 15]);
-    equals(Event.of(0, "key", "D𝄪").toJSON(), [0, Event.TYPES.key, 16]);
-    equals(Event.of(0, "key", "A𝄪").toJSON(), [0, Event.TYPES.key, 17]);
-    equals(Event.of(0, "key", "E𝄪").toJSON(), [0, Event.TYPES.key, 18]);
-    equals(Event.of(0, "key", "B𝄪").toJSON(), [0, Event.TYPES.key, 19]);
+    equals(Event.of(0, "key", "F𝄫").toJSON(), [0, KEY, -15]);
+    equals(Event.of(0, "key", "C𝄫").toJSON(), [0, KEY, -14]);
+    equals(Event.of(0, "key", "G𝄫").toJSON(), [0, KEY, -13]);
+    equals(Event.of(0, "key", "D𝄫").toJSON(), [0, KEY, -12]);
+    equals(Event.of(0, "key", "A𝄫").toJSON(), [0, KEY, -11]);
+    equals(Event.of(0, "key", "E𝄫").toJSON(), [0, KEY, -10]);
+    equals(Event.of(0, "key", "B𝄫").toJSON(), [0, KEY, -9]);
+    equals(Event.of(0, "key", "F♭").toJSON(), [0, KEY, -8]);
+    equals(Event.of(0, "key", "C♭").toJSON(), [0, KEY, -7]);
+    equals(Event.of(0, "key", "G♭").toJSON(), [0, KEY, -6]);
+    equals(Event.of(0, "key", "D♭").toJSON(), [0, KEY, -5]);
+    equals(Event.of(0, "key", "A♭").toJSON(), [0, KEY, -4]);
+    equals(Event.of(0, "key", "E♭").toJSON(), [0, KEY, -3]);
+    equals(Event.of(0, "key", "B♭").toJSON(), [0, KEY, -2]);
+    equals(Event.of(0, "key", "F").toJSON(),  [0, KEY, -1]);
+    equals(Event.of(0, "key", "C").toJSON(),  [0, KEY, 0]);
+    equals(Event.of(0, "key", "G").toJSON(),  [0, KEY, 1]);
+    equals(Event.of(0, "key", "D").toJSON(),  [0, KEY, 2]);
+    equals(Event.of(0, "key", "A").toJSON(),  [0, KEY, 3]);
+    equals(Event.of(0, "key", "E").toJSON(),  [0, KEY, 4]);
+    equals(Event.of(0, "key", "B").toJSON(),  [0, KEY, 5]);
+    equals(Event.of(0, "key", "F♯").toJSON(), [0, KEY, 6]);
+    equals(Event.of(0, "key", "C♯").toJSON(), [0, KEY, 7]);
+    equals(Event.of(0, "key", "G♯").toJSON(), [0, KEY, 8]);
+    equals(Event.of(0, "key", "D♯").toJSON(), [0, KEY, 9]);
+    equals(Event.of(0, "key", "A♯").toJSON(), [0, KEY, 10]);
+    equals(Event.of(0, "key", "E♯").toJSON(), [0, KEY, 11]);
+    equals(Event.of(0, "key", "B♯").toJSON(), [0, KEY, 12]);
+    equals(Event.of(0, "key", "F𝄪").toJSON(), [0, KEY, 13]);
+    equals(Event.of(0, "key", "C𝄪").toJSON(), [0, KEY, 14]);
+    equals(Event.of(0, "key", "G𝄪").toJSON(), [0, KEY, 15]);
+    equals(Event.of(0, "key", "D𝄪").toJSON(), [0, KEY, 16]);
+    equals(Event.of(0, "key", "A𝄪").toJSON(), [0, KEY, 17]);
+    equals(Event.of(0, "key", "E𝄪").toJSON(), [0, KEY, 18]);
+    equals(Event.of(0, "key", "B𝄪").toJSON(), [0, KEY, 19]);
 });
 
 Deno.test('Event.from(key)', () => {
     const event = Event.of(0, "key", "C");
-    equals(Event.from(event).toJSON(), [0, Event.TYPES.key, 0]);
+    equals(Event.from(event).toJSON(), [0, KEY, 0]);
 });
 
 Deno.test('Event.from(note)', () => {
     const event = Event.of(0, "note", "C3", "0dB", 1);
-    equals(Event.from(event).toJSON(), [0, Event.TYPES.note, 48, 1, 1]);
+    equals(Event.from(event).toJSON(), [0, NOTE, 48, 1, 1]);
 });
 
 Deno.test('Event.from(note).gain', () => {
@@ -87,67 +95,62 @@ Deno.test('Event.from(note).gain', () => {
     const e14 = Event.of(0, "note", "C", "-60dB", 1);   equals(e14.gain, "-60dB");
 });
 
-Deno.test('Event.from(param)', () => {
-    const e1 = Event.of(0, "param", "gain", 2);
-    equals(Event.from(e1).toJSON(), [0, Event.TYPES.param, 6, 2, 0, 0]);
+Deno.test('Event.from(control)', () => {
+    const e1 = Event.of(0, "control", "gain", "step", 2);
+    equals(Event.from(e1).toJSON(), [0, CONTROL, packAddress(7, 0), 2, 0]);
 
-    const e2 = Event.of(0, "param", "gain", 2, "linear");
-    equals(Event.from(e2).toJSON(), [0, Event.TYPES.param, 6, 2, 1, 0]);
+    const e2 = Event.of(0, "control", "gain", "linear", 2);
+    equals(Event.from(e2).toJSON(), [0, CONTROL, packAddress(7, 1), 2, 0]);
 
-    const e3 = Event.of(0, "param", "gain", 2, "exponential");
-    equals(Event.from(e3).toJSON(), [0, Event.TYPES.param, 6, 2, 2, 0]);
+    const e3 = Event.of(0, "control", "gain", "exponential", 2);
+    equals(Event.from(e3).toJSON(), [0, CONTROL, packAddress(7, 2), 2, 0]);
 
-    const e4 = Event.of(0, "param", "gain", 2, "target", 5);
-    equals(Event.from(e4).toJSON(), [0, Event.TYPES.param, 6, 2, 3, 5]);
+    const e4 = Event.of(0, "control", "gain", "target", 2, 5);
+    equals(Event.from(e4).toJSON(), [0, CONTROL, packAddress(7, 3), 2, 5]);
 
-    //const e5 = Event.of(0, "rate", 2, "curve", 5);
-    //equals(Event.from(e5).toJSON(), [0, Event.TYPES.rate, 6, 2, 3, 5]);
+    const e6 = Event.of(0, "control", "gain", "hold");
+    equals(Event.from(e6).toJSON(), [0, CONTROL, packAddress(7, 5), 0, 0]);
 
-    const e6 = Event.of(0, "param", "gain", 2, "hold");
-    equals(Event.from(e6).toJSON(), [0, Event.TYPES.param, 6, 2, 5, 0]);
-
-    const e7 = Event.of(0, "param", "gain", 2, "cancel");
-    equals(Event.from(e7).toJSON(), [0, Event.TYPES.param, 6, 2, 6, 0]);
+    const e7 = Event.of(0, "control", "gain", "cancel");
+    equals(Event.from(e7).toJSON(), [0, CONTROL, packAddress(7, 6), 0, 0]);
 });
-
 Deno.test('Event.from(rate)', () => {
-    const e1 = Event.of(0, "rate", 2);
-    equals(Event.from(e1).toJSON(), [0, Event.TYPES.rate, 2, 0, 0]);
+    const e1 = Event.of(0, "rate", "step", 2);
+    equals(Event.from(e1).toJSON(), [0, RATE, 0, 2, 0]);
 
-    const e2 = Event.of(0, "rate", 2, "linear");
-    equals(Event.from(e2).toJSON(), [0, Event.TYPES.rate, 2, 1, 0]);
+    const e2 = Event.of(0, "rate", "linear", 2);
+    equals(Event.from(e2).toJSON(), [0, RATE, 1, 2, 0]);
 
-    const e3 = Event.of(0, "rate", 2, "exponential");
-    equals(Event.from(e3).toJSON(), [0, Event.TYPES.rate, 2, 2, 0]);
+    const e3 = Event.of(0, "rate", "exponential", 2);
+    equals(Event.from(e3).toJSON(), [0, RATE, 2, 2, 0]);
 
-    const e4 = Event.of(0, "rate", 2, "target", 5);
-    equals(Event.from(e4).toJSON(), [0, Event.TYPES.rate, 2, 3, 5]);
+    const e4 = Event.of(0, "rate", "target", 2, 5);
+    equals(Event.from(e4).toJSON(), [0, RATE, 3, 2, 5]);
 
-    //const e5 = Event.of(0, "rate", 2, "curve", 5);
-    //equals(Event.from(e5).toJSON(), [0, Event.TYPES.rate, 2, 3, 5]);
+    //const e5 = Event.of(0, "rate", "curve", [2, 3], 5);
+    //equals(Event.from(e5).toJSON(), [0, RATE, 4, 2, 3, 5]);
 
-    const e6 = Event.of(0, "rate", 2, "hold");
-    equals(Event.from(e6).toJSON(), [0, Event.TYPES.rate, 2, 5, 0]);
+    const e6 = Event.of(0, "rate", "hold");
+    equals(Event.from(e6).toJSON(), [0, RATE, 5, 0, 0]);
 
-    const e7 = Event.of(0, "rate", 2, "cancel");
-    equals(Event.from(e7).toJSON(), [0, Event.TYPES.rate, 2, 6, 0]);
+    const e7 = Event.of(0, "rate", "cancel");
+    equals(Event.from(e7).toJSON(), [0, RATE, 6, 0, 0]);
 });
-
 Deno.test('Event.from(sequence)', () => {
     const e1 = Event.of(0, "sequence", 1, 1, 1);
-    equals(Event.from(e1).toJSON(), [0, Event.TYPES.sequence, 1, 1, 1]);
+    equals(Event.from(e1).toJSON(), [0, SEQUENCE, 1, 1, 1]);
 });
 
 Deno.test('Event.of(sequence).transforms', () => {
     const e1 = Event.of(0, "sequence", 1, 1, 1);
-    equals(e1.toJSON(), [0, Event.TYPES.sequence, 1, 1, 1]);
+    equals(e1.toJSON(), [0, SEQUENCE, 1, 1, 1]);
     equals(e1.transforms, []);
 
     const e2 = Event.of(0, "sequence", 1, 1, 1, "displace", 2);
-    equals(e2.toJSON(), [0, Event.TYPES.sequence, 1, 1, 1, 1, 2]);
+    equals(e2.toJSON(), [0, SEQUENCE, 1, 1, 1, 1, 2]);
     equals(e2.transforms, ["displace", 2]);
 
     const e3 = Event.of(0, "sequence", 1, 1, 1, "displace", 2, "transpose", 4);
-    equals(e3.toJSON(), [0, Event.TYPES.sequence, 1, 1, 1, Transform.TYPES.displace, 2, Transform.TYPES.transpose, 4]);
+    equals(e3.toJSON(), [0, SEQUENCE, 1, 1, 1, Transform.TYPES.displace, 2, Transform.TYPES.transpose, 4]);
     equals(e3.transforms, ["displace", 2, "transpose", 4]);
 });

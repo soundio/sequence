@@ -1,5 +1,5 @@
 
-import { CURVENUMBERS } from './event/curves.js';
+import { CURVES } from './event/curves.js';
 
 
 // Beat at...
@@ -180,10 +180,10 @@ Returns the location of a given `beat` in a flat array of automation events.
 export function locationAtBeatOfValues(v0, v1, c0, c1, d0, beats, beat) {
     // Returns time relative to e0 time, where b is beat from e0[0]
     return beat === 0 ? 0 :
-        c1 === CURVENUMBERS.linear ?      timeAtBeatLinear(v0, v1, beats, beat) :
-        c1 === CURVENUMBERS.exponential ? timeAtBeatExponential(v0, v1, beats, beat) :
-        c0 === CURVENUMBERS.target ?      timeAtBeatTarget(v0, v1, d0, beat) :
-        c0 === CURVENUMBERS.curve ?       timeAtBeatCurve(v0, d0, beat) :
+        c1 === CURVES.linear ?      timeAtBeatLinear(v0, v1, beats, beat) :
+        c1 === CURVES.exponential ? timeAtBeatExponential(v0, v1, beats, beat) :
+        c0 === CURVES.target ?      timeAtBeatTarget(v0, v1, d0, beat) :
+        c0 === CURVES.curve ?       timeAtBeatCurve(v0, d0, beat) :
         timeAtBeatStep(v0, beat) ;
 }
 
@@ -224,10 +224,10 @@ Returns the beat at a given `location` in a flat array of automation events.
 export function beatAtLocationOfValues(v0, v1, c0, c1, d0, beats, location) {
     // Returns beat relative to e0[0], where l is location from e0 time
     return location === 0 ? 0 :
-        c1 === CURVENUMBERS.linear ?      beatAtTimeLinearBeats(v0, v1, beats, location) :
-        c1 === CURVENUMBERS.exponential ? beatAtTimeExponentialBeats(v0, v1, beats, location) :
-        c0 === CURVENUMBERS.target ?      beatAtTimeTargetBeats(v0, v1, d0, location) :
-        c0 === CURVENUMBERS.curve ?       beatAtTimeCurveBeats(v0, d0, location) :
+        c1 === CURVES.linear ?      beatAtTimeLinearBeats(v0, v1, beats, location) :
+        c1 === CURVES.exponential ? beatAtTimeExponentialBeats(v0, v1, beats, location) :
+        c0 === CURVES.target ?      beatAtTimeTargetBeats(v0, v1, d0, location) :
+        c0 === CURVES.curve ?       beatAtTimeCurveBeats(v0, d0, location) :
         beatAtTimeStep(v0, location) ;
 }
 

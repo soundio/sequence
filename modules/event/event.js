@@ -1,7 +1,6 @@
 import remove from 'fn/remove.js';
 import mirror from '../object/mirror.js';
-import { getParamNumber, unpackAddress } from './address.js';
-import { CURVENUMBERS, CURVENAMES } from './curves.js';
+import { CURVES, CURVENAMES } from './curves.js';
 
 
 const define     = Object.defineProperties;
@@ -16,15 +15,15 @@ const properties = {
 export const TYPES = {
     sequence: 1,
     note:     2,
-    param:    3,
+    control:  3,
     rate:     4,
     key:      5,
     meter:    6,
     chord:    7,
-    text:     8,
-    start:    9,
-    stop:     10,
-    clef:     11
+    text:     8
+    //start:    9,
+    //stop:     10,
+    //clef:     11
 };
 
 export const TYPENAMES = mirror(TYPES);
@@ -44,10 +43,9 @@ export const TYPEBYTES = {
 toTypeName(value)
 Converts a type name or number to a type name string.
 **/
-export function toTypeName(value) {
-    if (typeof value === 'string' && value in TYPES) return value;
-    if (value in TYPENAMES) return TYPENAMES[value];
-    throw new Error(`Event type ${ value } not recognised`);
+export function toTypeName(type) {
+    if (typeof type === 'string' && type in TYPES) return type;
+    if (type in TYPENAMES) return TYPENAMES[type];
 }
 
 function stringify(number) {
@@ -69,10 +67,11 @@ export default class Event {
         define(this, properties);
     }
 
-    get beat()          { return this[0]; }
-    set beat(number)    { this[0] = parseFloat(number); }
-    //get address()       { return this[0]; }
-    //set address(number) { this[0] = parseFloat(number); }
+    get beat()        { return this[0]; }
+    set beat(number)  { this[0] = parseFloat(number); }
+
+    get type()        { return TYPENAMES[this[1]] || this[1]; }
+    set type(value)   { this[1] = typeof value === 'string' ? TYPES[value] : value; }
 
     displace(n) {
         this[0] += parseFloat(n);
@@ -98,9 +97,7 @@ export default class Event {
     }
 
     toString() {
-        const { route, param, curve } = unpackAddress(this[1]);
-        // Beat and type
-        return stringify(this[0]) + ' ' + route + ' ' + TYPENAMES[param] + (param === TYPES.rate ? ' ' + CURVENAMES[curve] : '');
+        return `${ stringify(this[0]) } `;
     }
 
     // Enable event object to be spread by making it iterable
@@ -109,15 +106,19 @@ export default class Event {
         while (this[++i] !== undefined) yield this[i];
     }
 
-    static CURVES      = CURVENUMBERS;
-    static TYPES       = TYPES;
-    static TYPENAMES   = TYPENAMES;
-    static TYPEBYTES   = TYPEBYTES;
+    static CURVES    = CURVES;
+    static TYPES     = TYPES;
+    static TYPENAMES = TYPENAMES;
+    static TYPEBYTES = TYPEBYTES;
 
     static of(beat, type, ...data) {
         // Send data through Event.type() where it is validated
         const name = toTypeName(type);
-        return Event[name](beat, ...data);
+        return name ?
+            // Event with type constructor
+            Event[name](beat, ...data) :
+            // Default event type
+            new Event(arguments) ;
     }
 
     static from(object) {
@@ -133,16 +134,9 @@ export default class Event {
             && event[2] !== undefined
             && !Number.isNaN(event[2]);
     }
-
-    static isChord(event)    { return getParamNumber(event[1]) === TYPES.chord; }
-    static isKey(event)      { return getParamNumber(event[1]) === TYPES.key; }
-    static isMeter(event)    { return getParamNumber(event[1]) === TYPES.meter; }
-    static isNote(event)     { return getParamNumber(event[1]) === TYPES.note; }
-    static isParam(event)    { return getParamNumber(event[1]) === TYPES.param; }
-    static isRate(event)     { return getParamNumber(event[1]) === TYPES.rate; }
-    static isSequence(event) { return getParamNumber(event[1]) === TYPES.sequence; }
 }
-
+/*
 define(Event.prototype, {
     type: { value: 'unknown' }
 });
+*/

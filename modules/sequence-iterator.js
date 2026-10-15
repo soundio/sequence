@@ -4,8 +4,7 @@ import Event              from './event.js';
 import Transform          from './transform.js';
 import { beatAtLocation, locationAtBeat } from './location.js';
 import byPriority         from './events/by-priority.js';
-import { getCurveNumber } from './event/address.js';
-import { CURVENUMBERS }   from './event/curves.js';
+import { CURVES }   from './event/curves.js';
 
 
 const DEBUG   = globalThis.DEBUG;
@@ -36,24 +35,19 @@ function readRateEvents(rates, events) {
 //        while (events[i += Events.SIZE] < br || (events[i] === br && !Event.isRate(events, i)));
 
         // Read rate events into rates
-        let n = -1, event, address, curve;
+        let n = -1, event;
         while (event = events[++n]) {
             // Ignore non-rate events
             if (!Event.isRate(event)) continue;
 
-            // Get type number
-            address = event[1];
-            curve   = getCurveNumber(address);
-console.log('CURVE', curve, address);
-
             // Read rate event into rates and get location at beat, re-route to set
-            rates.push(event[0], curve, event[2], event[3] || 0);
+            rates.push(event[0], event[2], event[3], event[4] || 0);
 //            location = sequencer.locationAtBeat(events[i]);
 //
 //            // Rate event is beyond end of frame
 //            if (l2 < location) {
 //                // If event is not a ramp truncate rates back down
-//                if (type !== CURVENUMBERS.linear && type !== CURVENUMBERS.exponential) rates.length -= 4;
+//                if (type !== CURVES.linear && type !== CURVES.exponential) rates.length -= 4;
 //                // Make like a tree (and get out of here)
 //                break;
 //            }
@@ -69,7 +63,7 @@ SequenceIterator(events, sequences, transform, parent = null, trigger = null)
 
 export default class SequenceIterator extends Iterator {
     // Rates are represented as a flat array of 4-number param events
-    #rates = [0, CURVENUMBERS.step, 1, 0];
+    #rates = [0, CURVES.step, 1, 0];
     startBeat = 0;
     stopBeat  = Infinity;
 

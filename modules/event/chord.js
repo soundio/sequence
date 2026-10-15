@@ -4,7 +4,6 @@ import { toRootName, toRootNumber } from 'midi/note.js';
 import mod12   from '../number/mod-12.js';
 import mirror  from '../object/mirror.js';
 import { rflatsharp, toUnicode } from '../pitch.js';
-import { packAddress }  from './address.js';
 import Event            from './event.js';
 import { hsidOf, hsidFrom, hsidToNumbers } from '../harmony/hsid.js';
 
@@ -190,7 +189,7 @@ export default class ChordEvent extends Event {
             new ChordEvent({ beat, root, extension, duration, bass }) ;
     }
 
-    [1] = packAddress(0, Event.TYPES.chord, Event.CURVES.step);
+    [1] = Event.TYPES.chord;
 
     get root()           { return toRootName(this[2]); }
     set root(name)       { this[2] = toRootNumber(name); }

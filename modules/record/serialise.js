@@ -1,8 +1,8 @@
 
 import Event     from '../event.js';
 import Transform from '../transform.js';
-import { packAddress }              from '../event/address.js';
-import { CURVENUMBERS, CURVEBYTES } from '../event/curves.js';
+import { unpackCurve } from '../event/address.js';
+import { CURVES, CURVEBYTES } from '../event/curves.js';
 import { toKeyNumber } from '../event/key.js';
 import { MAX_TEXT_BYTES } from '../event/text.js';
 
@@ -20,8 +20,7 @@ export const VERSION = 0;
 /**
 serialise(events)
 Serialises an array of events to a Uint8Array binary format.
-Event structure: Float64 beat | Int16 address | data...
-Address structure: 2-bit route | 10-bit name | 4-bit curve
+Event structure: Float64 beat | Uint16 type | (Uint16 address/curve if control/rate) | data...
 **/
 
 function truncateUTF8(bytes, maxLength) {
@@ -37,7 +36,7 @@ function truncateUTF8(bytes, maxLength) {
 function getEventBytes(event) {
     const type = event[1];
 
-    let bytes = 10; // beat 8 | address 2
+    let bytes = 10; // beat 8 | type 2
     if (type in TYPEBYTES) return bytes + TYPEBYTES[type];
 
     let i;
@@ -61,50 +60,35 @@ function getEventBytes(event) {
             return bytes;
         }
 
-        case TYPES.param:
-            i = 4;
-            // Falls through
-        case TYPES.rate:
-            if (i === undefined) i = 3;
-            // Falls through
-        default: {
-            // Different curves take up different bytelengths
-            const number = event[i];
-
-            // For curve type, always include length field (array is at i-1)
-            return number === CURVENUMBERS.curve ?
-                bytes + 8 + 2 + event[i - 1].length * 4 :
-                bytes + CURVEBYTES[number] ;
-        }
-    }
-}
-
-function getAddressFromEvent(event) {
-    const type = event[1];
-
-    switch (type) {
-        case TYPES.param: {
-            // Param event route 1
-            return packAddress(1, event[2], event[4]);
-        }
-
+        case TYPES.control:
         case TYPES.rate: {
-            // Param event route 0
-            return packAddress(0, type, event[3]);
+            // Control and rate events store slot [2] as another 16-bit number
+            bytes += 2;
+
+            const curve = type === TYPES.control ?
+                unpackCurve(event[2]) :
+                event[2];
+
+            // For curve type, always include length field (array is at [3])
+            return curve === CURVES.curve ?
+                bytes + 8 + 2 + event[3].length * 4 :
+                bytes + CURVEBYTES[curve] ;
         }
 
-        default: {
-            if (TYPENAMES[type] === undefined) throw new Error(`Event type ${ TYPENAMES[type] } not recognised`);
-            // Other sequence targeted events route 0
-            return packAddress(0, type, 0);
-        }
+        default:
+            throw new Error(`Event type ${ TYPENAMES[type] || type } not recognised`);
     }
 }
 
 export default function serialise(events) {
-    // First pass: calculate total size
+    // First pass: normalise events and calculate total size
+    const normalised = [];
     let bytes = 0;
-    for (const event of events) bytes += getEventBytes(event);
+    for (let event of events) {
+        if (!(event instanceof Event)) event = Event.from(event);
+        normalised.push(event);
+        bytes += getEventBytes(event);
+    }
 
     // Allocate buffer
     const buffer = new Uint8Array(bytes);
@@ -112,17 +96,13 @@ export default function serialise(events) {
 
     // Second pass: write events
     let n = -1, event, offset = 0;
-    while(event = events[++n]) {
-        // Make sure event is a normalised event object
-        if (!(event instanceof Event)) event = Event.from(event);
-
+    while(event = normalised[++n]) {
         // Write beat Float64
         view.setFloat64(offset, event[0], true);
         offset += 8;
 
-        // Write address Uint16
-        const address = getAddressFromEvent(event);
-        view.setUint16(offset, address, true);
+        // Write type Uint16
+        view.setUint16(offset, event[1], true);
         offset += 2;
 
         // Write event-specific data
@@ -134,33 +114,36 @@ export default function serialise(events) {
                 offset += 16;
                 break;
 
-            case TYPES.param:
+            case TYPES.control:
             case TYPES.rate: {
-                const i = event[1] === TYPES.rate ? 2 : 3;
-                const number = event[i + 1];
+                // Write slot [2] as Uint16
+                view.setUint16(offset, event[2], true);
+                offset += 2;
 
-                switch (number) {
-                    case CURVENUMBERS.step:
-                    case CURVENUMBERS.linear:
-                    case CURVENUMBERS.exponential:
-                        // step/linear/exponential: value(4) only
-                        view.setFloat32(offset, event[i], true);
+                const curve = event[1] === TYPES.control ?
+                    unpackCurve(event[2]) :
+                    event[2];
+
+                switch (curve) {
+                    case CURVES.step:
+                    case CURVES.linear:
+                    case CURVES.exponential:
+                        view.setFloat32(offset, event[3], true);          // value
                         offset += 4;
                         break;
 
-                    case CURVENUMBERS.target:
-                        // target: value(4) + timeConstant(8)
-                        view.setFloat32(offset, event[i], true);
-                        view.setFloat64(offset + 4, event[i + 2] || 0, true);
+                    case CURVES.target:
+                        view.setFloat32(offset, event[3], true);          // value
+                        view.setFloat64(offset + 4, event[4] || 0, true); // duration time constant
                         offset += 12;
                         break;
 
-                    case CURVENUMBERS.curve: {
+                    case CURVES.curve: {
                         // curve: duration(8) + byteslength(2) + values(n * 4)
-                        view.setFloat64(offset, event[i + 2] || 0, true);
+                        view.setFloat64(offset, event[4] || 0, true);
                         offset += 8;
 
-                        const values = event[i];
+                        const values = event[3];
                         const bytes  = values.length * 4;
 
                         // Write length as Uint16
@@ -176,8 +159,6 @@ export default function serialise(events) {
                         offset += bytes;
                         break;
                     }
-
-                    // hold/cancel: no data, no offset change
                 }
 
                 break;
@@ -191,12 +172,12 @@ export default function serialise(events) {
 
             case TYPES.chord: {
                 const rootId = event[2];
-                buffer[offset] = rootId;                      // root
+                view.setUint8(offset, rootId);                // root
                 const hsId   = event[3];
                 view.setFloat64(offset + 1, hsId, true);      // hsid
                 view.setFloat64(offset + 9, event[4], true);  // duration
                 const bassId = event[5];
-                buffer[offset + 17] = bassId;                 // bass
+                view.setUint8(offset + 17, bassId);           // bass
                 offset += 18;
                 break;
             }
@@ -223,7 +204,7 @@ export default function serialise(events) {
                     // Transforms are stored as numbers on the event
                     const n = event[i];
 
-                    buffer[offset] = n;
+                    view.setUint8(offset, n);
                     offset += 1;
 
                     // Write parameters based on transform number
@@ -253,7 +234,7 @@ export default function serialise(events) {
                 }
 
                 // Fill in bytes length
-                buffer[bytesIndex] = offset - bytesIndex - 1;
+                view.setUint8(bytesIndex, offset - bytesIndex - 1);
                 break;
             }
 
@@ -262,27 +243,15 @@ export default function serialise(events) {
                 const encoded = new TextEncoder().encode(event[3]);
                 const truncated = truncateUTF8(encoded, MAX_TEXT_BYTES);
                 view.setFloat64(offset, event[2], true);        // duration
-                buffer[offset + 8] = truncated.length;          // length byte (string bytes only)
+                view.setUint8(offset + 8, truncated.length);    // length byte (string bytes only)
                 buffer.set(truncated, offset + 9);              // string bytes
                 offset += 9 + truncated.length;
                 break;
             }
 
-            case TYPES.start:
-            case TYPES.stop:
-                view.setFloat32(offset, event[2], true);      // pitch
-                view.setFloat32(offset + 4, event[3], true);  // dynamic
-                offset += 8;
-                break;
-
-            // TODO: This does not really deserve to be here. We could make
-            // the remaining curve types in the last 4 bits of address identify
-            // data signatures for unknown events ... but then we need to tell
-            // the event how to be encoded ... not great. For now, we'll spec it
-            // here.
             case TYPES.clef: {
                 const clefId = typeof event[2] === 'number' ? event[2] : 0;
-                buffer[offset] = clefId;
+                view.setUint8(offset, clefId);
                 offset += 1;
                 break;
             }

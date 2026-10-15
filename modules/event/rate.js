@@ -1,5 +1,4 @@
 
-import { packAddress } from './address.js';
 import Event from './event.js';
 import { toCurveName, toCurveNumber } from './curves.js';
 
@@ -9,42 +8,42 @@ const { fround } = Math;
 
 
 export default class RateEvent extends Event {
-    static of(beat, value, curve = 0, duration = 0) {
-        return new RateEvent({ beat, value, curve, duration });
+    static of(beat, curve = 0, value = 0, duration = 0) {
+        return new RateEvent({ beat, curve, value, duration });
     }
 
-    [1] = packAddress(0, Event.TYPES.rate, Event.CURVES.step);
-
-    get value() {
-        return this[2];
-    }
-
-    set value(number) {
-        this[2] = fround(number);
-    }
+    [1] = Event.TYPES.rate;
 
     get curve() {
-        const curve = getCurveNumber(this[1]);
+        const curve = this[2];
         return toCurveName(curve);
     }
 
     set curve(name) {
-        this[1] = packAddress(0, Event.TYPES.rate, toCurveNumber(name));
+        this[2] = toCurveNumber(name);
+    }
+
+    get value() {
+        return this[3];
+    }
+
+    set value(number) {
+        this[3] = fround(number);
     }
 
     get duration() {
-        const curve = getCurveNumber(this[1]);
+        const curve = this[2];
         return curve === Event.CURVES.target || curve === Event.CURVES.curve ?
-            this[3] :
+            this[4] :
             0 ;
     }
 
     set duration(number) {
-        this[3] = parseFloat(number);
+        this[4] = parseFloat(number);
     }
 
     toString() {
-        return super.toString() + ' ' + this[2] + ' ' + this[3];
+        return super.toString() + ' ' + this.curve + ' ' + this[3] + ' ' + this[4];
     }
 }
 

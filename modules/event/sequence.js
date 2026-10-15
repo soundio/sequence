@@ -1,5 +1,4 @@
 
-import { packAddress } from './address.js';
 import Event     from './event.js';
 import Transform from '../transform.js';
 
@@ -48,7 +47,7 @@ export default class SequenceEvent extends Event {
         return new SequenceEvent({ beat, identifier, TARGET, duration, transforms });
     }
 
-    [1] = packAddress(0, Event.TYPES.sequence, Event.CURVES.step);
+    [1] = Event.TYPES.sequence;
 
     get id()               { console.trace('GET id deprecated, now GET identifier'); return this[2]; }
     set id(number)         { console.trace('SET id deprecated, now SET identifier'); this[2] = parseInt(number); }

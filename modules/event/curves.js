@@ -1,6 +1,6 @@
 import mirror from '../object/mirror.js';
 
-export const CURVENUMBERS = {
+export const CURVES = {
     "step":        0,
     "linear":      1,
     "exponential": 2,
@@ -10,7 +10,7 @@ export const CURVENUMBERS = {
     "cancel":      6
 };
 
-export const CURVENAMES = mirror(CURVENUMBERS);
+export const CURVENAMES = mirror(CURVES);
 
 export const CURVEBYTES = {
     0: 4,    // step        Float32
@@ -49,8 +49,8 @@ Converts a curve name or number to a curve number.
 **/
 export function toCurveNumber(name) {
     return typeof name === 'string' ?
-        // CURVENUMBERS.step is 0, so `||` would wrongly fall through - test for
+        // CURVES.step is 0, so `||` would wrongly fall through - test for
         // presence of the key instead
-        (name in CURVENUMBERS ? CURVENUMBERS[name] : CURVENUMBERS.step) :
+        (name in CURVES ? CURVES[name] : CURVES.step) :
         name;
 }
