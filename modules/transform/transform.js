@@ -3,17 +3,18 @@ import * as identity from './identity.js';
 
 function applyTransform(object, transforms, n, fn) {
     switch (fn.length) {
+        case 0: throw new Error('Transform fn must have at least one argument');
         // If there's a more efficient way I want to know what it is
-        case 0: return fn(object);
-        case 1: return fn(object, transforms[++n]);
-        case 2: return fn(object, transforms[++n], transforms[++n]);
-        case 3: return fn(object, transforms[++n], transforms[++n], transforms[++n]);
-        case 4: return fn(object, transforms[++n], transforms[++n], transforms[++n], transforms[++n]);
-        case 5: return fn(object, transforms[++n], transforms[++n], transforms[++n], transforms[++n], transforms[++n]);
+        case 1: return fn(object);
+        case 2: return fn(object, transforms[++n]);
+        case 3: return fn(object, transforms[++n], transforms[++n]);
+        case 4: return fn(object, transforms[++n], transforms[++n], transforms[++n]);
+        case 5: return fn(object, transforms[++n], transforms[++n], transforms[++n], transforms[++n]);
+        case 6: return fn(object, transforms[++n], transforms[++n], transforms[++n], transforms[++n], transforms[++n]);
         // Default to dynamic arguments length
         default: {
             const args = [object];
-            for (let i = 0; i < fn.length; i++) args.push(transforms[++n]);
+            for (let i = 1; i < fn.length; i++) args.push(transforms[++n]);
             return fn.apply(null, args);
         }
     }
@@ -28,7 +29,7 @@ function apply(registry, object, transforms, n = 0) {
     // Apply current transform
     object = applyTransform(object, transforms, n, fn);
     // Then apply following transforms
-    return apply(registry, object, transforms, n + fn.length + 1);
+    return apply(registry, object, transforms, n + fn.length);
 }
 
 function unapply(registry, object, transforms, n = 0) {
@@ -38,7 +39,7 @@ function unapply(registry, object, transforms, n = 0) {
     // Find function
     const fn = registry[number].unapply;
     // Apply following transform first
-    object = unapply(registry, object, transforms, n + fn.length + 1);
+    object = unapply(registry, object, transforms, n + fn.length);
     // Then apply current transform
     return applyTransform(object, transforms, n, fn);
 }
