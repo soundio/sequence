@@ -8,25 +8,6 @@ import { toRecord, toATProtoRecord, fromRecord } from './modules/record.js';
 const assign = Object.assign;
 
 
-/**
-Sequence.version
-Version number for the revision of the sequence spec this Sequence object
-implements.
-**/
-
-/**
-Sequence.parse(string);
-**/
-
-/**
-Sequence.fromRecord(record);
-**/
-
-/**
-Sequence.toRecord(sequence);
-**/
-
-
 // The Sequence() constructor delegates to Sequence.from() to recursively
 // instantiate nested sequences, so Sequence.from() must be overridden to
 // provide deserialisation of nested records' events.
@@ -43,23 +24,42 @@ Sequence.from = function from(data) {
 };
 
 assign(Sequence, {
+    /**
+    Sequence.version
+    Version number for the revision of the sequence spec this Sequence object
+    implements.
+    **/
     version: VERSION,
+
+    /**
+    Sequence.parse(string);
+    **/
     parse,
+
+    /**
+    Sequence.toRecord(sequence);
+    **/
     toRecord,
     toATProtoRecord,
+
+    /**
+    Sequence.fromRecord(record);
+    **/
     fromRecord
 });
 
 
-/**
-.toRecord()
-**/
-
 assign(Sequence.prototype, {
+    /**
+    .toRecord()
+    **/
     toRecord: function() {
         return toRecord(this);
     },
 
+    /**
+    .toString()
+    **/
     toString: function() {
         // Top-level sequence header (only if named)
         let string = this.id || this.name ?
@@ -83,4 +83,5 @@ assign(Sequence.prototype, {
 });
 
 
-export { Event, Sequence };
+export default Sequence;
+export { Event, /* Deprecated */ Sequence };

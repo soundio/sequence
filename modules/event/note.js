@@ -35,6 +35,8 @@ export default class NoteEvent extends Event {
 
     set pitch(pitch) {
         this.isDrumNote = !rnotename.test(pitch);
+        // Keep a record of the original spelling that created this pitch
+        this.sourcePitch = pitch;
         this.number = pitch;
     }
 
