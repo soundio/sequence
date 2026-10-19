@@ -10,3 +10,5 @@ import './test/sequence.js';
 import './test/sequence-iterator.js';
 import './test/record.js';
 import './test/parse-midi-clip.js';
+import './test/parse-sequence.js';
+import './test/to-string.js';

@@ -48,8 +48,11 @@ export function toTypeName(type) {
     if (type in TYPENAMES) return TYPENAMES[type];
 }
 
-function stringify(number) {
-    return number.toFixed(4)/*.replace(/\.?0+$/, '')*/;
+export function stringify(number) {
+    if (typeof number !== 'number') return number;
+    return Number.isInteger(number) ?
+        String(number) :
+        number.toFixed(4).replace(/\.?0+$/, '');
 }
 
 function getEvent(event) {
@@ -97,7 +100,7 @@ export default class Event {
     }
 
     toString() {
-        return `${ stringify(this[0]) } `;
+        return stringify(this[0]);
     }
 
     // Enable event object to be spread by making it iterable

@@ -2,7 +2,7 @@
 import dB from 'fn/to-db.js';
 import { toDrumName, toNoteName, toNoteNumber } from 'midi/note.js';
 import parseGain from '../parse/parse-gain.js';
-import Event from './event.js';
+import Event, { stringify } from './event.js';
 
 
 const { fround } = Math;
@@ -69,7 +69,7 @@ export default class NoteEvent extends Event {
     }
 
     toString() {
-        return `${ super.toString() } ${ this.pitch } ${ this.gain } ${ this.duration }`;
+        return `${ super.toString() } note ${ this.pitch } ${ this.gain } ${ stringify(this.duration) }`;
     }
 }
 

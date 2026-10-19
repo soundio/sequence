@@ -1,5 +1,5 @@
 
-import Event     from './event.js';
+import Event, { stringify } from './event.js';
 import Transform from '../transform.js';
 
 
@@ -40,7 +40,7 @@ export default class SequenceEvent extends Event {
         if (transforms) this.transforms = transforms;
         if (!this.identifier) throw new Error(`SequenceEvent() bad id ${ this.identifier }`);
         if (!this.TARGET && this.TARGET !== 0) throw new Error(`SequenceEvent() bad TARGET ${ this.TARGET }`);
-        if (!this.duration) throw new Error(`SequenceEvent() bad duration ${ this.duration }`);
+        if (!this.duration && this.duration !== 0) throw new Error(`SequenceEvent() bad duration ${ this.duration }`);
     }
 
     static of(beat, identifier, TARGET, duration, ...transforms) {
@@ -101,6 +101,10 @@ export default class SequenceEvent extends Event {
             this.transforms = transforms;
         }
         return this;
+    }
+
+    toString() {
+        return `${ super.toString() } sequence ${ this.identifier } ${ this.TARGET } ${ stringify(this.duration) }${ this.transforms && this.transforms.length ? ' ' + this.transforms.map(stringify).join(' ') : '' }`;
     }
 }
 

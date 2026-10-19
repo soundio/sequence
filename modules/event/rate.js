@@ -1,5 +1,5 @@
 
-import Event from './event.js';
+import Event, { stringify } from './event.js';
 import { toCurveName, toCurveNumber } from './curves.js';
 
 
@@ -43,7 +43,9 @@ export default class RateEvent extends Event {
     }
 
     toString() {
-        return super.toString() + ' ' + this.curve + ' ' + this[3] + ' ' + this[4];
+        const curve = this.curve === 'step' ? '' : `${ this.curve } `;
+        const dur = this.duration ? ` ${ stringify(this.duration) }` : '';
+        return `${ super.toString() } rate ${ curve }${ stringify(this.value) }${ dur }`;
     }
 }
 

@@ -1,4 +1,4 @@
-import Event from './event.js';
+import Event, { stringify } from './event.js';
 
 // Maximum string bytes for text events
 // length field stores string bytes only (0-255)
@@ -19,7 +19,7 @@ export default class TextEvent extends Event {
     set text(string)     { this[3] = string + ''; }
 
     toString() {
-        return `${ super.toString() } ${ this.duration } ${ this.text }`;
+        return `${ super.toString() } text ${ stringify(this.duration) } ${ this.text }`;
     }
 }
 

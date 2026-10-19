@@ -85,7 +85,7 @@ export default class MeterEvent extends Event {
     get divisions()         { return getDivisions(this[2], this[3]); }
 
     toString() {
-        return `${ super.toString() } ${ this.timesig }`;
+        return `${ super.toString() } meter ${ this.timesig }`;
     }
 }
 

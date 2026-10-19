@@ -4,7 +4,7 @@ import { toRootName, toRootNumber } from 'midi/note.js';
 import mod12   from '../number/mod-12.js';
 import mirror  from '../object/mirror.js';
 import { rflatsharp, toUnicode } from '../pitch.js';
-import Event            from './event.js';
+import Event, { stringify } from './event.js';
 import { hsidOf, hsidFrom, hsidToNumbers } from '../harmony/hsid.js';
 
 
@@ -95,10 +95,15 @@ CHORDNUMBERS['aug']  = CHORDNUMBERS['+'];
 CHORDNUMBERS['dim']  = CHORDNUMBERS['°'];
 CHORDNUMBERS['dim7'] = CHORDNUMBERS['°7'];
 CHORDNUMBERS['maj']  = CHORDNUMBERS[''];
-CHORDNUMBERS['maj7'] = CHORDNUMBERS['∆'];
-CHORDNUMBERS['min']  = CHORDNUMBERS['-'];
-CHORDNUMBERS['min7'] = CHORDNUMBERS['-7'];
-CHORDNUMBERS['m7♭5'] = CHORDNUMBERS['ø'];
+CHORDNUMBERS['maj7']   = CHORDNUMBERS['∆'];
+CHORDNUMBERS['min']    = CHORDNUMBERS['-'];
+CHORDNUMBERS['min7']   = CHORDNUMBERS['-7'];
+CHORDNUMBERS['m']      = CHORDNUMBERS['-'];
+CHORDNUMBERS['m7']     = CHORDNUMBERS['-7'];
+CHORDNUMBERS['m6']     = CHORDNUMBERS['-6'];
+CHORDNUMBERS['m9']     = CHORDNUMBERS['-9'];
+CHORDNUMBERS['m11']    = CHORDNUMBERS['-11'];
+CHORDNUMBERS['m7♭5']   = CHORDNUMBERS['ø'];
 CHORDNUMBERS['min7♭5'] = CHORDNUMBERS['ø'];
 
 /**
@@ -207,7 +212,7 @@ export default class ChordEvent extends Event {
     }
 
     toString() {
-        return `${ super.toString() } ${ this.root }${ this.extension } ${ this.duration }`;
+        return `${ super.toString() } chord ${ this.root }${ this.extension } ${ stringify(this.duration) }`;
     }
 }
 

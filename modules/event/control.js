@@ -1,7 +1,7 @@
 
-import { toCurveName, toCurveNumber } from './curves.js';
+import { CURVENAMES, toCurveName, toCurveNumber } from './curves.js';
 import { packAddress, unpackParam, unpackCurve } from './address.js';
-import Event from './event.js';
+import Event, { stringify } from './event.js';
 
 
 const assign = Object.assign;
@@ -205,14 +205,46 @@ export function toParamNumber(value) {
 
 
 export default class ControlEvent extends Event {
-    static of(beat, name, curve = 0, value = 0, duration = 0) {
-        return new ControlEvent({ beat, name, curve, value, duration });
+    static of(beat, address, value = 0, duration = 0) {
+        if (arguments.length === 5) {
+            const name = address;
+            const curve = value;
+            value = duration;
+            duration = arguments[4] || 0;
+            address = packAddress(toParamNumber(name), toCurveNumber(curve));
+        }
+        else if (arguments.length === 3 && (typeof value === 'string' || value in CURVENAMES)) {
+            address = packAddress(toParamNumber(address), toCurveNumber(value));
+            value = 0;
+            duration = 0;
+        }
+        else if (typeof value === 'string') {
+            const curve = value;
+            value = typeof duration === 'number' ? duration : 0;
+            duration = arguments[4] || 0;
+            address = address + '.' + curve;
+        }
+        return new ControlEvent({ beat, address, value, duration });
     }
 
     [1] = Event.TYPES.control;
 
-    get address()     { return this[2]; }
-    set address(addr) { this[2] = parseInt(addr, 10); }
+    get address()     {
+        return `${ this.name }.${ this.curve }`;
+    }
+
+    set address(addr) {
+        if (typeof addr === 'string') {
+            const parts = addr.split('.');
+            this[2] = packAddress(
+                toParamNumber(parts[0]),
+                parts[1] ? toCurveNumber(parts[1]) : 0
+            );
+        }
+        else {
+            this[2] = parseInt(addr, 10);
+        }
+    }
 
     get name()        { return toParamName(unpackParam(this[2])); }
     set name(name)    { this[2] = packAddress(toParamNumber(name), unpackCurve(this[2])); }
@@ -235,7 +267,11 @@ export default class ControlEvent extends Event {
     }
 
     toString() {
-        return `${ super.toString() }${ this.name }.${ this.curve } ${ this.value } ${ this.duration }`;
+        const curve = this.curve;
+        return curve === 'cancel' || curve === 'hold' ? `${ super.toString() } control ${ this.address }` :
+            curve === 'step' ?   `${ super.toString() } control ${ this.name } ${ stringify(this.value) }` :
+            curve === 'target' ? `${ super.toString() } control ${ this.address } ${ stringify(this.value) } ${ stringify(this.duration) }` :
+                                 `${ super.toString() } control ${ this.address } ${ stringify(this.value) }` ;
     }
 }
 
