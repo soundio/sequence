@@ -20,6 +20,11 @@ function getSequence(sequences, id) {
     return sequences.find((sequence) => sequence.id === id);
 }
 
+function intoIdMap(object, item) {
+    object[item.id] = item;
+    return object;
+}
+
 function readRateEvents(rates, events) {
 //    // Read last rate event
 //    const br = rates[rates.length - 4];
@@ -67,12 +72,12 @@ export default class SequenceIterator extends Iterator {
     startBeat = 0;
     stopBeat  = Infinity;
 
-    constructor(events, sequences = nothing, transform = Transform.identity, parent = null, trigger = null) {
+    constructor(events, sequences = nothing, transform = Transform.identity, /*parent = null,*/ trigger = null, sequence, objects = sequence.objects && sequence.objects.reduce(intoIdMap, {})) {
         super();
 console.log('new Iterator()', events.length, sequences.length, '------------------------');
         if (DEBUG) {
             if (!(transform instanceof Transform))                         throw new TypeError(`SequenceIterator() transform must be an instance of Transform`);
-            if (parent  !== null && !(parent instanceof SequenceIterator)) throw new TypeError(`SequenceIterator() parent must be an instance of SequenceIterator or null`);
+//            if (parent  !== null && !(parent instanceof SequenceIterator)) throw new TypeError(`SequenceIterator() parent must be an instance of SequenceIterator or null`);
             if (trigger !== null && !(trigger instanceof Event))           throw new TypeError(`SequenceIterator() trigger must be an instance of Event or null`);
         }
 
@@ -80,19 +85,23 @@ console.log('new Iterator()', events.length, sequences.length, '----------------
         events.sort(byPriority);
 
         // The parent Sequencer
-        this.parent = parent;
+//        this.parent = parent;
         // A reference to the sequence event that causes playback
         if (trigger) {
             this.event = trigger;
             this.startBeat = trigger[0];
             this.stopBeat  = trigger[0] + trigger[4];
         }
+        // Sequence object being iterated
+        this.sequence = sequence;
         // Events array to iterate over
         this.events = events;
         // Sequence library for lookups
         this.sequences = sequences;
         // Transform that mutates playback events
         this.transform = transform;
+        // Target objects
+        this.objects = objects;
 
         // Read rate events into #rates automation array
         readRateEvents(this.#rates, events)
@@ -104,7 +113,7 @@ console.log('new Iterator()', events.length, sequences.length, '----------------
     }
 
     next() {
-        const { events, transform, n } = this;
+        const { sequence, events, objects, transform, n } = this;
         const event = events[n + 1];
 
         let value;
@@ -122,9 +131,10 @@ console.log('new Iterator()', events.length, sequences.length, '----------------
             value[0] += this.startBeat;
 //console.log(4, value);
             // Keep some internal data
+            value.sequence  = sequence;
             value.events    = events;
             value.event     = event;
-            value.sequencer = this;
+//            value.sequencer = this;
         }
 
         //const value = event && transform(transforms, Event.from(event/*, n + 1, events*/));
@@ -135,6 +145,7 @@ console.log('new Iterator()', events.length, sequences.length, '----------------
         let x;
         while (iterator = this[++i]) {
             let value = iterator.value;
+            const stopBeat = this.startBeat + iterator.stopBeat;
 
             if (!value) {
                 // Get next value from iterator and transform it for current context
@@ -146,15 +157,17 @@ console.log('new Iterator()', events.length, sequences.length, '----------------
                     // Modify event sequence event's start beat
                     value[0] += this.startBeat;
                     // Modify target destination
-                    value.target = (value.target || 0) + iterator.target;
+//                    value.target = (value.target || 0) + iterator.target;
+                    // Assign target object
+                    if (iterator.target) value.object = objects[iterator.target];
                 }
 
                 // If done or beyond stop beat, mark iterator for removal
-                if (iterator.done || value[0] >= iterator.stopBeat) ++j;
+                if (iterator.done || value[0] >= stopBeat) ++j;
             }
 
             // Select iterator/value with earliest beat
-            if (value && value[0] < iterator.stopBeat && value[0] < b) {
+            if (value && value[0] < stopBeat && value[0] < b) {
                 x = iterator;
                 b = value[0];
             }
@@ -195,9 +208,13 @@ console.log('new Iterator()', events.length, sequences.length, '----------------
                 // Transform
                 event.transform,
                 // Parent SequenceIterator
-                this,
+                /*this,*/
                 // Reference to original event
-                event
+                event,
+                // Reference to sequence
+                sequence,
+                // Reference to objects map
+                sequence.objects && sequence.objects.reduce(intoIdMap, {}) || objects
             );
             // Store info about the event on the iterator object
             //iterator.startBeat = value[0];
