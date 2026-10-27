@@ -190,6 +190,6 @@ export default class Sequence {
     }
 
     [Symbol.iterator]() {
-        return new SequenceIterator(this.events, this.sequences);
+        return new SequenceIterator(this.events, this.sequences, undefined, undefined, this);
     }
 }
