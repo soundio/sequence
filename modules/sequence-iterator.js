@@ -69,39 +69,39 @@ SequenceIterator(events, sequences, transform, parent = null, trigger = null)
 export default class SequenceIterator extends Iterator {
     // Rates are represented as a flat array of 4-number param events
     #rates = [0, CURVES.step, 1, 0];
+
     startBeat = 0;
     stopBeat  = Infinity;
 
-    constructor(events, sequences = nothing, transform = Transform.identity, /*parent = null,*/ trigger = null, sequence, objects = sequence.objects && sequence.objects.reduce(intoIdMap, {})) {
+    constructor(sequence, transform = Transform.identity, startBeat = 0, stopBeat = Infinity, sequences = nothing, objects) {
+        const { events } = sequence;
+
         super();
-console.log('new Iterator()', events.length, sequences.length, '------------------------');
-        if (DEBUG) {
-            if (!(transform instanceof Transform))                         throw new TypeError(`SequenceIterator() transform must be an instance of Transform`);
-//            if (parent  !== null && !(parent instanceof SequenceIterator)) throw new TypeError(`SequenceIterator() parent must be an instance of SequenceIterator or null`);
-            if (trigger !== null && !(trigger instanceof Event))           throw new TypeError(`SequenceIterator() trigger must be an instance of Event or null`);
-        }
+
+console.log('new Iterator()', sequence.events.length, sequences && sequences.length, '------------------------');
+        //if (DEBUG && !(transform instanceof Transform)) throw new TypeError(`SequenceIterator() transform must be an instance of Transform`);
 
         // Sort events by beat and type
         events.sort(byPriority);
 
-        // The parent Sequencer
-//        this.parent = parent;
-        // A reference to the sequence event that causes playback
-        if (trigger) {
-            this.event = trigger;
-            this.startBeat = trigger[0];
-            this.stopBeat  = trigger[0] + trigger[4];
-        }
         // Sequence object being iterated
         this.sequence = sequence;
         // Events array to iterate over
         this.events = events;
-        // Sequence library for lookups
-        this.sequences = sequences;
         // Transform that mutates playback events
         this.transform = transform;
+        // Beat this sequence starts
+        this.startBeat = startBeat;
+        // Beat this iterator stops
+        this.stopBeat = stopBeat;
+        // Sequence library for lookups
+        this.sequences = sequence.sequences ?
+            sequence.sequences.concat(sequences) :
+            sequences ;
         // Target objects
-        this.objects = objects;
+        this.objects = sequence.objects ?
+            sequence.objects.reduce(intoIdMap, {}) :
+            objects ;
 
         // Read rate events into #rates automation array
         readRateEvents(this.#rates, events)
@@ -131,9 +131,9 @@ console.log('new Iterator()', events.length, sequences.length, '----------------
             value[0] += this.startBeat;
 //console.log(4, value);
             // Keep some internal data
-            value.sequence  = sequence;
-            value.events    = events;
-            value.event     = event;
+            value.sequence = sequence;
+            value.events   = events;
+            value.event    = event;
 //            value.sequencer = this;
         }
 
@@ -196,30 +196,24 @@ console.log('new Iterator()', events.length, sequences.length, '----------------
         if (Event.isSequence(event)) {
             // Find sequence
             const sequences = this.sequences;
-            const sequence  = getSequence(sequences, event[2]);
+            const sequence = getSequence(sequences, event[2]);
             if (!sequence) throw new Error(`Sequence id ${ typeof event[2] === 'string' ? `"${ event[2] }"` : event[2] } not found in sequences ids ${ sequences.map(get('id')) }`);
             // Create iterator
             const iterator = new SequenceIterator(
-                sequence.events,
-                // Join parent sequences to sequences
-                sequence.sequences ?
-                    sequence.sequences.concat(sequences) :
-                    sequences ,
+                sequence,
                 // Transform
                 event.transform,
-                // Parent SequenceIterator
-                /*this,*/
-                // Reference to original event
-                event,
-                // Reference to sequence
-                sequence,
+                // Start beat
+                event[0],
+                // Stop beat
+                event[0] + event[4],
+                // Reference to sequences
+                this.sequences,
                 // Reference to objects map
-                sequence.objects && sequence.objects.reduce(intoIdMap, {}) || objects
+                this.objects
             );
             // Store info about the event on the iterator object
-            //iterator.startBeat = value[0];
-            //iterator.stopBeat  = value[0] + value[4];
-            iterator.target    = value[3];
+            iterator.target = value[3];
             // Add iterator (indexed as -n) directly to this
             let i = -1;
             while (this[++i]);
