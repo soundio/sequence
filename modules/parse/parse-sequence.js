@@ -41,7 +41,7 @@ Takes a string of text and parses it as a Sequence. Sequence text is in the form
 6. Sequence events not given duration are assumed to have a duration up to the end of the last event in the sequence they identify.
 7. Note events are not required to be written with type 'note' where they use a pitch name (this includes drum and percussion pitch names).
 8. Note events without dynamic information are assigned a gain of 0.1 (-20dB) by default.
-9. Chord events without an explicit duration are assumed to have duration 4.
+9. Chord events without an explicit duration are assumed to have duration 2.
 
 */
 
@@ -103,7 +103,7 @@ export const grammar = {
 
     chord(beat, [symbol = 'C', duration]) {
         const dur = Number(duration);
-        return [beat, 'chord', symbol, Number.isNaN(dur) ? 1 : dur];
+        return [beat, 'chord', symbol, Number.isNaN(dur) ? 2 : dur];
     },
 
     control(beat, [address = 'gain.set', value = 0, duration = 0]) {

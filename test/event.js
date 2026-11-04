@@ -109,11 +109,11 @@ Deno.test('ChordEvent.of() parsing chord symbols', () => {
     is(c.duration, 4);
     is(c.toChordSymbol(), "C");
 
-    // Default duration (1)
+    // Default duration (2)
     const ceDef = Event.of(0, "chord", "C/E");
     is(ceDef.root, "E");
     is(ceDef.extension, "{8}/");
-    is(ceDef.duration, 1);
+    is(ceDef.duration, 2);
 
     // Key-aware slash chord: A/C# in key C
     const aCsharp = Event.of(0, "chord", "A/C#", 4);

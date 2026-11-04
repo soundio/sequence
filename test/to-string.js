@@ -47,7 +47,7 @@ Deno.test('toString() minimal formatting and round-trip', () => {
     assert(output.includes('0 sequence 2 bass 0'), 'Includes sequence duration');
     assert(output.includes('4 sequence 1 piano 0'), 'Includes sequence duration');
     assert(output.includes('chord D-7') || output.includes('chord Dm7'), 'Includes chord Dm7 / D-7');
-    assert(output.includes('chord G∆ 4'), 'Includes chord G∆ 4');
+    assert(output.includes('chord G∆ 2'), 'Includes chord G∆ 2');
 
     assert(output.includes('#1 Melody'), 'Includes subsequence 1 header');
     assert(output.includes('note B4 -18dB 1') || output.includes('note B4 mf 1'), 'Includes note with gain');

@@ -95,13 +95,13 @@ Deno.test('parseSequence() specification example', () => {
     is(sequence.events[6].type, 'chord');
     is(sequence.events[6].root, 'D');
     is(sequence.events[6].extension, '-7'); // Dm7 normalised to -7 in ChordEvent
-    is(sequence.events[6].duration, 4);
+    is(sequence.events[6].duration, 2);
 
     is(sequence.events[7][0], 4);
     is(sequence.events[7].type, 'chord');
     is(sequence.events[7].root, 'G');
     is(sequence.events[7].extension, '∆');
-    is(sequence.events[7].duration, 4);
+    is(sequence.events[7].duration, 2);
 
     // Sequence 1
     const seq1 = sequence.sequences[0];
@@ -180,10 +180,10 @@ Deno.test('parseSequence() slash chords', () => {
     is(seq.events[1].duration, 4);
     is(seq.events[1].toChordSymbol(), 'C7/G');
 
-    // 6 chord C-/E♭ (default duration 4)
+    // 6 chord C-/E♭ (default duration 2)
     is(seq.events[2].root, 'E♭');
     is(seq.events[2].extension, '{9}-/');
-    is(seq.events[2].duration, 4);
+    is(seq.events[2].duration, 2);
     is(seq.events[2].toChordSymbol(), 'C-/E♭');
 });
 
@@ -209,9 +209,9 @@ Deno.test('parseSequence() chord symbols and duration disambiguation', () => {
     is(seq.events[1].duration, 7);
     is(seq.events[1].toChordSymbol(), 'C7');
 
-    // 4 chord C7 -> C7, default duration 4
+    // 4 chord C7 -> C7, default duration 2
     is(seq.events[2].root, 'C');
     is(seq.events[2].extension, '7');
-    is(seq.events[2].duration, 4);
+    is(seq.events[2].duration, 2);
     is(seq.events[2].toChordSymbol(), 'C7');
 });

@@ -215,7 +215,7 @@ function spell(key, hsid, n) {
 
 
 export default class ChordEvent extends Event {
-    static of(beat, root, extension = '', duration = 1) {
+    static of(beat, root, extension = '', duration = 2) {
         if (root === undefined) {
             // Create invalid event
             return new ChordEvent({ beat, extension, duration });
@@ -233,7 +233,7 @@ export default class ChordEvent extends Event {
                     const quality   = match[2] ? (toChordName(toChordHSID(match[2])) || match[2]) : '';
                     const dur       = extension !== '' && extension !== undefined ?
                         (typeof extension === 'number' ? extension : parseFloat(extension)) :
-                        (duration !== undefined ? duration : 1);
+                        (duration !== undefined ? duration : 2);
 
                     return new ChordEvent({
                         beat,
@@ -247,7 +247,7 @@ export default class ChordEvent extends Event {
                 if (arguments.length === 2 || (arguments.length === 3 && (typeof extension === 'number' || (!Number.isNaN(Number(extension)) && !(extension in CHORDNUMBERS))))) {
                     const dur = arguments.length === 3 ?
                         (typeof extension === 'number' ? extension : parseFloat(extension)) :
-                        1;
+                        2;
                     const quality = match[2] ? (toChordName(toChordHSID(match[2])) || match[2]) : '';
 
                     return new ChordEvent({
