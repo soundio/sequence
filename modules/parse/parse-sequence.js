@@ -50,7 +50,6 @@ import { toCurveNumber } from '../event/curves.js';
 
 
 const DEBUG   = globalThis.DEBUG;
-const rdata   = /^[A-G](?:bb|##|[𝄫𝄪♭♯#b])?/u;
 const rheader = /^#\s*(?:(\d+)\s*)?(.*)$/;
 const rline   = /[^\S\r\n]*(.*?)[^\S\r\n]*(?:\/\/[^\r\n]*)?(?:\r?\n|$)/gy;
 
@@ -102,30 +101,9 @@ export const grammar = {
         return [beat, 'sequence', Number(id) || 0, target, duration, ...parsedTransforms];
     },
 
-    chord(beat, [symbol = 'C', extOrDur, maybeDur]) {
-        let data = symbol;
-        let extension = '';
-        let duration = 4;
-
-        const match = rdata.exec(symbol);
-        if (match) {
-            data = match[0];
-            extension = symbol.slice(data.length);
-        }
-
-        if (extOrDur !== undefined) {
-            const num = Number(extOrDur);
-            if (Number.isNaN(num)) {
-                if (!extension) extension = extOrDur;
-                if (maybeDur !== undefined && !Number.isNaN(Number(maybeDur))) {
-                    duration = Number(maybeDur);
-                }
-            } else {
-                duration = num;
-            }
-        }
-
-        return [beat, 'chord', data, extension, duration];
+    chord(beat, [symbol = 'C', duration]) {
+        const dur = Number(duration);
+        return [beat, 'chord', symbol, Number.isNaN(dur) ? 1 : dur];
     },
 
     control(beat, [address = 'gain.set', value = 0, duration = 0]) {

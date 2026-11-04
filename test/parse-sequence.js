@@ -157,3 +157,61 @@ Deno.test('parseSequence() comments and permissive formatting', () => {
     is(seq.events[4].duration, 0);
     equals(seq.events[4].transforms, ['transpose', 2]);
 });
+
+Deno.test('parseSequence() slash chords', () => {
+    const text = `
+    0 chord C/E 2
+    2 chord C7/G 4
+    6 chord C-/E♭
+    `;
+
+    const seq = parseSequence(text);
+    is(seq.events.length, 3);
+
+    // 0 chord C/E 2
+    is(seq.events[0].root, 'E');
+    is(seq.events[0].extension, '{8}/');
+    is(seq.events[0].duration, 2);
+    is(seq.events[0].toChordSymbol(), 'C/E');
+
+    // 2 chord C7/G 4
+    is(seq.events[1].root, 'G');
+    is(seq.events[1].extension, '{5}7/');
+    is(seq.events[1].duration, 4);
+    is(seq.events[1].toChordSymbol(), 'C7/G');
+
+    // 6 chord C-/E♭ (default duration 4)
+    is(seq.events[2].root, 'E♭');
+    is(seq.events[2].extension, '{9}-/');
+    is(seq.events[2].duration, 4);
+    is(seq.events[2].toChordSymbol(), 'C-/E♭');
+});
+
+Deno.test('parseSequence() chord symbols and duration disambiguation', () => {
+    const text = `
+    0 chord C 7
+    2 chord C7 7
+    4 chord C7
+    `;
+
+    const seq = parseSequence(text);
+    is(seq.events.length, 3);
+
+    // 0 chord C 7 -> C major, duration 7
+    is(seq.events[0].root, 'C');
+    is(seq.events[0].extension, '');
+    is(seq.events[0].duration, 7);
+    is(seq.events[0].toChordSymbol(), 'C');
+
+    // 2 chord C7 7 -> C7, duration 7
+    is(seq.events[1].root, 'C');
+    is(seq.events[1].extension, '7');
+    is(seq.events[1].duration, 7);
+    is(seq.events[1].toChordSymbol(), 'C7');
+
+    // 4 chord C7 -> C7, default duration 4
+    is(seq.events[2].root, 'C');
+    is(seq.events[2].extension, '7');
+    is(seq.events[2].duration, 4);
+    is(seq.events[2].toChordSymbol(), 'C7');
+});

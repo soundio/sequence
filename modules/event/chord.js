@@ -13,7 +13,7 @@ const DEBUG  = globalThis.DEBUG;
 const define = Object.defineProperties;
 const { round } = Math;
 const rslashextension = /^\{(\d{1,2})\}/;
-const rchordsymbol = /^([A-G](?:bb|##|[𝄫𝄪♭♯#b]))[^\/](?:\/(\S+))?$/u;
+const rchordsymbol = /^([A-G](?:bb|##|[𝄫𝄪♭♯#b])?)\s*([^\/\s]*)\s*(?:\/\s*(\S+))?$/u;
 
 /*
 Chord symbols
@@ -216,11 +216,52 @@ function spell(key, hsid, n) {
 
 export default class ChordEvent extends Event {
     static of(beat, root, extension = '', duration = 1) {
-        return root === undefined ?
+        if (root === undefined) {
             // Create invalid event
-            new ChordEvent({ beat, extension, duration }) :
-            // Create valid event
-            new ChordEvent({ beat, root, extension, duration }) ;
+            return new ChordEvent({ beat, extension, duration });
+        }
+
+        // If root is a string, check if it is a chord symbol
+        if (typeof root === 'string') {
+            const match = rchordsymbol.exec(root);
+            if (match) {
+                // If slash chord symbol (e.g. "C/E", "C7/G", "C-/E♭")
+                if (match[3] !== undefined) {
+                    const upperRoot = toRootNumber(match[1]);
+                    const bass      = toRootNumber(match[3]);
+                    const interval  = mod12(upperRoot - bass);
+                    const quality   = match[2] ? (toChordName(toChordHSID(match[2])) || match[2]) : '';
+                    const dur       = extension !== '' && extension !== undefined ?
+                        (typeof extension === 'number' ? extension : parseFloat(extension)) :
+                        (duration !== undefined ? duration : 1);
+
+                    return new ChordEvent({
+                        beat,
+                        root: match[3],
+                        extension: `{${ interval }}${ quality }/`,
+                        duration: dur
+                    });
+                }
+
+                // If non-slash chord symbol and called as (beat, symbol, duration) or (beat, symbol)
+                if (arguments.length === 2 || (arguments.length === 3 && (typeof extension === 'number' || (!Number.isNaN(Number(extension)) && !(extension in CHORDNUMBERS))))) {
+                    const dur = arguments.length === 3 ?
+                        (typeof extension === 'number' ? extension : parseFloat(extension)) :
+                        1;
+                    const quality = match[2] ? (toChordName(toChordHSID(match[2])) || match[2]) : '';
+
+                    return new ChordEvent({
+                        beat,
+                        root: match[1],
+                        extension: quality,
+                        duration: dur
+                    });
+                }
+            }
+        }
+
+        // Create valid event
+        return new ChordEvent({ beat, root, extension, duration }) ;
     }
 
     [1] = Event.TYPES.chord;

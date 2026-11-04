@@ -71,6 +71,57 @@ Deno.test('ChordEvent.toChordSymbol()', () => {
     is(csharpDim.toChordSymbol("C"), "C♯°7");
 });
 
+Deno.test('ChordEvent.of() parsing chord symbols', () => {
+    // Slash chord with explicit duration
+    const ce = Event.of(0, "chord", "C/E", 2);
+    is(ce.root, "E");
+    is(ce.extension, "{8}/");
+    is(ce.duration, 2);
+    is(ce.toChordSymbol(), "C/E");
+    is(ce.toString(), "0 chord C/E 2");
+    equals(ce.toJSON(), [0, CHORD, 4, 2775, 2]);
+
+    // Slash chord with 7th
+    const c7g = Event.of(1, "chord", "C7/G", 4);
+    is(c7g.root, "G");
+    is(c7g.extension, "{5}7/");
+    is(c7g.duration, 4);
+    is(c7g.toChordSymbol(), "C7/G");
+
+    // Minor slash chord with flat accidental
+    const cmEb = Event.of(2, "chord", "C-/E♭", 3);
+    is(cmEb.root, "E♭");
+    is(cmEb.extension, "{9}-/");
+    is(cmEb.duration, 3);
+    is(cmEb.toChordSymbol(), "C-/E♭");
+
+    // Standard chord with alias 'm7' -> '-7'
+    const dm7 = Event.of(0, "chord", "Dm7", 4);
+    is(dm7.root, "D");
+    is(dm7.extension, "-7");
+    is(dm7.duration, 4);
+    is(dm7.toChordSymbol(), "D-7");
+
+    // Major triad with duration
+    const c = Event.of(0, "chord", "C", 4);
+    is(c.root, "C");
+    is(c.extension, "");
+    is(c.duration, 4);
+    is(c.toChordSymbol(), "C");
+
+    // Default duration (1)
+    const ceDef = Event.of(0, "chord", "C/E");
+    is(ceDef.root, "E");
+    is(ceDef.extension, "{8}/");
+    is(ceDef.duration, 1);
+
+    // Key-aware slash chord: A/C# in key C
+    const aCsharp = Event.of(0, "chord", "A/C#", 4);
+    is(aCsharp.root, "C♯");
+    is(aCsharp.extension, "{8}/");
+    is(aCsharp.toChordSymbol("C"), "A/C♯");
+});
+
 Deno.test('Event.of(key)', () => {
     equals(Event.of(0, "key", "F𝄫").toJSON(), [0, KEY, -15]);
     equals(Event.of(0, "key", "C𝄫").toJSON(), [0, KEY, -14]);
