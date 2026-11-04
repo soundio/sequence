@@ -176,9 +176,7 @@ export default function serialise(events) {
                 const hsId   = event[3];
                 view.setFloat64(offset + 1, hsId, true);      // hsid
                 view.setFloat64(offset + 9, event[4], true);  // duration
-                const bassId = event[5];
-                view.setUint8(offset + 17, bassId);           // bass
-                offset += 18;
+                offset += 17;
                 break;
             }
 

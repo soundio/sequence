@@ -26,7 +26,49 @@ Deno.test('Event()', () => {
 
 Deno.test('Event.from(chord)', () => {
     const event = Event.of(0, "chord", "C", "-", 1);
-    equals(Event.from(event).toJSON(), [0, CHORD, 0, 5222, 1, 0]);
+    equals(Event.from(event).toJSON(), [0, CHORD, 0, 5222, 1]);
+});
+
+Deno.test('Event.from(chord) slash chord', () => {
+    const event = Event.of(0, "chord", "E", "{8}/", 2);
+    is(event.root, "E");
+    is(event.extension, "{8}/");
+    is(event.bass, undefined);
+    is(event.toChordSymbol(), "C/E");
+    is(event.toChordSymbol(0), "C/E");
+    is(event.toString(), "0 chord C/E 2");
+    equals(Event.from(event).toJSON(), [0, CHORD, 4, 2775, 2]);
+});
+
+Deno.test('ChordEvent.toChordSymbol()', () => {
+    const c7g = Event.of(1, "chord", "G", "{5}7/", 4);
+    is(c7g.toChordSymbol(), "C7/G");
+    is(c7g.toString(), "1 chord C7/G 4");
+
+    const cmEb = Event.of(2, "chord", "E♭", "{9}-/", 3);
+    is(cmEb.toChordSymbol(), "C-/E♭");
+    is(cmEb.toString(), "2 chord C-/E♭ 3");
+
+    const dm7 = Event.of(0, "chord", "D", "-7", 4);
+    is(dm7.toChordSymbol(), "D-7");
+    is(dm7.toString(), "0 chord D-7 4");
+
+    // Key-aware rendering of chords
+    const chord1 = Event.of(0, "chord", 1, "7", 4);
+    is(chord1.toChordSymbol("E♭"), "D♭7");
+    is(chord1.toChordSymbol("D"), "C♯7");
+
+    // A/C# in key C (extension {8}/ on root 1):
+    const aCsharp = Event.of(0, "chord", 1, "{8}/", 4);
+    is(aCsharp.toChordSymbol("C"), "A/C♯");
+
+    // D♭ major in key C (extension '' on root 1):
+    const dbMaj = Event.of(0, "chord", 1, "", 4);
+    is(dbMaj.toChordSymbol("C"), "D♭");
+
+    // C♯°7 in key C (extension '°7' on root 1):
+    const csharpDim = Event.of(0, "chord", 1, "°7", 4);
+    is(csharpDim.toChordSymbol("C"), "C♯°7");
 });
 
 Deno.test('Event.of(key)', () => {

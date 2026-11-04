@@ -4,6 +4,7 @@ import { toRootName, toRootNumber } from 'midi/note.js';
 import mod12   from '../number/mod-12.js';
 import mirror  from '../object/mirror.js';
 import { rflatsharp, toUnicode } from '../pitch.js';
+import { toKeyNumber, keyToRootNumber, KEYNAMES } from './key.js';
 import Event, { stringify } from './event.js';
 import { hsidOf, hsidFrom, hsidToNumbers } from '../harmony/hsid.js';
 
@@ -11,6 +12,8 @@ import { hsidOf, hsidFrom, hsidToNumbers } from '../harmony/hsid.js';
 const DEBUG  = globalThis.DEBUG;
 const define = Object.defineProperties;
 const { round } = Math;
+const rslashextension = /^\{(\d{1,2})\}/;
+const rchordsymbol = /^([A-G](?:bb|##|[𝄫𝄪♭♯#b]))[^\/](?:\/(\S+))?$/u;
 
 /*
 Chord symbols
@@ -31,10 +34,10 @@ scales).
 It's fragile, but it is efficient. There is a full suite of tests for various
 groups of notes in test/chord.js. Consult it before changing anything.
 
-Chord extensions containing `/{n}` number tags are slash chords. The tag should
-be replaced with the chord bass note name, while the number denotes the interval
-from the bass note to the root note of the chord (within the range 1-12), which
-should be prepended to the symbol as usual.
+Chord extensions matching /^\{\d{1,2}\}.*\/$/ are slash chords. The `{n}` tag
+denotes the interval from the bass note to the root note of the chord (within
+the range 1-11), which is replaced with the root note name, and the bass note
+name is appended after the slash.
 */
 
 const CHORDENTRIES = [
@@ -45,15 +48,15 @@ const CHORDENTRIES = [
     ['sus♭9',     hsidOf(0, 1, 5, 7)],
     ['-',         hsidOf(0, 2, 3, 7)],
     ['°',         hsidOf(0, 2, 3, 6)],
-    ['/{4}',      hsidOf(0, 3, 8, 10)],             // C/E   1st inversion
-    ['/{7}',      hsidOf(0, 5, 7, 9)],              // C/G   2nd inversion
-    ['/{8}',      hsidOf(0, 4, 8, 11)],             // C/A♭
-    ['-/{3}',     hsidOf(0, 4, 9, 11)],             // C-/E♭ 1st inversion
-    ['-/{7}',     hsidOf(0, 5, 7, 8)],              // C-/G  2nd inversion
-    ['/{11}',     hsidOf(0, 1, 5, 8)],              // C/B                       - must come after -/{7}
-    ['/{1}',      hsidOf(0, 3, 6, 11)],             // C/D♭
-    ['7/{4}',     hsidOf(0, 3, 6, 8, 10)],          // C7/E
-    ['7/{7}',     hsidOf(0, 3, 5, 9)],              // C7/G
+    ['{8}/',      hsidOf(0, 3, 8, 10)],             // C/E   1st inversion
+    ['{5}/',      hsidOf(0, 5, 7, 9)],              // C/G   2nd inversion
+    ['{4}/',      hsidOf(0, 4, 8, 11)],             // C/A♭
+    ['{9}-/',     hsidOf(0, 4, 9, 11)],             // C-/E♭ 1st inversion
+    ['{5}-/',     hsidOf(0, 5, 7, 8)],              // C-/G  2nd inversion
+    ['{1}/',      hsidOf(0, 1, 5, 8)],              // C/B                       - must come after {5}-/
+    ['{11}/',     hsidOf(0, 3, 6, 11)],             // C/D♭
+    ['{8}7/',     hsidOf(0, 3, 6, 8, 10)],          // C7/E
+    ['{5}7/',     hsidOf(0, 3, 5, 9)],              // C7/G
     ['ø',         hsidOf(0, 3, 6, 10)],
     ['∆6',        hsidOf(0, 4, 7, 9)],
     ['∆6/9',      hsidOf(0, 2, 4, 7, 9)],
@@ -185,13 +188,39 @@ export function getChordOf() {
 
 
 
+// Line-of-fifths offsets from key for semitone degrees 0..11 relative to tonic
+//           0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11
+// In C:     C  D♭   D  E♭   E   F  F♯   G  A♭   A  B♭   B
+const FIFTHS_OFFSETS = [0, -5, 2, -3, 4, -1, 6, 1, -4, 3, -2, 5];
+
+// Sharp line-of-fifths offsets for secondary leading tone / diminished chords:
+// In C:     C  C♯   D  D♯   E   F  F♯   G  G♯   A  A♯   B
+const DIM_FIFTHS_OFFSETS = [0, 7, 2, 9, 4, -1, 6, 1, 8, 3, 10, 5];
+
+function spell(key, hsid, n) {
+    const root   = toRootNumber(n);
+    const tonic  = keyToRootNumber(key);
+    const degree = mod12(root - tonic);
+
+    // If diminished chord, use sharp offsets for secondary leading tones
+    const name = hsid !== undefined && hsid !== null ?
+        (typeof hsid === 'string' ? hsid : toChordName(hsid)) :
+        '';
+
+    const isDim = name === '°' || name === '°7' || name === 'dim' || name === 'dim7';
+    const offsets = isDim ? DIM_FIFTHS_OFFSETS : FIFTHS_OFFSETS;
+    const fifths = toKeyNumber(key) + offsets[degree];
+    return KEYNAMES[fifths] || toRootName(root);
+}
+
+
 export default class ChordEvent extends Event {
-    static of(beat, root, extension = '', duration = 1, bass = 0) {
+    static of(beat, root, extension = '', duration = 1) {
         return root === undefined ?
             // Create invalid event
-            new ChordEvent({ beat, extension, duration, bass }) :
+            new ChordEvent({ beat, extension, duration }) :
             // Create valid event
-            new ChordEvent({ beat, root, extension, duration, bass }) ;
+            new ChordEvent({ beat, root, extension, duration }) ;
     }
 
     [1] = Event.TYPES.chord;
@@ -202,17 +231,37 @@ export default class ChordEvent extends Event {
     set extension(name)  { this[3] = toChordHSID(name); }
     get duration()       { return this[4]; }
     set duration(number) { this[4] = parseFloat(number); }
-    // TODO
-    get bass()           { return this[5]; }
-    set bass(number)     { this[5] = parseInt(number, 10); }
 
     transpose(n) {
         this[2] = mod12(this[2] + round(n));
         return this;
     }
 
-    toString() {
-        return `${ super.toString() } chord ${ this.root }${ this.extension } ${ stringify(this.duration) }`;
+    toChordSymbol(key = 0) {
+        const root      = this[2];
+        const hsid      = this[3];
+        const extension = toChordName(hsid);
+        const isSlash   = rslashextension.test(extension) && extension.endsWith('/');
+
+        if (isSlash) {
+            let bassName;
+            const symbol = extension.replace(rslashextension, ($0, $1) => {
+                const interval      = parseInt($1, 10);
+                const upperRoot     = mod12(root + interval);
+                const upperRootName = spell(key, null, upperRoot);
+                const bassInterval  = mod12(12 - interval);
+                const bassFifths    = toKeyNumber(upperRootName) + FIFTHS_OFFSETS[bassInterval];
+                bassName            = KEYNAMES[bassFifths] || toRootName(root);
+                return upperRootName;
+            });
+            return symbol + bassName;
+        }
+
+        return spell(key, hsid, root) + extension;
+    }
+
+    toString(key = 0) {
+        return `${ super.toString() } chord ${ this.toChordSymbol(key) } ${ stringify(this.duration) }`;
     }
 }
 

@@ -51,10 +51,9 @@ export default function deserialise(buffer) {
                     type,
                     view.getUint8(offset),               // root
                     view.getFloat64(offset + 1, true),   // hsId (harmonic structure id)
-                    view.getFloat64(offset + 9, true),   // duration
-                    view.getUint8(offset + 17)           // bass
+                    view.getFloat64(offset + 9, true)    // duration
                 ));
-                offset += 18;
+                offset += 17;
                 break;
 
             case TYPES['key']:

@@ -45,7 +45,7 @@ For `"rate"` events, the 16-bit word directly stores the Curve type (`0` - `6`).
 Most events use fixed byte counts defined in `TYPEBYTES`:
 
 - **note**: 16 bytes (pitch, dynamic, duration)
-- **chord**: 18 bytes (root, hsid, duration, bass)
+- **chord**: 17 bytes (root, hsid, duration)
 - **meter**: 4 bytes (duration, divisor)
 - **key**: 1 byte (root)
 - **clef**: 1 byte (clef id)

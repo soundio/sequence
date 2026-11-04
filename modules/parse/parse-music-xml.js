@@ -11,7 +11,8 @@ Returns a Sequence instance with nested structure:
 Sections are detected from barline styles (double, heavy, repeat) and endings.
 **/
 
-import { toNoteNumber } from 'midi/note.js';
+import { toNoteNumber, toRootNumber } from 'midi/note.js';
+import mod12 from '../number/mod-12.js';
 import Sequence from '../sequence.js';
 import parseXML, { getText, getAttr, getChild, getChildren, findDeep } from './parse-xml.js';
 import extractSections from './parse-music-xml/section.js';
@@ -237,7 +238,7 @@ function extractHarmony(harmony) {
         'augmented-seventh': '+7',
         'half-diminished': 'ø'
     };
-    const extension = extensionMap[kind] || '';
+    let extension = extensionMap[kind] || '';
 
     // Extract bass if present (for slash chords)
     const bass = getChild(harmony, 'bass');
@@ -246,10 +247,17 @@ function extractHarmony(harmony) {
     const bassAlterSymbol = bassAlter ? (parseInt(bassAlter) > 0 ? '♯' : '♭').repeat(Math.abs(parseInt(bassAlter))) : '';
     const bassName = bassStep ? bassStep + bassAlterSymbol : undefined;
 
+    if (bassName && rootName && bassName !== rootName) {
+        const interval = mod12(toRootNumber(rootName) - toRootNumber(bassName));
+        if (interval > 0) {
+            rootName = bassName;
+            extension = `{${interval}}${extension}/`;
+        }
+    }
+
     return {
         root: rootName,
-        extension,
-        bass: bassName
+        extension
     };
 }
 
