@@ -78,8 +78,7 @@ export default class SequenceIterator extends Iterator {
 
         super();
 
-console.log('new Iterator()', sequence.events.length, sequences && sequences.length, '------------------------');
-        //if (DEBUG && !(transform instanceof Transform)) throw new TypeError(`SequenceIterator() transform must be an instance of Transform`);
+        if (DEBUG && !transform.apply) throw new TypeError(`SequenceIterator() object transform has no method .apply(object)`);
 
         // Sort events by beat and type
         events.sort(byPriority);
