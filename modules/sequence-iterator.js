@@ -158,7 +158,9 @@ export default class SequenceIterator extends Iterator {
                     // Modify target destination
 //                    value.target = (value.target || 0) + iterator.target;
                     // Assign target object
-                    if (iterator.target) value.object = objects[iterator.target];
+                    if (iterator.target) {
+                        value.object = objects[iterator.target];
+                    }
                 }
 
                 // If done or beyond stop beat, mark iterator for removal
@@ -197,6 +199,7 @@ export default class SequenceIterator extends Iterator {
             const sequences = this.sequences;
             const sequence = getSequence(sequences, event[2]);
             if (!sequence) throw new Error(`Sequence id ${ typeof event[2] === 'string' ? `"${ event[2] }"` : event[2] } not found in sequences ids ${ sequences.map(get('id')) }`);
+            if (!this.objects[value[3]]) throw new Error(`Sequence object id ${ value[3] } not found in objects`);
             // Create iterator
             const iterator = new SequenceIterator(
                 sequence,
