@@ -15,6 +15,7 @@ const done = {
     value: undefined
 };
 
+const getId = get('id');
 
 function getSequence(sequences, id) {
     return sequences.find((sequence) => sequence.id === id);
@@ -198,8 +199,10 @@ export default class SequenceIterator extends Iterator {
             // Find sequence
             const sequences = this.sequences;
             const sequence = getSequence(sequences, event[2]);
-            if (!sequence) throw new Error(`Sequence id ${ typeof event[2] === 'string' ? `"${ event[2] }"` : event[2] } not found in sequences ids ${ sequences.map(get('id')) }`);
-            if (!this.objects[value[3]]) throw new Error(`Sequence object id ${ value[3] } not found in objects`);
+            // Check for problems
+            if (!sequence)                           throw new Error(`Sequence${ this.sequence.id ? ' #' + this.sequence.id : '' } event ${ n } (${ value }) sequence #${ event[2] } not found in sequence.sequences (${ sequences.map(getId) })`);
+            if (value[3] && !this.objects)           throw new Error(`Sequence${ this.sequence.id ? ' #' + this.sequence.id : '' } event ${ n } (${ value }) object #${ value[3] } not found sequence.objects is not defined`);
+            if (value[3] && !this.objects[value[3]]) throw new Error(`Sequence${ this.sequence.id ? ' #' + this.sequence.id : '' } event ${ n } (${ value }) object #${ value[3] } not found in sequence.objects (${ this.objects.map(getId) })`);
             // Create iterator
             const iterator = new SequenceIterator(
                 sequence,
