@@ -86,3 +86,4 @@ assign(Sequence.prototype, {
 
 
 export default Sequence;
+export { Sequence };
