@@ -111,9 +111,9 @@ Here are the first two bars of Dolphin Dance represented as Sequence JSON:
 > [!NOTE]
 > `Sequence.from()` and `Event.from()` accept both human-readable string tokens
 > (such as `"note"`, `"E5"`, `"mf"`, `"step"`, `"∆"`) and compact numeric encodings.
-> When parsed all values are stored in memory and serialised as numeric values.
-> instances store numeric event type IDs, MIDI note numbers, linear gain values,
-> curve IDs, and Harmonic Structure IDs (HSIDs).
+> When parsed all values are stored in memory and serialised as numeric values:
+> numeric event type IDs, MIDI note numbers, linear gain values, curve IDs, and
+> Harmonic Structure IDs (HSIDs).
 
 
 ## Sequence
@@ -173,13 +173,13 @@ An array of strings used to classify the sequence.
 ## Event
 
 ```js
-[beat, type, ...params)
+[beat, type, ...params]
 ```
 
-`.beat` – FLOAT<br/>
+`beat` – FLOAT<br/>
 Describes a point in time from the start of the sequence in beats.
 
-`.type` – STRING | INT<br/>
+`type` – STRING | INT<br/>
 The event type name (or numeric type ID `1–8`), which determines the length of
 the event array and the structure of the remaining values:
 
@@ -200,7 +200,7 @@ the event array and the structure of the remaining values:
 ### `"note"`
 
 ```js
-[beat, "note", pitch, gain, duration)
+[beat, "note", pitch, gain, duration]
 ```
 
 `pitch` – FLOAT [0-127] | STRING<br/>
