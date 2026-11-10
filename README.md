@@ -452,8 +452,8 @@ performance sounds.
 `identifier` – INT [1-65535]<br/>
 The `id` of a sequence found in the parent sequence's `sequences` array.
 
-`target` – INT | STRING<br/>
-The identifier of an instrument or part to route the nested sequence to.
+`target` – INT<br/>
+The identifier of an instrument object to route the nested sequence to.
 
 `duration` – FLOAT<br/>
 The duration in beats to play the nested sequence (in the parent sequence's beat
@@ -467,13 +467,13 @@ and consumed (they do not appear on the iterated output events):
 - `"rate", scale` – scales playback speed (`2` = double speed / half duration)
 - `"transpose", semitones` – shifts pitch of `"note"` and `"chord"` events
 - `"gain", scale` – scales linear gain of `"note"` events
-- `"swing", division` – applies swing timing to off-beat events
+- `"swing", division, strength` – applies swing quantisation
 
 For example, this event plays sequence `1` through `"piano"` starting at beat
 `0.5` for `4` beats, transposed up 2 semitones at double rate:
 
 ```json
-[0.5, "sequence", 1, "piano", 4, "transpose", 2, "rate", 2]
+[0.5, "sequence", 1, 0, 4, "transpose", 2, "rate", 2]
 ```
 
 
