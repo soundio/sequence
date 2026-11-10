@@ -85,17 +85,17 @@ Deno.test('parseSequence() specification example', () => {
     is(sequence.events[4].TARGET, 'bass');
     is(sequence.events[4].duration, 0);
 
-    is(sequence.events[5][0], 4);
-    is(sequence.events[5].type, 'sequence');
-    is(sequence.events[5].identifier, 1);
-    is(sequence.events[5].TARGET, 'piano');
-    is(sequence.events[5].duration, 0);
+    is(sequence.events[5][0], 3);
+    is(sequence.events[5].type, 'chord');
+    is(sequence.events[5].root, 'D');
+    is(sequence.events[5].extension, '-7'); // Dm7 normalised to -7 in ChordEvent
+    is(sequence.events[5].duration, 1);     // Truncated by chord G∆ at beat 4
 
-    is(sequence.events[6][0], 3);
-    is(sequence.events[6].type, 'chord');
-    is(sequence.events[6].root, 'D');
-    is(sequence.events[6].extension, '-7'); // Dm7 normalised to -7 in ChordEvent
-    is(sequence.events[6].duration, 2);
+    is(sequence.events[6][0], 4);
+    is(sequence.events[6].type, 'sequence');
+    is(sequence.events[6].identifier, 1);
+    is(sequence.events[6].TARGET, 'piano');
+    is(sequence.events[6].duration, 0);
 
     is(sequence.events[7][0], 4);
     is(sequence.events[7].type, 'chord');
@@ -190,8 +190,8 @@ Deno.test('parseSequence() slash chords', () => {
 Deno.test('parseSequence() chord symbols and duration disambiguation', () => {
     const text = `
     0 chord C 7
-    2 chord C7 7
-    4 chord C7
+    8 chord C7 7
+    16 chord C7
     `;
 
     const seq = parseSequence(text);
@@ -203,15 +203,49 @@ Deno.test('parseSequence() chord symbols and duration disambiguation', () => {
     is(seq.events[0].duration, 7);
     is(seq.events[0].toChordSymbol(), 'C');
 
-    // 2 chord C7 7 -> C7, duration 7
+    // 8 chord C7 7 -> C7, duration 7
     is(seq.events[1].root, 'C');
     is(seq.events[1].extension, '7');
     is(seq.events[1].duration, 7);
     is(seq.events[1].toChordSymbol(), 'C7');
 
-    // 4 chord C7 -> C7, default duration 2
+    // 16 chord C7 -> C7, default duration 2
     is(seq.events[2].root, 'C');
     is(seq.events[2].extension, '7');
     is(seq.events[2].duration, 2);
     is(seq.events[2].toChordSymbol(), 'C7');
+});
+
+Deno.test('parseSequence() event labels after backslash', () => {
+    const text = `
+     0 note 69 mp 1
+     1 B4 mf 1 \\C      // Anything following a backslash is attached to the resulting event as event.label, a string
+     2 C5 2      \\C     // The backslash can be preceded by any number of spaces
+     3 chord Dm7 1        \\  C    // Whitespace following the backslash is trimmed
+     4 chord G∆ 4     \\ G
+     4 F5 3    \\    You can write arbitrary information in a label. This should appear in the label.
+     4 D#5 3   \\ F#  // But we are going to use it for labelling events with local key information for training the speller
+     7 G♯5 1  \\ F#
+     7 E♭5 1   \\Bb
+    `;
+
+    const seq = parseSequence(text);
+    is(seq.events.length, 9);
+
+    is(seq.events[0].label, undefined);
+    is(seq.events[1].label, 'C');
+    is(seq.events[2].label, 'C');
+    is(seq.events[3].label, 'C');
+    is(seq.events[4].label, 'G');
+    is(seq.events[5].label, 'You can write arbitrary information in a label. This should appear in the label.');
+    is(seq.events[6].label, 'F#');
+    is(seq.events[7].label, 'F#');
+    is(seq.events[8].label, 'Bb');
+
+    // Verify labels survive SequenceIterator / Event.from()
+    const iterated = Array.from(seq);
+    is(iterated[0].label, undefined);
+    is(iterated[1].label, 'C');
+    is(iterated[5].label, 'You can write arbitrary information in a label. This should appear in the label.');
+    is(iterated[8].label, 'Bb');
 });

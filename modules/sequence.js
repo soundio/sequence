@@ -33,48 +33,40 @@ export default class Sequence {
             throw new Error(`Sequence.add() cannot add invalid ${ event.constructor.name } ${ JSON.stringify(event.toJSON) }`);
         }
 
+        // Enable event.remove()
+        event.events = this.events;
+        const i = insert(this.events, event);
+
         // Enforce sequence rules
         switch (event[1]) {
             // No overlapping chords or text
             case Event.TYPES.chord:
             case Event.TYPES.text: {
-                // Find previous event of same type
-                let n = -1, prev;
-                while (this.events[++n] && this.events[n][0] <= event[0]) {
-                    if (this.events[n].constructor === event.constructor) {
-                        prev = this.events[n];
-                    }
-                }
-                // Existing event on same beat, remove it
-                if (prev && prev[0] === event[0]) {
-                    prev.remove();
-                }
-                // If overlapping event found truncate it
-                else if (prev && prev[0] + prev.duration > event[0]) {
-                    prev.duration = event[0] - prev[0];
-                }
-                // Find next event of type
-                --n;
-                while (this.events[++n] && this.events[n].constructor !== event.constructor);
+                // Find next event of same type
+                let n = i;
+                while (this.events[++n] && this.events[n][1] !== event[1]);
                 const next = this.events[n];
                 // If event overlaps next event truncate it
                 if (next && event[0] + event.duration > next[0]) {
                     event.duration = next[0] - event[0];
                 }
-                break;
-            }
 
-            // Sequence events should refer to sequences that actually exist
-            case Event.TYPES.sequence: {
-                if (!this.get(event.identifier)) {
-                    console.warn('Added SequenceEvent refers to sequence not in sequences');
+                // Find previous event of same type
+                n = i;
+                while (this.events[--n] && this.events[n][1] !== event[1]);
+                const prev = this.events[n];
+                // Existing event on same beat, remove it
+                if (prev && prev[0] === event[0]) {
+                    this.events.splice(n, 1);
+                }
+                // If overlapping event found truncate it
+                else if (prev && prev[0] + prev.duration > event[0]) {
+                    prev.duration = event[0] - prev[0];
                 }
                 break;
             }
         }
 
-        event.events = this.events;
-        insert(this.events, event);
         return this;
     }
 
