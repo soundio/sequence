@@ -35,7 +35,7 @@ export default class NoteEvent extends Event {
 
     set pitch(pitch) {
         // Keep a record of the original spelling that created this pitch
-        this.pitchSrc = pitch;
+        this.sourcePitch = pitch;
         // TEMP. TODO! Stop SequenceIterator transposing drum notes.
         this.isDrumNote = typeof pitch !== 'number' && !rnotename.test(pitch);
         this.number = pitch;
