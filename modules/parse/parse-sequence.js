@@ -51,7 +51,7 @@ import Sequence from '../sequence.js';
 
 const DEBUG   = globalThis.DEBUG;
 const rheader = /^#\s*(?:(\d+)\s*)?(.*)$/;
-const rline   = /[^\S\r\n]*(.*?)[^\S\r\n]*(?:\\[^\S\r\n]*(.*?)[^\S\r\n]*)?(?:\/\/[^\r\n]*)?(?:\r?\n|$)/gy;
+const rline   = /[^\S\r\n]*(.*?)[^\S\r\n]*(?:\|[^\S\r\n]*(.*?)[^\S\r\n]*)?(?:\/\/[^\r\n]*)?(?:\r?\n|$)/gy;
 
 
 /**

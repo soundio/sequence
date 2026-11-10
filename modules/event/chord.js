@@ -13,7 +13,7 @@ const DEBUG  = globalThis.DEBUG;
 const define = Object.defineProperties;
 const { round } = Math;
 const rslashextension = /^\{(\d{1,2})\}/;
-const rchordsymbol = /^([A-G](?:bb|##|[𝄫𝄪♭♯#b])?)\s*([^\/\s]*)\s*(?:\/\s*(\S+))?$/u;
+const rchordsymbol = /^([A-G](?:bb|##|[𝄫𝄪♭♯#b])?)\s*(.*?)(?:\s*\/\s*([A-G](?:bb|##|[𝄫𝄪♭♯#b])?))?$/u;
 
 /*
 Chord symbols
@@ -98,6 +98,7 @@ CHORDNUMBERS['dim']    = CHORDNUMBERS['°'];
 CHORDNUMBERS['dim7']   = CHORDNUMBERS['°7'];
 CHORDNUMBERS['maj']    = CHORDNUMBERS[''];
 CHORDNUMBERS['maj7']   = CHORDNUMBERS['∆'];
+CHORDNUMBERS['6/9']    = CHORDNUMBERS['∆6/9'];
 CHORDNUMBERS['min']    = CHORDNUMBERS['-'];
 CHORDNUMBERS['min7']   = CHORDNUMBERS['-7'];
 CHORDNUMBERS['m']      = CHORDNUMBERS['-'];
@@ -261,7 +262,11 @@ export default class ChordEvent extends Event {
     [1] = Event.TYPES.chord;
 
     get root()           { return toRootName(this[2]); }
-    set root(name)       { this[2] = toRootNumber(name); }
+    set root(name)       {
+        this.sourcePitch = name;
+        this[2] = toRootNumber(name);
+    }
+
     get extension()      { return toChordName(this[3]); }
     set extension(name)  { this[3] = toChordHSID(name); }
     get duration()       { return this[4]; }
@@ -296,7 +301,7 @@ export default class ChordEvent extends Event {
     }
 
     toString(key = 0) {
-        return `${ super.toString() } chord ${ this.toChordSymbol(key) } ${ stringify(this.duration) }`;
+        return `${ super.toString() } chord ${ this.toChordSymbol(key) } ${ stringify(this.duration) }${ this.label ? ' | ' + this.label : '' }`;
     }
 }
 

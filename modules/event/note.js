@@ -72,7 +72,7 @@ export default class NoteEvent extends Event {
     }
 
     toString() {
-        return `${ super.toString() } note ${ this.pitch } ${ this.gain } ${ stringify(this.duration) }`;
+        return `${ super.toString() } ${ (this.pitch.length === 2 ? ' ' : '') + this.pitch }${ this.gain === '-20dB' ? '' : ' ' + this.gain } ${ stringify(this.duration) }${ this.label ? ' | ' + this.label : '' }`;
     }
 }
 

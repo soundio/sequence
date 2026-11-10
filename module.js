@@ -1,6 +1,7 @@
 
 export { default as Event } from './modules/event.js';
 
+import Event         from './modules/event.js';
 import Sequence      from './modules/sequence.js';
 import parse         from './modules/parse/parse-sequence.js';
 import { VERSION }   from './modules/record/serialise.js';
@@ -69,8 +70,16 @@ assign(Sequence.prototype, {
             '' ;
 
         // Top-level sequence events
-        let event;
+        let event, beat, duration;
         for (event of this.events) {
+            if (event[0] >= beat + duration) string += '\n';
+            while (event[0] >= beat + duration) beat += duration;
+
+            if (Event.isMeter(event)) {
+                beat     = event.beat;
+                duration = event.duration;
+            }
+
             string += '\n' + event.toString();
         }
 

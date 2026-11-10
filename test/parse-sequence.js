@@ -216,17 +216,17 @@ Deno.test('parseSequence() chord symbols and duration disambiguation', () => {
     is(seq.events[2].toChordSymbol(), 'C7');
 });
 
-Deno.test('parseSequence() event labels after backslash', () => {
+Deno.test('parseSequence() event labels after pipe', () => {
     const text = `
      0 note 69 mp 1
-     1 B4 mf 1 \\C      // Anything following a backslash is attached to the resulting event as event.label, a string
-     2 C5 2      \\C     // The backslash can be preceded by any number of spaces
-     3 chord Dm7 1        \\  C    // Whitespace following the backslash is trimmed
-     4 chord G∆ 4     \\ G
-     4 F5 3    \\    You can write arbitrary information in a label. This should appear in the label.
-     4 D#5 3   \\ F#  // But we are going to use it for labelling events with local key information for training the speller
-     7 G♯5 1  \\ F#
-     7 E♭5 1   \\Bb
+     1 B4 mf 1 | C      // Anything following a pipe is attached as event.label
+     2 C5 2      | C    // The pipe can be preceded by any number of spaces
+     3 chord Dm7 1        |  C    // Whitespace following the pipe is trimmed
+     4 chord G∆ 4     | G
+     4 F5 3    |    You can write arbitrary information in a label. This should appear in the label.
+     4 D#5 3   | F#  // Local key info for speller
+     7 G♯5 1  | F#
+     7 E♭5 1   | Bb
     `;
 
     const seq = parseSequence(text);

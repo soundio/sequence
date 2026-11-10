@@ -75,6 +75,8 @@ Deno.test('ChordEvent.of() parsing chord symbols', () => {
     // Slash chord with explicit duration
     const ce = Event.of(0, "chord", "C/E", 2);
     is(ce.root, "E");
+    is(ce.sourcePitch, "E");
+    is(ce.pitch, "E");
     is(ce.extension, "{8}/");
     is(ce.duration, 2);
     is(ce.toChordSymbol(), "C/E");
@@ -84,6 +86,7 @@ Deno.test('ChordEvent.of() parsing chord symbols', () => {
     // Slash chord with 7th
     const c7g = Event.of(1, "chord", "C7/G", 4);
     is(c7g.root, "G");
+    is(c7g.sourcePitch, "G");
     is(c7g.extension, "{5}7/");
     is(c7g.duration, 4);
     is(c7g.toChordSymbol(), "C7/G");
@@ -91,6 +94,7 @@ Deno.test('ChordEvent.of() parsing chord symbols', () => {
     // Minor slash chord with flat accidental
     const cmEb = Event.of(2, "chord", "C-/E♭", 3);
     is(cmEb.root, "E♭");
+    is(cmEb.sourcePitch, "E♭");
     is(cmEb.extension, "{9}-/");
     is(cmEb.duration, 3);
     is(cmEb.toChordSymbol(), "C-/E♭");
@@ -98,6 +102,7 @@ Deno.test('ChordEvent.of() parsing chord symbols', () => {
     // Standard chord with alias 'm7' -> '-7'
     const dm7 = Event.of(0, "chord", "Dm7", 4);
     is(dm7.root, "D");
+    is(dm7.sourcePitch, "D");
     is(dm7.extension, "-7");
     is(dm7.duration, 4);
     is(dm7.toChordSymbol(), "D-7");
@@ -120,6 +125,19 @@ Deno.test('ChordEvent.of() parsing chord symbols', () => {
     is(aCsharp.root, "C♯");
     is(aCsharp.extension, "{8}/");
     is(aCsharp.toChordSymbol("C"), "A/C♯");
+
+    // 6/9 chord with slash in extension
+    const c69 = Event.of(0, "chord", "C∆6/9", 2);
+    is(c69.root, "C");
+    is(c69.extension, "∆6/9");
+    is(c69.duration, 2);
+    is(c69.toChordSymbol(), "C∆6/9");
+
+    const c69alias = Event.of(0, "chord", "C6/9", 2);
+    is(c69alias.root, "C");
+    is(c69alias.extension, "∆6/9");
+    is(c69alias.duration, 2);
+    is(c69alias.toChordSymbol(), "C∆6/9");
 });
 
 Deno.test('Event.of(key)', () => {
