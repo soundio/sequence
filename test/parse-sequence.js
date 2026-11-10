@@ -66,7 +66,7 @@ Deno.test('parseSequence() specification example', () => {
 
     is(sequence.events[1][0], 0);
     is(sequence.events[1].type, 'meter');
-    is(sequence.events[1].numerator, 4);
+    is(sequence.events[1].duration, 4);
     is(sequence.events[1].denominator, 1);
 
     is(sequence.events[2][0], 0);
@@ -147,7 +147,7 @@ Deno.test('parseSequence() comments and permissive formatting', () => {
     is(seq.events.length, 5);
 
     is(seq.events[0].name, 'D');
-    is(seq.events[1].numerator, 3);
+    is(seq.events[1].duration, 3);
     is(seq.events[1].denominator, 1);
     is(seq.events[2].pitch, 'G4');
     is(seq.events[2].gain, '-20dB');

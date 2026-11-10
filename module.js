@@ -1,4 +1,6 @@
-import Event         from './modules/event.js';
+
+export { default as Event } from './modules/event.js';
+
 import Sequence      from './modules/sequence.js';
 import parse         from './modules/parse/parse-sequence.js';
 import { VERSION }   from './modules/record/serialise.js';
@@ -84,4 +86,4 @@ assign(Sequence.prototype, {
 
 
 export default Sequence;
-export { Event, /* Deprecated */ Sequence };
+export { Event };

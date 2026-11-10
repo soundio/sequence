@@ -70,14 +70,14 @@ export function meterToTimesig(meter) {
 }
 
 export default class MeterEvent extends Event {
-    static of(beat, numerator, denominator) {
-        return new MeterEvent({ beat, numerator, denominator });
+    static of(beat, duration, denominator) {
+        return new MeterEvent({ beat, duration, denominator });
     }
 
     [1] = Event.TYPES.meter;
 
-    get numerator()         { return this[2]; }
-    set numerator(number)   { this[2] = parseInt(number, 10); }
+    get duration()          { return this[2]; }
+    set duration(number)    { this[2] = parseInt(number, 10); }
     get denominator()       { return this[3]; }
     set denominator(number) { this[3] = roundPow2(number); }
     get timesig()           { return meterToTimesig(this); }

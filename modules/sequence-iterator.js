@@ -1,10 +1,11 @@
 
-import get                from 'fn/get.js';
-import Event              from './event.js';
-import Transform          from './transform.js';
+import get        from 'fn/get.js';
+import matches    from 'fn/matches.js';
+import Event      from './event.js';
+import Transform  from './transform.js';
 import { beatAtLocation, locationAtBeat } from './location.js';
-import byPriority         from './events/by-priority.js';
-import { CURVES }   from './event/curves.js';
+import byPriority from './events/by-priority.js';
+import { CURVES } from './event/curves.js';
 
 
 const DEBUG   = globalThis.DEBUG;
@@ -18,12 +19,7 @@ const done = {
 const getId = get('id');
 
 function getSequence(sequences, id) {
-    return sequences.find((sequence) => sequence.id === id);
-}
-
-function intoIdMap(object, item) {
-    object[item.id] = item;
-    return object;
+    return sequences.find(matches({ id }));
 }
 
 function readRateEvents(rates, events) {
@@ -74,7 +70,7 @@ export default class SequenceIterator extends Iterator {
     startBeat = 0;
     stopBeat  = Infinity;
 
-    constructor(sequence, transform = Transform.identity, startBeat = 0, stopBeat = Infinity, sequences = nothing, objects) {
+    constructor(sequence, transform = Transform.identity, startBeat = 0, stopBeat = Infinity, sequences = nothing/*, objects*/) {
         const { events } = sequence;
 
         super();
@@ -98,10 +94,6 @@ export default class SequenceIterator extends Iterator {
         this.sequences = sequence.sequences ?
             sequence.sequences.concat(sequences) :
             sequences ;
-        // Target objects
-        this.objects = sequence.objects ?
-            sequence.objects.reduce(intoIdMap, {}) :
-            objects ;
 
         // Read rate events into #rates automation array
         readRateEvents(this.#rates, events)
@@ -113,28 +105,23 @@ export default class SequenceIterator extends Iterator {
     }
 
     next() {
-        const { sequence, events, objects, transform, n } = this;
+        const { sequence, events, /*objects, */transform, n } = this;
         const event = events[n + 1];
 
         let value;
 
         if (event) {
             value = Event.from(event);
-//console.log(1, value);
             // Modify event by sequence's rate events
             value[0] = locationAtBeat(this.#rates, value[0]);
-//console.log(2, value);
             // Modify event by sequence event's transforms
             value = transform.apply(value);
-//console.log(3, value);
             // Modify event sequence event's start beat
             value[0] += this.startBeat;
-//console.log(4, value);
             // Keep some internal data
             value.sequence = sequence;
             value.events   = events;
             value.event    = event;
-//            value.sequencer = this;
         }
 
         //const value = event && transform(transforms, Event.from(event/*, n + 1, events*/));
@@ -145,7 +132,7 @@ export default class SequenceIterator extends Iterator {
         let x;
         while (iterator = this[++i]) {
             let value = iterator.value;
-            const stopBeat = this.startBeat + iterator.stopBeat;
+            const stopBeat = Math.min(this.stopBeat, this.startBeat + iterator.stopBeat);
 
             if (!value) {
                 // Get next value from iterator and transform it for current context
@@ -157,10 +144,10 @@ export default class SequenceIterator extends Iterator {
                     // Modify event sequence event's start beat
                     value[0] += this.startBeat;
                     // Modify target destination
-//                    value.target = (value.target || 0) + iterator.target;
-                    // Assign target object
-                    if (iterator.target) {
-                        value.object = objects[iterator.target];
+                    if (iterator.target !== undefined) {
+                        value.target = typeof value.target === 'number' && typeof iterator.target === 'number' ?
+                            value.target + iterator.target :
+                            iterator.target ;
                     }
                 }
 
@@ -188,7 +175,7 @@ export default class SequenceIterator extends Iterator {
         }
 
         // We're out of events TODO: we may not be out of iterators??
-        if (!value) return assign(this, done);
+        if (!value || value[0] >= this.stopBeat) return assign(this, done);
 
         // Advance index and assign event as this.value
         this.n += 1;
@@ -200,10 +187,8 @@ export default class SequenceIterator extends Iterator {
             const sequences = this.sequences;
             const sequence = getSequence(sequences, event[2]);
             // Check for problems
-            if (!sequence)                           throw new Error(`Sequence${ this.sequence.id ? ' #' + this.sequence.id : '' } event ${ n } (${ value }) sequence #${ event[2] } not found in sequence.sequences (${ sequences.map(getId) })`);
-            if (value[3] && !this.objects)           throw new Error(`Sequence${ this.sequence.id ? ' #' + this.sequence.id : '' } event ${ n } (${ value }) object #${ value[3] } not found sequence.objects is not defined`);
-            if (value[3] && !this.objects[value[3]]) throw new Error(`Sequence${ this.sequence.id ? ' #' + this.sequence.id : '' } event ${ n } (${ value }) object #${ value[3] } not found in sequence.objects (${ this.objects.map(getId) })`);
-            // Create iterator
+            if (!sequence) throw new Error(`Sequence${ this.sequence.id ? ' #' + this.sequence.id : '' } event ${ n } (${ value }) sequence #${ event[2] } not found in sequence.sequences (${ sequences.map(getId) })`);
+            // Create child iterator
             const iterator = new SequenceIterator(
                 sequence,
                 // Transform
@@ -213,9 +198,7 @@ export default class SequenceIterator extends Iterator {
                 // Stop beat
                 event[0] + event[4],
                 // Reference to sequences
-                this.sequences,
-                // Reference to objects map
-                this.objects
+                sequences
             );
             // Store info about the event on the iterator object
             iterator.target = value[3];
@@ -225,7 +208,8 @@ export default class SequenceIterator extends Iterator {
             this[i] = iterator;
         }
 
-        // Return iterator, as it has the required { value, done } structure
+        // Cheekily return iterator, as it has the required { value, done }
+        // structure but be aware that it is not an immutable object
         return this;
     }
 

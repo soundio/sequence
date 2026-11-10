@@ -1,7 +1,7 @@
 
 import mod    from 'fn/mod.js';
 import mirror from '../object/mirror.js';
-import { rflatsharp, toUnicode }    from '../pitch.js';
+import { normalisePitch } from '../pitch.js';
 import { toRootName } from 'midi/note.js';
 import Event  from './event.js';
 
@@ -60,7 +60,7 @@ export function toKeyName(value) {
 
 export function toKeyNumber(value) {
     if (typeof value === 'number') return value;
-    const name = value.replaceAll(rflatsharp, toUnicode);
+    const name = normalisePitch(value);
     if (name in KEYNUMBERS) return KEYNUMBERS[name];
     throw new Error(`Key "${ value }" not recognised`);
 }

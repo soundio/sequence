@@ -3,7 +3,7 @@ import get     from 'fn/get.js';
 import { toRootName, toRootNumber } from 'midi/note.js';
 import mod12   from '../number/mod-12.js';
 import mirror  from '../object/mirror.js';
-import { rflatsharp, toUnicode } from '../pitch.js';
+import { normalisePitch } from '../pitch.js';
 import { toKeyNumber, keyToRootNumber, KEYNAMES } from './key.js';
 import Event, { stringify } from './event.js';
 import { hsidOf, hsidFrom, hsidToNumbers } from '../harmony/hsid.js';
@@ -41,7 +41,6 @@ name is appended after the slash.
 */
 
 const CHORDENTRIES = [
-    // Chords without 7ths
     ['',          hsidOf(0, 2, 4, 7)],              // Before '+' so that 0,2,4 shows identifies with this
     ['+',         hsidOf(0, 2, 4, 8)],
     ['sus',       hsidOf(0, 2, 5, 7)],
@@ -118,16 +117,11 @@ const rparenthesis = /[()]/g;
 
 export function toChordHSID(value) {
     return typeof value === 'string' ?
-            CHORDNUMBERS[
-                value
-                .replaceAll(rparenthesis, '')
-                .replaceAll(rflatsharp, toUnicode)
-            ] :
+            CHORDNUMBERS[normalisePitch(value.replaceAll(rparenthesis, ''))] :
         typeof value === 'object' ?
             hsidFrom(value) :
         value ;
 }
-
 
 export function toChordName(value) {
     const hsid = toChordHSID(value);
