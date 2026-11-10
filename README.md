@@ -1,36 +1,35 @@
 # Sequence
 
 Sequence data is a structure for storing and transferring sequences of timed
-events such as music. It is high-resolution performance data (not just notation
-data) designed to align with the requirements of WebAudio, and is (almost) a
-superset of MIDI 2.0 (and therefore MIDI 1.0), transmittable via MIDI or OSC.
+performance data, designed to align with the requirements of WebAudio.
 
-Consumers of Sequence data are expected to silently ignore unsupported event
-types, allowing the set of events to be extended for other applications.
+> [!NOTE]
+> Consumers of Sequence data are expected to silently ignore unsupported
+> properties and event types. Sequence data is an extensible base for other
+> other applications.
 
 
 ## In this repository
 
 - Specification of the format of Sequence data (this README)
-- Reference implementation of an iterable `Sequence` object and `SequenceIterator`
-- Reference implementation of `Event` objects and `Transform` pipe
-- Sequence text parser (`Sequence.parse()`) and serialiser (`sequence.toString()`)
-- MusicXML 4.0 and MIDI 1.0 / 2.0 clip converters
-- [io.sound.sequence](https://atproto.at/lexicon/io.sound.sequence) AT Protocol lexicon, validator, and binary event serialiser
+- Implementations of `Sequence` and `Event` constructors, `Transform` pipes and a `SequenceIterator`
+- Sequence parsers and serialisers
+<!--- MusicXML 4.0 and MIDI 1.0 / 2.0 clip converters-->
+- [io.sound.sequence](https://atproto.at/lexicon/io.sound.sequence) AT Protocol lexicon, validator, and binary events serialiser
 
 
 ## Formats & Usage
 
 Sequence data may be represented as:
 
-- **Sequence JSON** (`file.json`, `type="application/json"`)
-- **Sequence text** (`file.sequence`, `type="text/sequence"`)
-- **AT Protocol record** ([io.sound.sequence](https://atproto.at/lexicon/io.sound.sequence), `record.json`, `type="application/json"`)
+- **Sequence JSON** (`.json`, `type="application/json"`)
+- **Sequence text** (`.sequence`, `type="text/sequence"`)
+- **AT Protocol record** ([io.sound.sequence](https://atproto.at/lexicon/io.sound.sequence), `.json`, `type="application/json"`)
 
 ```js
 import Sequence from './module.js';
 
-// Create a Sequence from Sequence JSON or an AT Protocol record
+// Create a Sequence from JSON data
 const sequence = Sequence.from(data);
 
 // Or parse from human-readable Sequence text
@@ -90,8 +89,7 @@ The Sequence format defines two data structures: a `Sequence` object and an
 
 ## Example JSON
 
-Here are the first two bars of Dolphin Dance represented as human-readable
-Sequence JSON:
+Here are the first two bars of Dolphin Dance represented as Sequence JSON:
 
 ```json
 {
@@ -100,12 +98,12 @@ Sequence JSON:
         [0,   "meter", 4, 1],
         [0,   "rate", "step", 2],
         [0,   "chord", "C", "∆", 4],
-        [2,   "note", "E5", "mf", 0.5],
-        [2.5, "note", "F5", "mp", 0.5],
-        [3,   "note", "G5", "f", 0.5],
-        [3.5, "note", "D5", "f", 3.5],
+        [2,   "note", "E5", "mp", 0.5],
+        [2.5, "note", "F5", "mf", 0.5],
+        [3,   "note", "G5", "mp", 0.5],
+        [3.5, "note", "D5", "mf", 3.5],
         [4,   "chord", "G", "-7", 4],
-        [10,  "note", "E5", "f", 0.5]
+        [10,  "note", "E5", "-16dB", 0.5]
     ]
 }
 ```
@@ -113,7 +111,7 @@ Sequence JSON:
 > [!NOTE]
 > `Sequence.from()` and `Event.from()` accept both human-readable string tokens
 > (such as `"note"`, `"E5"`, `"mf"`, `"step"`, `"∆"`) and compact numeric encodings.
-> In memory and when serialised with `JSON.stringify(sequence)`, `Event`
+> When parsed all values are stored in memory and serialised as numeric values.
 > instances store numeric event type IDs, MIDI note numbers, linear gain values,
 > curve IDs, and Harmonic Structure IDs (HSIDs).
 
@@ -137,6 +135,7 @@ Sequences may also have the properties:
 {
     "id": 1,
     "url": "https://...",
+    "version": 1,
     "name": "My Sequence",
     "events": [...],
     "sequences": [...],
@@ -174,13 +173,13 @@ An array of strings used to classify the sequence.
 ## Event
 
 ```js
-[beat, type, ...params]
+[beat, type, ...params)
 ```
 
-`beat` – FLOAT<br/>
+`.beat` – FLOAT<br/>
 Describes a point in time from the start of the sequence in beats.
 
-`type` – STRING | INT<br/>
+`.type` – STRING | INT<br/>
 The event type name (or numeric type ID `1–8`), which determines the length of
 the event array and the structure of the remaining values:
 
@@ -201,7 +200,7 @@ the event array and the structure of the remaining values:
 ### `"note"`
 
 ```js
-[beat, "note", pitch, gain, duration]
+[beat, "note", pitch, gain, duration)
 ```
 
 `pitch` – FLOAT [0-127] | STRING<br/>
@@ -262,7 +261,9 @@ Where `curve` is `"target"`, represents the exponential `timeConstant` in beats
 ```js
 [beat, "rate", "hold"]
 [beat, "rate", "cancel"]
-[beat, "rate", curve, value]
+[beat, "rate", "set", value]
+[beat, "rate", "linear", value]
+[beat, "rate", "exponential", value]
 [beat, "rate", "target", value, duration]
 ```
 
@@ -345,9 +346,8 @@ defined at beat `0` consumers should assume a default meter of 4/4 – i.e.
 
 `root` – INT [0-11] | STRING ["A♭"-"G♯"]<br/>
 Represents the root of a chord. Where `root` is a number it represents the pitch
-class `0–11` (`0` = `C`). Where `root` is a string it may be a root note name
-(`"C"`, `"C♯"`, `"D"`, ..., `"B♭"`, `"B"`) or, in the 3/4-element shorthand, a
-full chord symbol such as `"Dm7"`, `"G7♭9"`, or `"C/E"`.
+class `0–11` (`0` = `C`). Where `root` is a string it must be a root note name:
+`"C"`, `"C♯"`, `"D"`, ..., `"B♭"`, `"B"`.
 
 `extension` – INT (HSID) | STRING<br/>
 Represents a harmonic structure as a chord quality string (e.g. `"∆"`, `"-7"`,
@@ -359,37 +359,62 @@ number of larger harmonic structures, have an HSID. A single note always has an
 HSID of `0` and simple intervals map so that a semitone `[0, 1]` has HSID `1`,
 a whole tone `[0, 2]` has HSID `2` and so on.
 
-HSIDs encode intervals between notes using base 36 maths. In JavaScript, 64-bit
-numbers safely carry integers up to `Number.MAX_SAFE_INTEGER`. This imposes two
-constraints:
+HSIDs encode intervals between notes using base 36 (6 bit) maths. In JavaScript,
+64-bit numbers safely carry integers up to `Number.MAX_SAFE_INTEGER`. This
+imposes two constraints:
 
 - Consecutive note numbers cannot have an interval any greater than 35
 - Harmonic structures are limited to 11 note numbers (10 intervals)
 
-| Symbol      | HSID       | Meaning |
-| :---------- | :--------- | :----------------------------------- |
-| `"∆♯11"`    | 187996     | 4th mode of the major scale (lydian) |
-| `"∆"`       | 5296       | 1st mode of the major scale (ionian) |
-| `"7"`       | 4000       | 5th mode of the major scale (mixolydian) |
-| `"-7"`      | 4035       | 2nd mode of the major scale (dorian) |
-| `"-♭6"`     | 94755      | 6th mode of the major scale (aeolian) |
-| `"7sus♭9"`  | 142705     | Japanese insen scale |
-| `"-♭9"`     | 93495      | 3rd mode of the major scale (phrygian) |
-| `"ø"`       | 982        | Half-diminished 7th (locrian tetrad) |
-| `"7♯11"`    | 63874730   | 4th mode of melodic minor |
-| `"-∆"`      | 124387526  | 1st mode of melodic minor |
-| `"7♭13"`    | 122706650  | 5th mode of melodic minor |
-| `"13sus♭9"` | 63921385   | 2nd mode of melodic minor |
-| `"ø9"`      | 124340870  | 6th mode of melodic minor |
-| `"∆♯4♯5"`   | 122707946  | 3rd mode of melodic minor |
-| `"7alt"`    | 124386265  | 7th mode of melodic minor |
-| `"-∆♭6"`    | 183174086  | 1st mode of harmonic minor |
-| `"7♭9♭13"`  | 122706685  | 5th mode of harmonic minor |
-| `"∆♭6"`     | 183172826  | 1st mode of harmonic major |
-| `"°7"`      | 4417439366 | Diminished whole step / half step |
-| `"7♭9"`     | 64013380   | Half step / whole step (no 13th) |
-| `"13♭9"`    | 2299488985 | Diminished half step / whole step |
-| `"+7"`      | 3455210    | Whole tone |
+Chords belong to the set of HSIDs that represent notes clamped to a single octave.
+
+| Symbol      | HSID       | Pitch offsets               | Meaning |
+| :---------- | :--------- | :-------------------------- | :-------------------------------------------- |
+| `""`        | 3962       | `[0, 2, 4, 7]`              | Major (`"maj"`) |
+| `"+"`       | 5258       | `[0, 2, 4, 8]`              | Augmented (`"aug"`) |
+| `"sus"`     | 2702       | `[0, 2, 5, 7]`              | Suspended 4th |
+| `"sus♭9"`   | 2737       | `[0, 1, 5, 7]`              | Suspended 4th flat 9 |
+| `"-"`       | 5222       | `[0, 2, 3, 7]`              | Minor (`"min"`, `"m"`) |
+| `"°"`       | 3926       | `[0, 2, 3, 6]`              | Diminished (`"dim"`) |
+| `"{8}/"`    | 2775       | `[0, 3, 8, 10]`             | Major 1st inversion (e.g. `C/E`, root `E`) |
+| `"{5}/"`    | 2669       | `[0, 5, 7, 9]`              | Major 2nd inversion (e.g. `C/G`, root `G`) |
+| `"{4}/"`    | 4036       | `[0, 4, 8, 11]`             | Major over ♭6 bass (e.g. `C/A♭`, root `A♭`) |
+| `"{9}-/"`   | 2776       | `[0, 4, 9, 11]`             | Minor 1st inversion (e.g. `C-/E♭`, root `E♭`) |
+| `"{5}-/"`   | 1373       | `[0, 5, 7, 8]`              | Minor 2nd inversion (e.g. `C-/G`, root `G`) |
+| `"{1}/"`    | 4033       | `[0, 1, 5, 8]`              | Major over 7th bass (e.g. `C/B`, root `B`) |
+| `"{11}/"`   | 6591       | `[0, 3, 6, 11]`             | Major over ♭2 bass (e.g. `C/D♭`, root `D♭`) |
+| `"{8}7/"`   | 96015      | `[0, 3, 6, 8, 10]`          | Dominant 7th 1st inversion (e.g. `C7/E`, root `E`) |
+| `"{5}7/"`   | 5259       | `[0, 3, 5, 9]`              | Dominant 7th 2nd inversion (e.g. `C7/G`, root `G`) |
+| `"ø"`       | 5295       | `[0, 3, 6, 10]`             | Half-diminished 7th (`"m7♭5"`, `"min7♭5"`) |
+| `"∆6"`      | 2704       | `[0, 4, 7, 9]`              | Major 6th |
+| `"∆6/9"`    | 97274      | `[0, 2, 4, 7, 9]`           | Major 6/9 (pentatonic) |
+| `"∆"`       | 3456506    | `[0, 2, 4, 7, 9, 11]`       | 1st mode of the major scale (ionian, `"maj7"`) |
+| `"∆♯11"`    | 124340906  | `[0, 2, 4, 6, 7, 9, 11]`    | 4th mode of the major scale (lydian) |
+| `"7sus"`    | 142670     | `[0, 2, 5, 7, 10]`          | Dominant 7th suspended 4th |
+| `"7"`       | 143930     | `[0, 2, 4, 7, 10]`          | 5th mode of the major scale (mixolydian) |
+| `"13sus"`   | 1775630    | `[0, 2, 5, 7, 9, 10]`       | Dominant 13th suspended 4th |
+| `"13"`      | 1776890    | `[0, 2, 4, 7, 9, 10]`       | Dominant 13th |
+| `"-11"`     | 235910     | `[0, 2, 3, 5, 10]`          | Minor 11th (`"m11"`) |
+| `"-6"`      | 3455174    | `[0, 2, 3, 5, 7, 9]`        | Minor 6th (`"m6"`) |
+| `"-7"`      | 63921350   | `[0, 2, 3, 5, 7, 9, 10]`    | 2nd mode of the major scale (dorian, `"min7"`, `"m7"`) |
+| `"-∆"`      | 124387526  | `[0, 2, 3, 5, 7, 9, 11]`    | 1st mode of melodic minor |
+| `"7♯11"`    | 63874730   | `[0, 2, 4, 6, 7, 9, 10]`    | 4th mode of melodic minor |
+| `"7♭13"`    | 122706650  | `[0, 2, 4, 5, 7, 8, 10]`    | 5th mode of melodic minor |
+| `"+7"`      | 3455210    | `[0, 2, 4, 6, 8, 10]`       | Whole tone |
+| `"°7"`      | 4417439366 | `[0, 2, 3, 5, 6, 8, 9, 11]` | Diminished whole step / half step (`"dim7"`) |
+| `"7♯9"`     | 63874695   | `[0, 3, 4, 6, 7, 9, 10]`    | Dominant 7th sharp 9 (Hendrix chord) |
+| `"7alt"`    | 124386265  | `[0, 1, 3, 4, 6, 8, 10]`    | 7th mode of melodic minor |
+| `"7♭9"`     | 183172825  | `[0, 1, 3, 4, 6, 7, 10]`    | Half step / whole step (no 13th) |
+| `"13♭9"`    | 2299488985 | `[0, 1, 3, 4, 6, 7, 9, 10]` | Diminished half step / whole step |
+| `"7sus♭9"`  | 142705     | `[0, 1, 5, 7, 10]`          | Japanese insen scale |
+| `"13sus♭9"` | 63921385   | `[0, 1, 3, 5, 7, 9, 10]`    | 2nd mode of melodic minor |
+| `"7♭9♭13"`  | 122706685  | `[0, 1, 4, 5, 7, 8, 10]`    | 5th mode of harmonic minor |
+| `"-♭6"`     | 122707910  | `[0, 2, 3, 5, 7, 8, 10]`    | 6th mode of the major scale (aeolian) |
+| `"-♭9"`     | 122707945  | `[0, 1, 3, 5, 7, 8, 10]`    | 3rd mode of the major scale (phrygian) |
+| `"ø9"`      | 124340870  | `[0, 2, 3, 5, 6, 8, 10]`    | 6th mode of melodic minor |
+| `"∆♯4♯5"`   | 122707946  | `[0, 2, 4, 6, 8, 9, 11]`    | 3rd mode of melodic minor |
+| `"-∆♭6"`    | 183174086  | `[0, 2, 3, 5, 7, 8, 11]`    | 1st mode of harmonic minor |
+| `"∆♭6"`     | 5089466    | `[0, 2, 4, 7, 8, 11]`       | 1st mode of harmonic major |
 
 `duration` – FLOAT<br/>
 The duration of the chord in beats (defaults to `2`).
