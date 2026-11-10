@@ -2,6 +2,7 @@
 import {
     assert,
     assertEquals as equals,
+    assertAlmostEquals as almost,
     assertStrictEquals as is,
     assertObjectMatch as matches
 } from 'jsr:@std/assert@1';
@@ -13,7 +14,7 @@ import Sequence from '../modules/sequence.js';
 const { fround } = Math;
 
 
-Deno.test('Sequence for...of iteration', () => {
+Deno.test('Sequence for...of iteration with step rate and nested sequences', () => {
     const sequence = Sequence.from({
         events: [
             [0,  "note", "A4", 0.1, 1],
@@ -32,8 +33,73 @@ Deno.test('Sequence for...of iteration', () => {
         }]
     });
 
-    let event;
-    for (event of sequence) {
-        console.log(event + '');
-    }
+    const output = Array.from(sequence, (event) => [event[0], event.type, event.duration]);
+
+    equals(output, [
+        [0,     'note',     1],
+        [10,    'sequence', 3],
+        [10,    'note',     0.5],
+        [11,    'note',     0.5],
+        [12,    'rate',     0],
+        [12,    'note',     0.25],
+        [16,    'sequence', 2],
+        [16,    'note',     0.125],
+        [16.25, 'note',     0.125],
+        [16.5,  'note',     0.125]
+    ]);
+});
+
+Deno.test('Sequence iteration with linear, exponential and target rate ramps', () => {
+    const sequence = Sequence.from({
+        events: [
+            [0, "rate", "step", 1],
+            [0, "note", "C4", 0.5, 4],
+            [4, "rate", "linear", 3],
+            [4, "note", "E4", 0.5, 4],
+            [8, "rate", "exponential", 1],
+            [8, "rate", "target", 2, 2],
+            [8, "note", "G4", 0.5, 2]
+        ]
+    });
+
+    const notes = Array.from(sequence).filter((e) => e.type === 'note');
+
+    // Note 1 spans beats 0..4 during linear ramp 1 -> 3 (avg rate 2, duration = 4 / 2 = 2)
+    almost(notes[0][0], 0, 1e-12);
+    almost(notes[0].duration, 2, 1e-12);
+
+    // Note 2 spans beats 4..8 during exponential ramp 3 -> 1 (duration = 4 * ln(3) / 2 = 2 * ln(3))
+    const expDur = 2 * Math.log(3);
+    almost(notes[1][0], 2, 1e-12);
+    almost(notes[1].duration, expDur, 1e-12);
+
+    // Note 3 starts at beat 8 (location 2 + expDur) and spans 2 beats (1 beatConstant) of target 1 -> 2
+    const targetTau = 2 / (1 * (1 - 1 / Math.E) + 2 * (1 / Math.E));
+    almost(notes[2][0], 2 + expDur, 1e-12);
+    almost(notes[2].duration, targetTau, 1e-11);
+});
+
+Deno.test('Sequence iteration with target curve held into linear ramp', () => {
+    const sequence = Sequence.from({
+        events: [
+            [0, "rate", "step", 1],
+            [0, "rate", "target", 3, 2],
+            [2, "rate", "hold"],
+            [6, "rate", "linear", 4],
+            [6, "note", "A4", 0.5, 4]
+        ]
+    });
+
+    const notes = Array.from(sequence).filter((e) => e.type === 'note');
+
+    // Over beats 0..2 (1 beatConstant), target 1 -> 3 reaches rate vHold = 1 + 2 * (1 - 1/e)
+    // and takes time tau = 2 / (1 * (1 - 1/e) + 3 * (1/e))
+    const vHold   = 1 + 2 * (1 - 1 / Math.E);
+    const tau     = 2 / (1 * (1 - 1 / Math.E) + 3 * (1 / Math.E));
+    // Over beats 2..6 (4 beats), linear ramp from vHold to 4 takes time 2 * 4 / (vHold + 4)
+    const rampDur = 8 / (vHold + 4);
+
+    almost(notes[0][0], tau + rampDur, 1e-6);
+    // At beat 6 rate is 4, so 4-beat note has duration 1
+    almost(notes[0].duration, 1, 1e-6);
 });

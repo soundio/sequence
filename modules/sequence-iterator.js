@@ -3,7 +3,7 @@ import get        from 'fn/get.js';
 import matches    from 'fn/matches.js';
 import Event      from './event.js';
 import Transform  from './transform.js';
-import { beatAtLocation, locationAtBeat } from './location.js';
+import { beatAtLocation, locationAtBeat, rateAtBeatOfValues } from './location.js';
 import byPriority from './events/by-priority.js';
 import { CURVES } from './event/curves.js';
 
@@ -23,38 +23,48 @@ function getSequence(sequences, id) {
 }
 
 function readRateEvents(rates, events) {
-//    // Read last rate event
-//    const br = rates[rates.length - 4];
-//
-//    // Get event location
-//    let location = sequencer.locationAtBeat(br);
-//    let type;
-//
-//    // If it was before the end of this frame
-//    if (location < l2) {
-//        // Advance n past it
-//        i = i - Events.SIZE;
-//        while (events[i += Events.SIZE] < br || (events[i] === br && !Event.isRate(events, i)));
+    // Track previous segment state and running rate v0 at b0
+    let [b0, c0, v0, d0] = rates;
+    let n = -1;
+    let event;
+    while (event = events[++n]) {
+        if (!Event.isRate(event)) continue;
 
-        // Read rate events into rates
-        let n = -1, event;
-        while (event = events[++n]) {
-            // Ignore non-rate events
-            if (!Event.isRate(event)) continue;
+        const b1 = event[0];
+        const c1 = event[2];
+        const d1 = event[4] || 0;
+        const v1 = c0 === CURVES.target ?
+            rates[rates.length - 2] :
+            event[3] ;
 
-            // Read rate event into rates and get location at beat, re-route to set
-            rates.push(event[0], event[2], event[3], event[4] || 0);
-//            location = sequencer.locationAtBeat(events[i]);
-//
-//            // Rate event is beyond end of frame
-//            if (l2 < location) {
-//                // If event is not a ramp truncate rates back down
-//                if (type !== CURVES.linear && type !== CURVES.exponential) rates.length -= 4;
-//                // Make like a tree (and get out of here)
-//                break;
-//            }
+        // Running rate arriving at b1 from [b0, b1]
+        const v = rateAtBeatOfValues(v0, v1, c0, c1, d0, b1 - b0, b1 - b0);
+
+        // A hold event freezes the running rate as a step event at b1
+        const curve = c1 === CURVES.hold ? CURVES.step : c1;
+        const value = c1 === CURVES.hold ? v : event[3];
+
+        // Overwrite initial/previous event if at the same beat (unless starting a target curve)
+        if (b1 === b0 && curve !== CURVES.target) {
+            rates[rates.length - 3] = curve;
+            rates[rates.length - 2] = value;
+            rates[rates.length - 1] = d1;
         }
-//    }
+        else {
+            // If transitioning directly from one target curve to another,
+            // insert the arrival rate as a step so the next target has its
+            // starting rate in rates
+            if (c0 === CURVES.target && curve === CURVES.target) {
+                rates.push(b1, CURVES.step, v, 0);
+            }
+            rates.push(b1, curve, value, d1);
+        }
+
+        b0 = b1;
+        c0 = curve;
+        v0 = curve === CURVES.target ? v : value;
+        d0 = d1;
+    }
 
     return rates;
 }
@@ -112,8 +122,12 @@ export default class SequenceIterator extends Iterator {
 
         if (event) {
             value = Event.from(event);
-            // Modify event by sequence's rate events
-            value[0] = locationAtBeat(this.#rates, value[0]);
+            // Modify event beat and duration by sequence's rate events
+            const l0 = locationAtBeat(this.#rates, value[0]);
+            if (value.duration && !Event.isMeter(value)) {
+                value.duration = locationAtBeat(this.#rates, value[0] + value.duration) - l0;
+            }
+            value[0] = l0;
             // Modify event by sequence event's transforms
             value = transform.apply(value);
             // Modify event sequence event's start beat
@@ -137,8 +151,12 @@ export default class SequenceIterator extends Iterator {
             if (!value) {
                 // Get next value from iterator and transform it for current context
                 if (value = iterator.next().value) {
-                    // Modify event by sequence's rate events
-                    value[0] = locationAtBeat(this.#rates, value[0]);
+                    // Modify event beat and duration by sequence's rate events
+                    const l0 = locationAtBeat(this.#rates, value[0]);
+                    if (value.duration && !Event.isMeter(value)) {
+                        value.duration = locationAtBeat(this.#rates, value[0] + value.duration) - l0;
+                    }
+                    value[0] = l0;
                     // Modify event by sequence event's transforms
                     transform.apply(value);
                     // Modify event sequence event's start beat

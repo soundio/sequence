@@ -4,11 +4,12 @@
 
 import './test/chord.js';
 import './test/event.js';
+import './test/location.js';
 import './test/transform.js';
 import './test/quantise.js';
 import './test/sequence.js';
 import './test/sequence-iterator.js';
 import './test/record.js';
-//import './test/parse-midi-clip.js';
+import './test/parse-midi-clip.js';
 import './test/parse-sequence.js';
 import './test/to-string.js';
