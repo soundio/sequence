@@ -13,3 +13,4 @@ import './test/record.js';
 import './test/parse-midi-clip.js';
 import './test/parse-sequence.js';
 import './test/to-string.js';
+import './test/rsid.js';

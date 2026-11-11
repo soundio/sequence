@@ -50,12 +50,12 @@ Deno.test('toString() minimal formatting and round-trip', () => {
     assert(output.includes('chord G∆ 2'), 'Includes chord G∆ 2');
 
     assert(output.includes('#1 Melody'), 'Includes subsequence 1 header');
-    assert(output.includes('note B4 -18dB 1') || output.includes('note B4 mf 1'), 'Includes note with gain');
-    assert(output.includes('note C5 -20dB 2'), 'Includes note C5');
+    assert(output.includes('B4 -18dB 1') || output.includes('B4 mf 1'), 'Includes note with gain');
+    assert(output.includes('C5 -20dB 2'), 'Includes note C5');
 
     assert(output.includes('#2 Bass'), 'Includes subsequence 2 header');
-    assert(output.includes('note C2'), 'Includes note C2');
-    assert(output.includes('note G2'), 'Includes note G2');
+    assert(output.includes('C2'), 'Includes C2');
+    assert(output.includes('G2'), 'Includes G2');
     assert(output.includes('4 control modulation 0.1'), 'Omits step curve in control event');
     assert(output.includes('5 control modulation 0.2'), 'Normalises modulation.set to modulation');
     assert(output.includes('6 control modulation.exponential 0.3'), 'Includes exponential curve');

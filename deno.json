@@ -6,7 +6,8 @@
 
     "tasks": {
         "validate-lexicons": "goat lex lint ./lexicons",
-        "publish-lexicons": "goat lex publish --update ./lexicons"
+        "publish-lexicons":  "goat lex publish --update ./lexicons",
+        "transpose-file":    "deno run --allow-read=. --allow-write=. deno/transpose-file.js"
     },
 
     "lint": {
