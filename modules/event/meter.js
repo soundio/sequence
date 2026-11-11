@@ -3,6 +3,7 @@ import mod       from 'fn/mod.js';
 import nothing   from 'fn/nothing.js';
 import Event     from './event.js';
 import roundPow2 from '../number/round-pow-2.js';
+import * as RSID from '../rsid.js';
 
 
 const assign = Object.assign;
@@ -70,13 +71,18 @@ export function meterToTimesig(meter) {
 }
 
 export default class MeterEvent extends Event {
-    static of(beat, duration, denominator) {
-        return new MeterEvent({ beat, duration, denominator });
+    static of(beat, rsid, divisor) {
+        return new MeterEvent({ beat, rsid, divisor });
     }
 
     [1] = Event.TYPES.meter;
 
-    get duration()          { return this[2]; }
+    get duration()          {
+        const rsid    = this[2];
+        const divisor = this[3];
+        return divisor * RSID.lengthOf(rsid);
+    }
+
     set duration(number)    { this[2] = parseInt(number, 10); }
     get denominator()       { return this[3]; }
     set denominator(number) { this[3] = roundPow2(number); }
