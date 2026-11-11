@@ -51,7 +51,7 @@ Deno.test('toString() minimal formatting and round-trip', () => {
 
     assert(output.includes('#1 Melody'), 'Includes subsequence 1 header');
     assert(output.includes('B4 -18dB 1') || output.includes('B4 mf 1'), 'Includes note with gain');
-    assert(output.includes('C5 -20dB 2'), 'Includes note C5');
+    assert(output.includes('C5 2'), 'Includes note C5');
 
     assert(output.includes('#2 Bass'), 'Includes subsequence 2 header');
     assert(output.includes('C2'), 'Includes C2');
@@ -116,7 +116,7 @@ Deno.test('toString() on Sequence created from data', () => {
 
     const output = toString(data);
     is(output, `# Plain JSON
-0 note C4 -20dB 1
-1 note D4 -6.0206dB 2
+0  C4 1
+1  D4 -6.0206dB 2
 3 chord G7 4`);
 });

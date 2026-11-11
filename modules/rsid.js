@@ -17,14 +17,20 @@ The number of grid cells in an RSID can be determined from its magnitude.
 Some RSIDs are equivalent. A rhythm of 100100 is equivalent to a rhythm of 1010.
 But both those rhythms are equal to rhythm 11, so have RSID 3. This means that
 not all integers are valid RSIDs.
+
+## Usage
+
+```js
+import * as RSID from './rsid.js';
+```
 **/
 
 
 /**
-lengthOfRSID(rsid)
+lengthOf(rsid)
 Returns the number of grid cells in an RSID based on its magnitude.
 **/
-export function lengthOfRSID(rsid) {
+export function lengthOf(rsid) {
     return 32 - Math.clz32(rsid);
 }
 
@@ -34,18 +40,18 @@ trimRSID(rsid)
 Shifts 0s off the end of a rhythm, giving the smallest representation of the
 rhythmic cell ending on a hit without retaining trailing rest duration.
 **/
-export function trimRSID(rsid) {
+export function trim(rsid) {
     while (rsid && (rsid & 1) === 0) rsid >>>= 1;
     return rsid;
 }
 
 
 /**
-compressRSID(rsid)
+compress(rsid)
 Returns the lowest common (irreducible) RSID for a given rhythm by checking
 all divisor factors of its grid length.
 **/
-export function compressRSID(rsid) {
+function compress(rsid) {
     const len = 32 - Math.clz32(rsid);
 
     // Test divisors k from len down to 2 for possible grid decimation
@@ -82,20 +88,20 @@ export function compressRSID(rsid) {
 
 
 /**
-isRSID(rsid)
+isValid(rsid)
 Returns true if an integer is already in its irreducible, valid RSID form.
 **/
-export function isRSID(rsid) {
-    return compressRSID(rsid) === rsid;
+export function isValid(rsid) {
+    return compress(rsid) === rsid;
 }
 
 
 /**
-sameRhythm(a, b)
+equals(a, b)
 Returns true if two rhythms reduce to the same canonical RSID.
 **/
-export function sameRhythm(a, b) {
-    return compressRSID(a) === compressRSID(b);
+export function equals(a, b) {
+    return compress(a) === compress(b);
 }
 
 
@@ -104,39 +110,30 @@ toRSID(rhythm)
 Converts a sequence of cells (arguments, array, or binary string) or raw integer
 to a canonical, reduced RSID.
 **/
-export function toRSID(rhythm) {
-    if (arguments.length === 1) {
-        if (typeof rhythm === 'number') {
-            return compressRSID(rhythm >>> 0);
-        }
-        if (typeof rhythm === 'string') {
-            return compressRSID(parseInt(rhythm, 2) >>> 0);
-        }
-    }
-
-    const args = (rhythm && typeof rhythm === 'object' && Symbol.iterator in rhythm) ?
-        Array.from(rhythm) :
-        arguments;
-
+export function from(array) {
     let rsid = 0;
-    let a = args.length;
+    let a = array.length;
     let n = 1;
 
     // Pack cell values into bits, starting with the least significant bit
     while (a--) {
-        if (args[a]) rsid += n;
+        if (array[a]) rsid += n;
         n *= 2;
     }
 
-    return compressRSID(rsid >>> 0);
+    return compress(rsid >>> 0);
+}
+
+export function of() {
+    return from(arguments);
 }
 
 
 /**
-densityOfRSID(rsid)
+densityOf(rsid)
 Returns the number of note hits (Hamming weight / popcount) in an RSID.
 **/
-export function densityOfRSID(rsid) {
+export function densityOf(rsid) {
     // Parallel bit count (SWAR popcount)
     let x = rsid >>> 0;
     x = x - ((x >>> 1) & 0x55555555);
@@ -149,19 +146,19 @@ export function densityOfRSID(rsid) {
 
 
 /**
-clashRSID(a, b)
+clash(a, b)
 Returns the bitwise intersection of two rhythmic patterns (the simultaneous hits).
 **/
-export function clashRSID(a, b) {
+export function clash(a, b) {
     return (a & b) >>> 0;
 }
 
 
 /**
-rotateRSID(rsid, n, length)
+rotate(rsid, n, length)
 Performs a circular phase rotation of the rhythm by n steps in time.
 **/
-export function rotateRSID(rsid, n, length = lengthOfRSID(rsid)) {
+export function rotate(rsid, n, length = lengthOf(rsid)) {
     // Normalise shift to [0, length). Advancing time by +n circular-shifts bits right.
     const shift = ((n % length) + length) % length;
     const mask  = (2 ** length) - 1;
@@ -174,7 +171,7 @@ reverseRSID(rsid, length)
 Reverses a rhythm in time (retrograde). Trailing rests become leading rests,
 which are dropped to yield the canonical RSID starting on the first onset.
 **/
-export function reverseRSID(rsid, length = lengthOfRSID(rsid)) {
+export function reverse(rsid, length = lengthOf(rsid)) {
     // Reverse bit order across the specified grid length
     let reversed = 0;
     let i = length;
@@ -183,7 +180,7 @@ export function reverseRSID(rsid, length = lengthOfRSID(rsid)) {
         rsid >>>= 1;
     }
 
-    return compressRSID(reversed >>> 0);
+    return compress(reversed >>> 0);
 }
 
 
@@ -191,8 +188,8 @@ export function reverseRSID(rsid, length = lengthOfRSID(rsid)) {
 euclideanRSID(hits, cells)
 Generates an Euclidean rhythm E(k, n) as a canonical RSID using Bjorklund's algorithm.
 **/
-export function euclideanRSID(hits, cells) {
-    if (hits >= cells) return compressRSID((2 ** cells) - 1);
+export function euclidean(hits, cells) {
+    if (hits >= cells) return compress((2 ** cells) - 1);
 
     // Initialise groups of hits [1] and rests [0]
     const groups = [];
@@ -231,23 +228,23 @@ export function euclideanRSID(hits, cells) {
         p *= 2;
     }
 
-    return compressRSID(num >>> 0);
+    return compress(num >>> 0);
 }
 
 
 /**
-rsidToString(rsid, length)
+stringify(rsid, length)
 Returns the binary string representation of an RSID padded to the given length.
 **/
-export function rsidToString(rsid, length = lengthOfRSID(rsid)) {
+export function stringify(rsid, length = lengthOf(rsid)) {
     return (rsid >>> 0).toString(2).padStart(length, '0');
 }
 
 
 /**
-rsidToArray(rsid, length)
+toArray(rsid, length)
 Returns an array of 1s and 0s representing the grid cells of the RSID.
 **/
-export function rsidToArray(rsid, length = lengthOfRSID(rsid)) {
-    return Array.from(rsidToString(rsid, length), Number);
+export function toArray(rsid, length = lengthOf(rsid)) {
+    return Array.from(stringify(rsid, length), Number);
 }

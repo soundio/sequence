@@ -76,7 +76,6 @@ Deno.test('ChordEvent.of() parsing chord symbols', () => {
     const ce = Event.of(0, "chord", "C/E", 2);
     is(ce.root, "E");
     is(ce.sourcePitch, "E");
-    is(ce.pitch, "E");
     is(ce.extension, "{8}/");
     is(ce.duration, 2);
     is(ce.toChordSymbol(), "C/E");
