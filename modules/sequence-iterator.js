@@ -115,7 +115,7 @@ export default class SequenceIterator extends Iterator {
     }
 
     next() {
-        const { sequence, events, /*objects, */transform, n } = this;
+        const { sequence, events, transform, n } = this;
         const event = events[n + 1];
 
         let value;
