@@ -400,14 +400,14 @@ A meter event MUST occur at a beat that is a full bar from a previous meter
 event. The second event here is valid:
 
 ```json
-[0, "meter", 10, 1]
+[0, "meter", 10, 1],
 [4, "meter", 7, 1]
 ```
 
 Where here the second event is invalid:
 
 ```json
-[0, "meter", 10, 1]
+[0, "meter", 10, 1],
 [2, "meter", 7, 1]
 ```
 
