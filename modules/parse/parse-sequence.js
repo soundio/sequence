@@ -64,10 +64,8 @@ export const grammar = {
         return Event.key(beat, name);
     },
 
-    meter(beat, [sigOrDur = '4/4', div]) {
-        return typeof sigOrDur === 'string' && sigOrDur.includes('/') ?
-            new Event.MeterEvent({ beat, timesig: sigOrDur }) :
-            Event.meter(beat, Number(sigOrDur) || 4, Number(div) || 1) ;
+    meter(beat, [timesig = '4/4']) {
+        return new Event.MeterEvent({ beat, timesig });
     },
 
     rate(beat, [first = 1, second, third]) {

@@ -39,10 +39,10 @@ export default function deserialise(buffer) {
                 events.push(Event.of(
                     beat,
                     type,
-                    view.getFloat16(offset, true),      // duration
-                    view.getFloat16(offset + 2, true)   // divisor
+                    view.getUint32(offset, true),         // rsid (4 bytes)
+                    4 / view.getUint8(offset + 4)         // divisor (4 / denominator)
                 ));
-                offset += 4;
+                offset += 5;
                 break;
 
             case TYPES['chord']:

@@ -1,16 +1,17 @@
 
 import mod       from 'fn/mod.js';
-import nothing   from 'fn/nothing.js';
+//import nothing   from 'fn/nothing.js';
 import Event     from './event.js';
 import roundPow2 from '../number/round-pow-2.js';
 import * as RSID from '../rsid.js';
 
 
-const assign = Object.assign;
+//const assign = Object.assign;
 const define = Object.defineProperties;
 const rtimesig = /^(\d+)\/(\d+)$/;
 
-const barDivisions = {
+// -------------------------------------------------------------------
+/*const barDivisions = {
     // The last number in bar divisions is the bar duration
     // 2/2
     '4,2': [2,4],
@@ -68,7 +69,32 @@ export function meterToTimesig(meter) {
     const num = dur / div;
     const den = 4 / div;
     return num + '/' + den;
-}
+}*/
+// -------------------------------------------------------------------
+
+
+
+
+
+const rsids = {
+    '4,2':     0b11,            // 2/2
+    '6,2':     0b111,           // 3/2
+    '2,1':     0b11,            // 2/4
+    '3,1':     0b111,           // 3/4
+    '4,1':     0b1010,          // 4/4
+    '5,1':     0b10010,         // 5/4
+    '6,1':     0b101010,        // 6/4
+    '7,1':     0b1000100,       // 7/4
+    '9,1':     0b100100100,     // 9/4
+    '1.5,0.5': 0b111,           // 3/8
+    '2.5,0.5': 0b10010,         // 5/8
+    '3,0.5':   0b100100,        // 6/8
+    '3.5,0.5': 0b1010100,       // 7/8
+    '4.5,0.5': 0b100100100,     // 9/8
+    '5.5,0.5': 0b10010010010,   // 11/8 - 3:3:3:2
+    '6,0.5':   0b100100100100,  // 12/8
+    '6.5,0.5': 0b1001001001000  // 13/8
+};
 
 export default class MeterEvent extends Event {
     static of(beat, rsid, divisor) {
@@ -78,17 +104,58 @@ export default class MeterEvent extends Event {
     [1] = Event.TYPES.meter;
 
     get duration()          {
-        const rsid    = this[2];
-        const divisor = this[3];
-        return divisor * RSID.lengthOf(rsid);
+        return RSID.lengthOf(this[2]) * this[3];
     }
 
-    set duration(number)    { this[2] = parseInt(number, 10); }
-    get denominator()       { return this[3]; }
-    set denominator(number) { this[3] = roundPow2(number); }
-    get timesig()           { return meterToTimesig(this); }
-    set timesig(string)     { assign(this, timesigToMeter(string)); }
-    get divisions()         { return getDivisions(this[2], this[3]); }
+    set duration(duration) {
+        const rsid = rsids[duration + ',' + this[3]];
+        if (!rsid) throw new Error(`MeterEvent: metric RSID of duration ${ duration } divisor ${ this[3] } not found`);
+        this.rsid = rsid;
+    }
+
+    get rsid() {
+        return this[2];
+    }
+
+    set rsid(rsid) {
+        this[2] = rsid;
+    }
+
+    get divisor() {
+        return this[3];
+    }
+
+    set divisor(divisor) {
+        if (divisor !== roundPow2(divisor)) throw new Error(`MeterEvent: divisor ${ divisor } not a power-of-2 number`)
+        this[3] = divisor;
+    }
+
+    get timesig() {
+        return RSID.lengthOf(this[2]) + '/' + (4 / this[3]);
+    }
+
+    set timesig(string)  {
+        const groups    = rtimesig.exec(string);
+        const numerator = parseInt(groups[1], 10);
+        const divisor   = 4 / parseInt(groups[2], 10);
+        this.divisor  = divisor;
+        this.duration = numerator * divisor;
+    }
+
+    get divisions()      {
+        const divisor = this[3];
+        const hits = RSID.stringify(this[2]);
+        const divisions = [];
+
+        let n = 0;
+        while (++n < hits.length) if (hits[n] === '1') {
+            divisions.push(n * divisor);
+        }
+
+        // Push in duration
+        divisions.push(this.duration);
+        return divisions;
+    }
 
     toString() {
         return `${ super.toString() } meter ${ this.timesig }`;
@@ -125,7 +192,7 @@ export function getDivisionBefore(meter, beat) {
     // Bar divisions
     const divisions = meter.divisions;
     // Beat from start of bar
-    const b1 = mod(meter[2], beat - meter[0]);
+    const b1 = mod(meter.duration, beat - meter[0]);
     // Beat from start of bar to end of current meter division
     const b2 = divisionBefore(divisions, b1);
     // Beat at next division
@@ -136,7 +203,7 @@ export function getDivisionAfter(meter, beat) {
     // Bar divisions
     const divisions = meter.divisions;
     // Beat from start of bar
-    const b1 = mod(meter[2], beat - meter[0]);
+    const b1 = mod(meter.duration, beat - meter[0]);
     // Beat from start of bar to end of current meter division
     const b2 = divisionAfter(divisions, b1);
     // Beat at next division

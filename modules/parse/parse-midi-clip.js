@@ -14,6 +14,7 @@ Supports:
 **/
 
 import Sequence from '../sequence.js';
+import MeterEvent from '../event/meter.js';
 import { PARAMNAMES } from '../event/control.js';
 import { toKeyName } from '../event/key.js';
 import byPriority from '../events/by-priority.js';
@@ -384,9 +385,8 @@ export default function parseMidiClip(buffer, options = {}) {
                     const numerator   = view.getUint8(offset + 4);
                     const denominator = view.getUint8(offset + 5);
                     if (numerator > 0 && denominator > 0) {
-                        const duration = (numerator / denominator) * 4;
-                        const division = 4 / denominator;
-                        events.push([beat, 'meter', duration, division]);
+                        const meter = new MeterEvent({ beat, timesig: `${numerator}/${denominator}` });
+                        events.push([beat, 'meter', meter.rsid, meter.divisor]);
                     }
                 }
                 // Set Key Signature

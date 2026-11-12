@@ -165,9 +165,9 @@ export default function serialise(events) {
             }
 
             case TYPES.meter:
-                view.setFloat16(offset, event[2], true);      // duration
-                view.setFloat16(offset + 2, event[3], true);  // divisor
-                offset += 4;
+                view.setUint32(offset, event[2], true);                // rsid (4 bytes)
+                view.setUint8(offset + 4, Math.round(4 / event[3]));   // divisor encoded as denominator (1 byte: 4 / divisor)
+                offset += 5;
                 break;
 
             case TYPES.chord: {

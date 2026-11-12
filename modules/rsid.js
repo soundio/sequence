@@ -14,9 +14,12 @@ The number of grid cells in an RSID can be determined from its magnitude.
 - RSID 13 - Rhythm 1101 - 4 cells
 - RSID 45 - Rhythm 101101 - 6 cells
 
-Some RSIDs are equivalent. A rhythm of 100100 is equivalent to a rhythm of 1010.
-But both those rhythms are equal to rhythm 11, so have RSID 3. This means that
-not all integers are valid RSIDs.
+Some RSIDs are equivalent across different grid subdivisions. For example, the
+rhythms 100100, 1010 and 11 are all equivalent.
+
+```js
+RSID.equals(0b100100, 0b1010)   // true
+```
 
 ## Usage
 
@@ -47,11 +50,11 @@ export function trim(rsid) {
 
 
 /**
-compress(rsid)
+factorise(rsid)
 Returns the lowest common (irreducible) RSID for a given rhythm by checking
 all divisor factors of its grid length.
 **/
-function compress(rsid) {
+export function factorise(rsid) {
     const len = 32 - Math.clz32(rsid);
 
     // Test divisors k from len down to 2 for possible grid decimation
@@ -88,27 +91,17 @@ function compress(rsid) {
 
 
 /**
-isValid(rsid)
-Returns true if an integer is already in its irreducible, valid RSID form.
-**/
-export function isValid(rsid) {
-    return compress(rsid) === rsid;
-}
-
-
-/**
 equals(a, b)
 Returns true if two rhythms reduce to the same canonical RSID.
 **/
 export function equals(a, b) {
-    return compress(a) === compress(b);
+    return factorise(a) === factorise(b);
 }
 
 
 /**
-toRSID(rhythm)
-Converts a sequence of cells (arguments, array, or binary string) or raw integer
-to a canonical, reduced RSID.
+from(array)
+Converts a sequence of cells (array of 1s and 0s) to an RSID.
 **/
 export function from(array) {
     let rsid = 0;
@@ -121,7 +114,7 @@ export function from(array) {
         n *= 2;
     }
 
-    return compress(rsid >>> 0);
+    return rsid >>> 0;
 }
 
 export function of() {
@@ -180,7 +173,7 @@ export function reverse(rsid, length = lengthOf(rsid)) {
         rsid >>>= 1;
     }
 
-    return compress(reversed >>> 0);
+    return factorise(reversed >>> 0);
 }
 
 
@@ -189,7 +182,7 @@ euclideanRSID(hits, cells)
 Generates an Euclidean rhythm E(k, n) as a canonical RSID using Bjorklund's algorithm.
 **/
 export function euclidean(hits, cells) {
-    if (hits >= cells) return compress((2 ** cells) - 1);
+    if (hits >= cells) return factorise((2 ** cells) - 1);
 
     // Initialise groups of hits [1] and rests [0]
     const groups = [];
@@ -228,7 +221,7 @@ export function euclidean(hits, cells) {
         p *= 2;
     }
 
-    return compress(num >>> 0);
+    return factorise(num >>> 0);
 }
 
 

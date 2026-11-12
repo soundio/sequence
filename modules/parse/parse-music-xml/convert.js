@@ -13,6 +13,7 @@ import parseGain from '../../parse/parse-gain.js';
 import toGain from 'fn/to-gain.js';
 import dB from 'fn/to-db.js';
 import { toKeyName } from '../../event/key.js';
+import MeterEvent from '../../event/meter.js';
 import { clefToName } from './clef.js';
 
 
@@ -52,9 +53,8 @@ export default function convertToEvents(parts, sections) {
 
         // Initial meter
         if (firstMeasure.time) {
-            const duration = (firstMeasure.time.beats / firstMeasure.time.beatType) * 4; // Duration in quarter notes
-            const division = 4 / firstMeasure.time.beatType; // Division in quarter notes
-            mainEvents.push([0, 'meter', duration, division]);
+            const meter = new MeterEvent({ beat: 0, timesig: `${firstMeasure.time.beats}/${firstMeasure.time.beatType}` });
+            mainEvents.push([0, 'meter', meter.rsid, meter.divisor]);
         }
     }
 

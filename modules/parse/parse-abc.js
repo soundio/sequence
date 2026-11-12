@@ -6,6 +6,8 @@ A quick-and-dirty interface with abcjs's parser. Please clean me up.
 
 import matches   from 'fn/matches.js';
 import ABCParser from '../../lib/abcjs/modules/parse/abc_parse.js';
+import MeterEvent from '../event/meter.js';
+import * as RSID from '../rsid.js';
 
 const parser = new ABCParser();
 
@@ -83,13 +85,12 @@ export default function parseABC(abc) {
 
             // If meter has changed push in a meter event
             if (staff.meter) {
-                // Not sure why staff.meter.value is an array? Either way it
-                // contains strings for num/den so we need to convert...
-                const denominator = 1 / (+staff.meter.value[0].den / 4);
-                const numerator   = +staff.meter.value[0].num * denominator;
+                const num = +staff.meter.value[0].num;
+                const den = +staff.meter.value[0].den;
+                const meter = new MeterEvent({ beat: 0, timesig: `${num}/${den}` });
                 const meterEvent = findLastOfType('meter', events);
-                if (!meterEvent || meterEvent[2] !== numerator || meterEvent[3] !== denominator) {
-                    events.push([0, 'meter', numerator, denominator]);
+                if (!meterEvent || meterEvent[2] !== meter.rsid || meterEvent[3] !== meter.divisor) {
+                    events.push([0, 'meter', meter.rsid, meter.divisor]);
                 }
             }
 
@@ -112,10 +113,11 @@ export default function parseABC(abc) {
                     else if (voice.el_type === 'bar') {
                         // If cursor is not at bar start when a bar comes around...
                         const meterEvent = findLastOfType('meter', events);
-                        if ((sequence.cursor - meterEvent[0]) % meterEvent[2] !== 0) {
+                        const duration = meterEvent.duration || (RSID.lengthOf(meterEvent[2]) * meterEvent[3]);
+                        if ((sequence.cursor - meterEvent[0]) % duration !== 0) {
                             // ...advance cursor to next bar start
-                            const wholeBars  = Math.floor((sequence.cursor - meterEvent[0]) / meterEvent[2]);
-                            const beat = (wholeBars + 1) * meterEvent[2];
+                            const wholeBars  = Math.floor((sequence.cursor - meterEvent[0]) / duration);
+                            const beat = (wholeBars + 1) * duration;
                             sequence.cursor = beat;
                         }
                     }

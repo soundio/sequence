@@ -4,9 +4,9 @@ Sequence data is a structure for storing and transferring sequences of timed
 performance data, designed to align with the requirements of WebAudio.
 
 > [!NOTE]
-> Consumers of Sequence data are expected to silently ignore unsupported
-> properties and event types. Sequence data is an extensible base for other
-> other applications.
+> Consumers of Sequence data are expected to silently ignore properties and
+> event types not documented here. Sequence data is an extensible base format
+> for building things.
 
 
 ## In this repository
@@ -15,7 +15,7 @@ performance data, designed to align with the requirements of WebAudio.
 - Implementations of `Sequence` and `Event` constructors, `Transform` pipes and a `SequenceIterator`
 - Sequence parsers and serialisers
 <!--- MusicXML 4.0 and MIDI 1.0 / 2.0 clip converters-->
-- [io.sound.sequence](https://atproto.at/lexicon/io.sound.sequence) AT Protocol lexicon, validator, and binary events serialiser
+- AT Protocol lexicon ([io.sound.sequence](https://atproto.at/lexicon/io.sound.sequence)), validator
 
 
 ## Formats & Usage
@@ -43,7 +43,7 @@ const sequence = Sequence.parse(`
 // Mutate sequence by creating an event (adds a Dm7 chord for 4 beats at beat 4)
 sequence.createEvent(4, "chord", "D", "-7", 4);
 
-// Iterate over flattened, rate- and transform-resolved events
+// Iterate over output events
 for (const event of sequence) {
     // ...
 }
@@ -95,7 +95,7 @@ Here are the first two bars of Dolphin Dance represented as Sequence JSON:
 {
     "name": "Dolphin Dance",
     "events": [
-        [0,   "meter", 4, 1],
+        [0,   "meter", 10, 1],
         [0,   "rate", "step", 2],
         [0,   "chord", "C", "∆", 4],
         [2,   "note", "E5", "mp", 0.5],
@@ -190,7 +190,7 @@ the event array and the structure of the remaining values:
 | `beat` | `"control"`  | `address` | `value` | `duration` |  |
 | `beat` | `"rate"`     | `curve` | `value` | `duration` |  |
 | `beat` | `"key"`      | `name` |  |  |  |
-| `beat` | `"meter"`    | `duration` | `division` |  |  |
+| `beat` | `"meter"`    | `rsid` | `divisor` |  |  |
 | `beat` | `"chord"`    | `root` | `extension` | `duration` |  |
 | `beat` | `"text"`     | `duration` | `text` |  |  |
 
@@ -204,17 +204,16 @@ the event array and the structure of the remaining values:
 ```
 
 `pitch` – FLOAT [0-127] | STRING<br/>
-Represents the pitch of a note.
-When `pitch` is a number, it is a MIDI note number (floats are permitted to
-represent arbitrary microtonal frequencies; MIDI note `69` is `440Hz`, `60` is
-`C4`). When `pitch` is a string, it is a note name (`"C0"`–`"G9"`, accepting
-both `#`/`♯` and `b`/`♭`) or a standard drum/percussion name. `NoteEvent`
-normalises and stores `pitch` at index `2` as a numeric MIDI note number.
+Represents the pitch of a note. When `pitch` is a number, it is a number on the
+standard MIDI note number scale (MIDI note `69` is `440Hz`, `60` is `C4`), but
+where floats are permitted, to allow for notes of any frequency. When `pitch` is
+a string, it is a note name (`"C0"`–`"G9"`, accepting both ASCII `#`/`b` and
+unicode `♯`/`♭` sharps and flats) or a standard drum/percussion name.
 
-`gain` – FLOAT [0-n] | STRING ["-ndB"] | STRING ["ppp"-"fff"]<br/>
-Represents the amplitude / attack velocity of the note. Accepts a linear gain
-number (`0` to `1+`), a decibel string (e.g. `"-6dB"`), or a dynamic marking
-(`"ppp"` to `"fff"`), and is stored at index `3` as a linear gain float.
+`gain` – FLOAT [0-*n*] | STRING ["-*n*dB"] | STRING ["ppp"-"fff"]<br/>
+Represents the amplitude or attack velocity of the note. Accepts a linear gain
+number (`0` to `1`), a decibel string (e.g. `"-6dB"`), or a dynamic marking
+(`"ppp"` to `"fff"`).
 
 `duration` – FLOAT [0-n]<br/>
 Represents the duration of the note in beats.
@@ -259,12 +258,12 @@ Where `curve` is `"target"`, represents the exponential `timeConstant` in beats
 ### `"rate"`
 
 ```js
-[beat, "rate", "hold"]
-[beat, "rate", "cancel"]
 [beat, "rate", "set", value]
 [beat, "rate", "linear", value]
 [beat, "rate", "exponential", value]
 [beat, "rate", "target", value, duration]
+[beat, "rate", "hold"]
+[beat, "rate", "cancel"]
 ```
 
 `curve` – STRING `"step"`, `"linear"`, `"exponential"`, `"target"`, `"hold"`, or `"cancel"`<br/>
@@ -292,56 +291,74 @@ Where there is no `"rate"` event at beat `0`, playback defaults to a rate of
 ### `"meter"`
 
 ```js
-[beat, "meter", duration, division]
+[beat, "meter", rsid, divisor]
 ```
 
-`duration` – FLOAT<br/>
-The duration of a bar, in beats.
+`rsid` – UINT<br/>
+A Rhythmic Structure ID. An RSID is a single integer whose binary representation
+describes rhythmic units as hits (`1`s) and rests (`0`s), each of duration
+`divisor`. A 4/4 meter with pulses on beats 1 and 3 in is binary `1010`, or RSID
+`10`, with divisor `1` to represent .
 
-`division` – FLOAT<br/>
-The duration of a beat division (pulse), in beats.
+`divisor` – FLOAT<br/>
+The duration of a rhythmic unit in beats, where 1 beat is a quarter note. Must
+be a power-of-2 number, e.g. `0.25`, `0.5`, `1`...
 
 Here are some common time signatures as meter events:
 
-| time | event |
-| :--- | :---- |
-| 4/4  | `[0, "meter", 4, 1]` |
-| 3/4  | `[0, "meter", 3, 1]` |
-| 6/8  | `[0, "meter", 3, 1.5]` |
-| 2/4  | `[0, "meter", 2, 1]` |
-| 7/8  | `[0, "meter", 3.5, 1.5]` |
-| 7/8  | `[0, "meter", 3.5, 2]` |
+| timesig | RSID            | event                   |
+| :------ | :-------------- | :---------------------- |
+| 2/2     | 11 or `3`       | `[0, "meter", 3, 2]`    |
+| 2/4     | 10 or `2`       | `[0, "meter", 2, 1]`    |
+| 3/4     | 100 or `4`      | `[0, "meter", 4, 1]`    |
+| 4/4     | 1010 or `10`    | `[0, "meter", 10, 1]`   |
+| 6/8     | 100100 or `36`  | `[0, "meter", 36, 0.5]` |
+
+RSIDs express divisions in meter. Consider a bar of 5/4. There are two common
+ways of subdividing 5 beats: 3:2 and 2:3. Both are expressable as an RSID:
+
+| timesig | division | RSID            | event                   |
+| :------ | :------- | :-------------- | :---------------------- |
+| 5/4     | 3:2      | 10010 or `18`   | `[0, "meter", 18, 1]`   |
+|         | 2:3      | 10100 or `20`   | `[0, "meter", 20, 1]`   |
+| 7/8     | 4:3      | 1000100 or `68` | `[0, "meter", 68, 0.5]` |
+|         | 3:4      | 1001000 or `72` | `[0, "meter", 72, 0.5]` |
+|         | 2:2:3    | 1010100 or `84` | `[0, "meter", 84, 0.5]` |
 
 A meter event MUST occur at a beat that is a full bar from a previous meter
 event. The second event here is valid:
 
 ```json
-[0, "meter", 4, 1]
-[4, "meter", 3, 1]
+[0, "meter", 10, 1]
+[4, "meter", 7, 1]
 ```
 
-Where here it is invalid:
+Where here the second event is invalid:
 
 ```json
-[0, "meter", 4, 1]
-[2, "meter", 3, 1]
+[0, "meter", 10, 1]
+[2, "meter", 7, 1]
 ```
 
-Consumers may choose to recover from invalid `"meter"` events by pushing them to
-the start of the following bar, or choose to throw an error.
+Consumers may choose to recover from invalid `"meter"` events by truncating the
+current bar, or choose to throw an error.
 
 Meter events have no effect on the rate of the beat clock (although they may
-have an effect on a metronome or rhythm generator). Where no `"meter"` event is
-defined at beat `0` consumers should assume a default meter of 4/4 – i.e.
-`[0, "meter", 4, 1]`.
+have an effect on a metronome or rhythm generator).
 
 
 ---
 
 ### `"chord"`
 
+<small>json</small>
 ```js
 [beat, "chord", root, extension, duration]
+```
+
+<small>api</small>
+```js
+Event.chord(beat, root, extension, duration)
 ```
 
 `root` – INT [0-11] | STRING ["A♭"-"G♯"]<br/>

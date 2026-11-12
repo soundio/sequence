@@ -26,17 +26,7 @@ Deno.test('RSID.trim()', () => {
 });
 
 
-Deno.test('RSID.isValid() and RSID.equals()', () => {
-    is(RSID.isValid(3), true);
-    is(RSID.isValid(11), true);
-    is(RSID.isValid(13), true);
-    is(RSID.isValid(45), true);
-    is(RSID.isValid(5), true);
-
-    // 10 and 36 are not valid canonical RSIDs because they reduce to 3
-    is(RSID.isValid(10), false);
-    is(RSID.isValid(36), false);
-
+Deno.test('RSID.equals()', () => {
     is(RSID.equals(36, 10), true);
     is(RSID.equals(36, 3), true);
     is(RSID.equals(10, 3), true);
@@ -50,9 +40,9 @@ Deno.test('RSID.of()', () => {
     is(RSID.of(1, 1, 0, 1), 13);
     is(RSID.of(1, 0, 1, 1, 0, 1), 45);
 
-    // Automatic compression to canonical RSID
-    is(RSID.of(1, 0, 1, 0), 3);
-    is(RSID.of(1, 0, 0, 1, 0, 0), 3);
+    // Preserves grid without compression
+    is(RSID.of(1, 0, 1, 0), 0b1010);
+    is(RSID.of(1, 0, 0, 1, 0, 0), 0b100100);
 
     // Leading zeros evaluate to same RSID as starting with hit
     is(RSID.of(0, 1, 0, 1), 5);
@@ -66,9 +56,9 @@ Deno.test('RSID.from()', () => {
     is(RSID.from([1, 1, 0, 1]), 13);
     is(RSID.from([1, 0, 1, 1, 0, 1]), 45);
 
-    // Automatic compression to canonical RSID
-    is(RSID.from([1, 0, 1, 0]), 3);
-    is(RSID.from([1, 0, 0, 1, 0, 0]), 3);
+    // Preserves grid without compression
+    is(RSID.from([1, 0, 1, 0]), 0b1010);
+    is(RSID.from([1, 0, 0, 1, 0, 0]), 0b100100);
 
     // Leading zeros evaluate to same RSID as starting with hit
     is(RSID.from([0, 1, 0, 1]), 5);

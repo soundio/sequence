@@ -99,8 +99,11 @@ Deno.test('parseMidiClip: SMF2CLIP with notes, tempo, meter and key', () => {
 
     const meterEvent = sequence.events.find(e => e.type === 'meter');
     assert(meterEvent, 'Should contain a meter event');
+    equals(meterEvent.rsid, 0b1010);
+    equals(meterEvent.divisor, 1);
     equals(meterEvent.duration, 4);
-    equals(meterEvent.denominator, 1);
+    equals(meterEvent.timesig, '4/4');
+    equals(meterEvent.divisions, [2, 4]);
 
     const keyEvent = sequence.events.find(e => e.type === 'key');
     assert(keyEvent, 'Should contain a key event');

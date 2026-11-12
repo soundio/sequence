@@ -60,7 +60,7 @@ Deno.test('importMusicXML() - simple single-part piece', () => {
         "events": [
             [0, "key", 0],
             [0, "rate", 2],
-            [0, "meter", 4, 1],
+            [0, "meter", 10, 1],
             [0, "sequence", "section-0", 0, 4]
         ],
         "sequences": [{
@@ -124,7 +124,7 @@ Deno.test('importMusicXML() - with harmony/chord symbols', () => {
     equals(importMusicXML(chordXML), {
         "events": [
             [0, "key", 0],
-            [0, "meter", 4, 1],
+            [0, "meter", 10, 1],
             [0, "sequence", "section-0", 0, 4]
         ],
         "sequences": [{
@@ -182,7 +182,7 @@ Deno.test('importMusicXML() - key signature conversion', () => {
     equals(importMusicXML(keyXML), {
         "events": [
             [0, "key", 2],
-            [0, "meter", 4, 1],
+            [0, "meter", 10, 1],
             [0, "sequence", "section-0", 0, 4]
         ],
         "sequences": [{
@@ -236,7 +236,7 @@ Deno.test('importMusicXML() - clef extraction', () => {
     equals(importMusicXML(clefXML), {
         "events": [
             [0, "key", 0],
-            [0, "meter", 4, 1],
+            [0, "meter", 10, 1],
             [0, "sequence", "section-0", 0, 4]
         ],
         "sequences": [{
@@ -306,7 +306,7 @@ Deno.test('importMusicXML() - clef change mid-piece', () => {
     equals(importMusicXML(clefChangeXML), {
         "events": [
             [0, "key", 0],
-            [0, "meter", 4, 1],
+            [0, "meter", 10, 1],
             [0, "sequence", "section-0", 0, 5]
         ],
         "sequences": [{

@@ -46,7 +46,7 @@ Most events use fixed byte counts defined in `TYPEBYTES`:
 
 - **note**: 16 bytes (pitch, dynamic, duration)
 - **chord**: 17 bytes (root, hsid, duration)
-- **meter**: 4 bytes (duration, divisor)
+- **meter**: 5 bytes (4 rsid: Uint32, 1 divisor: Uint8 as 4 / divisor)
 - **key**: 1 byte (root)
 - **clef**: 1 byte (clef id)
 
