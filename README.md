@@ -27,7 +27,7 @@ Sequence data may be represented as:
 > This document is not a final draft. The format is subject to change.
 
 
-## Quick start with the reference implementation
+## Quick start - Reference implementation
 
 The JS implementation in this repository provides an API to parse and modify
 Sequence data. Get data in:
