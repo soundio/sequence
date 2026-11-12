@@ -1,95 +1,97 @@
 # Sequence
 
 Sequence data is a structure for storing and transferring sequences of timed
-performance data, designed to align with the requirements of WebAudio.
+performance data, designed to align with the requirements of the WebAudio API.
+As a high resolution format it is transformable to MIDI 2.0 with minimal loss,
+and MIDI 1.0 with significant loss in resolution.
+
+This repository contains:
+
+- Specification of the Sequence format (this README)
+- AT Protocol lexicon ([io.sound.sequence](https://atproto.at/lexicon/io.sound.sequence))
+- Reference implementations of `Sequence`, `Event`, `Transform` and `SequenceIterator` in JS
+- Parsers, event serialisers and deserialisers
+
+> [!CAUTION]
+> This document is not a final draft. The format is subject to change.
 
 > [!NOTE]
 > Consumers of Sequence data are expected to silently ignore properties and
 > event types not documented here. Sequence data is an extensible base format
-> for building things.
-
-
-## In this repository
-
-- Specification of the format of Sequence data (this README)
-- Implementations of `Sequence` and `Event` constructors, `Transform` pipes and a `SequenceIterator`
-- Sequence parsers and serialisers
-<!--- MusicXML 4.0 and MIDI 1.0 / 2.0 clip converters-->
-- AT Protocol lexicon ([io.sound.sequence](https://atproto.at/lexicon/io.sound.sequence)), validator
+> for building things on top of.
 
 
 ## Formats & Usage
 
 Sequence data may be represented as:
 
-- **Sequence JSON** (`.json`, `type="application/json"`)
-- **Sequence text** (`.sequence`, `type="text/sequence"`)
-- **AT Protocol record** ([io.sound.sequence](https://atproto.at/lexicon/io.sound.sequence), `.json`, `type="application/json"`)
+- **Sequence JSON** JSON (`.json`, `type="application/json"`)
+- **AT Protocol record** JSON with serialised events ([io.sound.sequence](https://atproto.at/lexicon/io.sound.sequence), `.json`, `type="application/json"`)
+- **Sequence text** human readable text format (`.sequence`, `type="text/sequence"`)
+
+
+## Reference implementation
+
+The JS implementation in this repository provides an API to parse and modify
+Sequence data. Get data in:
 
 ```js
-import Sequence from './module.js';
+import { Sequence } from './module.js';
 
-// Create a Sequence from JSON data
-const sequence = Sequence.from(data);
+// Create a Sequence from data
+const sequence = Sequence.from({
+    [0, "meter", 10, 1],
+    [0, "rate", 2],
+    [0, "chord", "C", "∆", 4],
+    [2, "note", "E5", 0.1, 0.5]
+});
 
 // Or parse from human-readable Sequence text
 const sequence = Sequence.parse(`
     0 meter 4/4
     0 rate 2
     0 chord C∆ 4
-    2 E5 0.8 0.5
+    2 E5 0.5
 `);
+```
 
-// Mutate sequence by creating an event (adds a Dm7 chord for 4 beats at beat 4)
-sequence.createEvent(4, "chord", "D", "-7", 4);
+Iterate over events:
 
-// Iterate over output events
-for (const event of sequence) {
-    // ...
+```js
+let event;
+for (event of sequence) {
+    // Do something with event ...
 }
 ```
 
-### Export Sequence data
-
-Convert a sequence to JSON:
+Get data out:
 
 ```js
+// Convert sequence to JSON:
 const json = JSON.stringify(sequence);
-```
 
-Convert a sequence to human-readable Sequence text:
+// Serialise sequence to AT Protocol record JSON
+const record = Sequence.toATProtoRecord(sequence);
 
-```js
+// Convert a sequence to human-readable Sequence text
 const text = sequence.toString();
 ```
 
-Serialise and validate a sequence as an [AT Protocol](https://atproto.com/)
-record conforming to the [io.sound.sequence](https://atproto.at/lexicon/io.sound.sequence) lexicon:
 
-```js
-const record = Sequence.toATProtoRecord(sequence);
-```
+# Sequence data
 
-> [!CAUTION]
-> An `io.sound.sequence` record has events serialised to base-64; nonetheless
-> large sequences may run up against the size limits of a PDS.
+The Sequence format defines two principle data structures: a `Sequence` object
+and an `Event` which is represented in JSON as an array.
 
-
-## Concepts
-
-The Sequence format defines two data structures: a `Sequence` object and an
-`Event` array.
+Sequence data describes all times and durations in beats. Beat values are
+arbitrary, and depend on the rate of playback of a sequence.
 
 > [!NOTE]
-> Sequence data describes all times and durations in beats. Beat values are
-> arbitrary, and depend on the rate of playback of a sequence. A sequence
-> playing back at a rate of `1` is running at 1 beat per second, following
-> absolute time (60 bpm).
+> A sequence playing back at a rate of `1` is running at 1 beat per second,
+> or 60bpm – absolute time.
 
-
-## Example JSON
-
-Here are the first two bars of Dolphin Dance represented as Sequence JSON:
+As an example, here are the first two bars of Dolphin Dance represented as
+Sequence JSON:
 
 ```json
 {
@@ -108,13 +110,6 @@ Here are the first two bars of Dolphin Dance represented as Sequence JSON:
 }
 ```
 
-> [!NOTE]
-> `Sequence.from()` and `Event.from()` accept both human-readable string tokens
-> (such as `"note"`, `"E5"`, `"mf"`, `"step"`, `"∆"`) and compact numeric encodings.
-> When parsed all values are stored in memory and serialised as numeric values:
-> numeric event type IDs, MIDI note numbers, linear gain values, curve IDs, and
-> Harmonic Structure IDs (HSIDs).
-
 
 ## Sequence
 
@@ -129,14 +124,14 @@ A sequence, at its simplest, is an object with an `events` array:
 `events` – ARRAY<br/>
 An array of events.
 
-Sequences may also have the properties:
+A Sequence may also have the properties:
 
 ```json
 {
     "id": 1,
     "url": "https://...",
     "version": 1,
-    "name": "My Sequence",
+    "name": "Dolphin Dance",
     "events": [...],
     "sequences": [...],
     "credits": [...],
@@ -172,6 +167,8 @@ An array of strings used to classify the sequence.
 
 ## Event
 
+An event is expressed in JSON as an array.
+
 ```js
 [beat, type, ...params]
 ```
@@ -183,21 +180,62 @@ Describes a point in time from the start of the sequence in beats.
 The event type name (or numeric type ID `1–8`), which determines the length of
 the event array and the structure of the remaining values:
 
-| beat   | type         | 2 | 3 | 4 | 5... |
-| :----- | :----------- | :--- | :--- | :--- | :--- |
-| `beat` | `"sequence"` | `identifier` | `target` | `duration` | `...transforms` |
-| `beat` | `"note"`     | `pitch` | `gain` | `duration` |  |
-| `beat` | `"control"`  | `address` | `value` | `duration` |  |
-| `beat` | `"rate"`     | `curve` | `value` | `duration` |  |
-| `beat` | `"key"`      | `name` |  |  |  |
-| `beat` | `"meter"`    | `rsid` | `divisor` |  |  |
-| `beat` | `"chord"`    | `root` | `extension` | `duration` |  |
-| `beat` | `"text"`     | `duration` | `text` |  |  |
+| beat   | type         | 2            | 3           | 4          | 5...            |
+| :----- | :----------- | :----------- | :---------- | :--------- | :-------------- |
+| `beat` | `"sequence"` | `identifier` | `target`    | `duration` | `...transforms` |
+| `beat` | `"note"`     | `pitch`      | `gain`      | `duration` |  |
+| `beat` | `"control"`  | `address`    | `value`     | `duration` |  |
+| `beat` | `"rate"`     | `curve`      | `value`     | `duration` |  |
+| `beat` | `"key"`      | `name`       |  |  |  |
+| `beat` | `"meter"`    | `rsid`       | `divisor`   |  |  |
+| `beat` | `"chord"`    | `root`       | `extension` | `duration` |  |
+| `beat` | `"text"`     | `duration`   | `text`      |  |  |
+
+
+---
+
+### `"sequence"`
+
+Plays events from a sequence in the `sequences` array. Output events have a
+target id or address assigned and optionally, events are transformed on playback.
+
+```js
+[beat, "sequence", sequenceId, targetId, duration, ...transforms]
+```
+
+`sequenceId` – INT [1-65535]<br/>
+The `id` of a sequence found in the parent sequence's `sequences` array.
+
+`targetId` – INT<br/>
+The identifier of an instrument object to route the nested sequence to.
+
+`duration` – FLOAT<br/>
+The duration in beats to play the nested sequence (in the parent sequence's beat
+frame of reference).
+
+`...transforms` – optional sequence of transform pairs<br/>
+Transforms are applied to events yielded by the nested sequence during iteration
+and consumed (they do not appear on the iterated output events):
+
+- `"displace", beats` – shifts event beats inside the nested sequence
+- `"rate", scale` – scales playback speed (`2` = double speed / half duration)
+- `"transpose", semitones` – shifts pitch of `"note"` and `"chord"` events
+- `"gain", scale` – scales linear gain of `"note"` events
+- `"swing", division, strength` – applies swing quantisation
+
+For example, this event sends sequence `1` to instrument `3` starting at beat
+`0.5` for `4` beats, transposed up `2` semitones at rate `1.5`:
+
+```json
+[0.5, "sequence", 1, 3, 4, "transpose", 2, "rate", 1.5]
+```
 
 
 ---
 
 ### `"note"`
+
+Represents a musical note.
 
 ```js
 [beat, "note", pitch, gain, duration]
@@ -218,55 +256,62 @@ number (`0` to `1`), a decibel string (e.g. `"-6dB"`), or a dynamic marking
 `duration` – FLOAT [0-n]<br/>
 Represents the duration of the note in beats.
 
+> [!NOTE]
+> Realtime iterators may decompose note events into `"start"` and `"stop"`
+> events on playback.
+
 
 ---
 
 ### `"control"`
 
+An automation event for an instrument parameter, representing a value and an
+automation curve to transition to that value.
+
 ```js
 [beat, "control", address, value]
 [beat, "control", address, value, duration]
-[beat, "control", name, curve, value]
-[beat, "control", name, "target", value, duration]
 ```
 
 `address` – INT | STRING<br/>
 Identifies both the parameter to control and the transition curve. As a string,
-it may be `"name"` (which defaults to `"step"`) or `"name.curve"` (e.g.
-`"modulation.linear"`, `"gain.target"`). In memory, `ControlEvent` packs the
-parameter ID and curve ID into a single integer `(param << 3) | curve` at index `2`.
+it may be `"parameter"` or `"parameter.curve"` (e.g. `"modulation"`,
+`"modulation.set"`, or `"modulation.target"`).
 
-`name` – STRING<br/>
-The name of a recognised MIDI CC, RPN, spatial, or WebAudio `AudioParam`
-parameter (e.g. `"modulation"`, `"gain"`, `"pan"`, `"sustain"`, `"frequency"`,
-`"Q"`, `"detune"`).
+The parameter part of `address` is the name of a recognised MIDI CC, RPN,
+spatial, or WebAudio `AudioParam` parameter property (e.g. `"modulation"`,
+`"gain"`, `"pan"`, `"sustain"`, `"frequency"`, `"Q"`, `"detune"`, ...).
 
-`curve` – STRING `"step"`, `"linear"`, `"exponential"`, `"target"`, `"hold"`, or `"cancel"`<br/>
-The ramp to use to transition to `value`. Where `curve` is `"hold"` or
-`"cancel"`, no `value` is required.
+The curve part of `address` id one of `"set"`, `"linear"`, `"exponential"`,
+`"target"`, `"hold"`, or `"cancel"`.
+
+When expressed as an integer, both parameter and curve are mapped to ids and
+packed into a single integer.
 
 `value` – FLOAT<br/>
 The destination value of the parameter.
 
 `duration` – FLOAT, optional<br/>
-Where `curve` is `"target"`, represents the exponential `timeConstant` in beats
-(mirroring WebAudio's `setTargetAtTime`).
+Where the `address` curve is `"target"`, represents an exponential timeConstant
+(mirroring WebAudio's `setTargetAtTime`), but expressed in beats.
 
 
 ---
 
 ### `"rate"`
 
+An automation event for the rate of playback of the current sequence,
+representing a rate value and an automation curve to transition to that value.
+
 ```js
-[beat, "rate", "set", value]
-[beat, "rate", "linear", value]
-[beat, "rate", "exponential", value]
-[beat, "rate", "target", value, duration]
 [beat, "rate", "hold"]
 [beat, "rate", "cancel"]
+[beat, "rate", curve, value]
+[beat, "rate", "target", value, duration]
 ```
 
-`curve` – STRING `"step"`, `"linear"`, `"exponential"`, `"target"`, `"hold"`, or `"cancel"`<br/>
+`curve` – STRING `"step"`, `"linear"`, `"exponential"`, `"target"`, `"hold"`,
+or `"cancel"`<br/>
 Represents the type of ramp to use to transition to the new rate. For
 `"linear"` and `"exponential"`, the previous rate event transitions smoothly to
 `value` at `beat`. Where `curve` is `"hold"` or `"cancel"`, no `value` is
@@ -278,7 +323,7 @@ their own rate events or `"rate"` transforms, and rates are cumulative: if
 sequence A is playing at rate `2` and contains sequence B playing at rate `1.5`,
 sequence B plays at an absolute rate of `3` (3 beats per second, or 180 bpm).
 
-`duration` – FLOAT, optional<br/>
+`duration` – FLOAT<br/>
 Where `curve` is `"target"`, represents the `timeConstant` in beats over which
 the rate asymptotically approaches `value`.
 
@@ -456,42 +501,6 @@ performance sounds.
 > [!NOTE]
 > Harmonic generators should read `"chord"` events to generate sound based on
 > modes, scales and chords.
-
-
----
-
-### `"sequence"`
-
-```js
-[beat, "sequence", identifier, target, duration, ...transforms]
-```
-
-`identifier` – INT [1-65535]<br/>
-The `id` of a sequence found in the parent sequence's `sequences` array.
-
-`target` – INT<br/>
-The identifier of an instrument object to route the nested sequence to.
-
-`duration` – FLOAT<br/>
-The duration in beats to play the nested sequence (in the parent sequence's beat
-frame of reference).
-
-`...transforms` – optional sequence of transform pairs<br/>
-Transforms are applied to events yielded by the nested sequence during iteration
-and consumed (they do not appear on the iterated output events):
-
-- `"displace", beats` – shifts event beats inside the nested sequence
-- `"rate", scale` – scales playback speed (`2` = double speed / half duration)
-- `"transpose", semitones` – shifts pitch of `"note"` and `"chord"` events
-- `"gain", scale` – scales linear gain of `"note"` events
-- `"swing", division, strength` – applies swing quantisation
-
-For example, this event plays sequence `1` through `"piano"` starting at beat
-`0.5` for `4` beats, transposed up 2 semitones at double rate:
-
-```json
-[0.5, "sequence", 1, 0, 4, "transpose", 2, "rate", 2]
-```
 
 
 ---
