@@ -196,12 +196,19 @@ the event array and the structure of the remaining values:
 
 ### `"sequence"`
 
+###### data
 ```js
 [beat, "sequence", sequenceId, targetId, duration, ...transforms]
 ```
 
-Plays events from a sequence in the `sequences` array. Output events have a
-target id or address assigned and optionally, events are transformed on playback.
+###### api
+```js
+Event.sequence(beat, sequenceId, targetId, duration, ...transforms);
+```
+
+Plays events from a sequence in this sequence's `sequences` array. Output events
+have a target id or address assigned and optionally, events are transformed on
+playback.
 
 `sequenceId` – INT [1-65535]<br/>
 The `id` of a sequence found in the parent sequence's `sequences` array.
