@@ -150,7 +150,7 @@ Deno.test('parseSequence() comments and permissive formatting', () => {
     is(seq.events.length, 5);
 
     is(seq.events[0].name, 'D');
-    is(seq.events[1].rsid, 0b111);
+    is(seq.events[1].rsid, 0b100);
     is(seq.events[1].divisor, 1);
     is(seq.events[1].duration, 3);
     is(seq.events[1].timesig, '3/4');

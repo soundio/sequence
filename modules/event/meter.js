@@ -79,14 +79,14 @@ export function meterToTimesig(meter) {
 const rsids = {
     '4,2':     0b11,            // 2/2
     '6,2':     0b111,           // 3/2
-    '2,1':     0b11,            // 2/4
-    '3,1':     0b111,           // 3/4
+    '2,1':     0b10,            // 2/4
+    '3,1':     0b100,           // 3/4
     '4,1':     0b1010,          // 4/4
     '5,1':     0b10010,         // 5/4
     '6,1':     0b101010,        // 6/4
     '7,1':     0b1000100,       // 7/4
     '9,1':     0b100100100,     // 9/4
-    '1.5,0.5': 0b111,           // 3/8
+    '1.5,0.5': 0b100,           // 3/8
     '2.5,0.5': 0b10010,         // 5/8
     '3,0.5':   0b100100,        // 6/8
     '3.5,0.5': 0b1010100,       // 7/8
@@ -102,16 +102,6 @@ export default class MeterEvent extends Event {
     }
 
     [1] = Event.TYPES.meter;
-
-    get duration()          {
-        return RSID.lengthOf(this[2]) * this[3];
-    }
-
-    set duration(duration) {
-        const rsid = rsids[duration + ',' + this[3]];
-        if (!rsid) throw new Error(`MeterEvent: metric RSID of duration ${ duration } divisor ${ this[3] } not found`);
-        this.rsid = rsid;
-    }
 
     get rsid() {
         return this[2];
@@ -130,18 +120,6 @@ export default class MeterEvent extends Event {
         this[3] = divisor;
     }
 
-    get timesig() {
-        return RSID.lengthOf(this[2]) + '/' + (4 / this[3]);
-    }
-
-    set timesig(string)  {
-        const groups    = rtimesig.exec(string);
-        const numerator = parseInt(groups[1], 10);
-        const divisor   = 4 / parseInt(groups[2], 10);
-        this.divisor  = divisor;
-        this.duration = numerator * divisor;
-    }
-
     get divisions()      {
         const divisor = this[3];
         const hits = RSID.stringify(this[2]);
@@ -156,6 +134,40 @@ export default class MeterEvent extends Event {
         divisions.push(this.duration);
         return divisions;
     }
+
+    get duration()          {
+        return RSID.lengthOf(this[2]) * this[3];
+    }
+
+    set duration(duration) {
+        const rsid = rsids[duration + ',' + this[3]];
+        if (!rsid) throw new Error(`MeterEvent: metric RSID of duration ${ duration } divisor ${ this[3] } not found`);
+        this.rsid = rsid;
+    }
+
+    // Time signature
+
+    get numerator() {
+        return RSID.lengthOf(this[2]);
+    }
+
+    get denominator() {
+        return 4 / this[3];
+    }
+
+    get timesig() {
+        return `${ this.numerator }/${ this.denominator }`;
+    }
+
+    set timesig(string)  {
+        const groups    = rtimesig.exec(string);
+        const numerator = parseInt(groups[1], 10);
+        const divisor   = 4 / parseInt(groups[2], 10);
+        this.divisor  = divisor;
+        this.duration = numerator * divisor;
+    }
+
+    // Human readable string
 
     toString() {
         return `${ super.toString() } meter ${ this.timesig }`;
