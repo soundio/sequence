@@ -27,7 +27,7 @@ Sequence data may be represented as:
 > This document is not a final draft. The format is subject to change.
 
 
-## Quick start - Reference implementation
+## Quick start - Reference implementation API
 
 The JS implementation in this repository provides an API to parse and modify
 Sequence data. Get data in:
@@ -385,7 +385,8 @@ Here are some common time signatures as meter events:
 | 6/8     | 100100 or `36`  | `[0, "meter", 36, 0.5]` |
 
 RSIDs express divisions in meter. Consider a bar of 5/4. There are two common
-ways of subdividing 5 beats: 3:2 and 2:3. Both are expressable as an RSID:
+ways of subdividing 5 beats: 3:2 and 2:3. Both are expressable as an RSID.
+Here are some examples.
 
 | timesig | division | RSID            | event                   |
 | :------ | :------- | :-------------- | :---------------------- |
