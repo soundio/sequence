@@ -196,12 +196,12 @@ the event array and the structure of the remaining values:
 
 ### `"sequence"`
 
-###### data
+###### JSON
 ```js
 [beat, "sequence", sequenceId, targetId, duration, ...transforms]
 ```
 
-###### api
+###### API
 ```js
 Event.sequence(beat, sequenceId, targetId, duration, ...transforms);
 ```
@@ -244,8 +244,14 @@ For example, this event sends sequence `1` to instrument `3` starting at beat
 
 Represents a musical note.
 
+###### JSON
 ```js
 [beat, "note", pitch, gain, duration]
+```
+
+###### API
+```js
+Event.note(beat, pitch, gain, duration);
 ```
 
 `pitch` – FLOAT [0-127] | STRING<br/>
@@ -275,9 +281,16 @@ Represents the duration of the note in beats.
 An automation event for an instrument parameter, representing a value and an
 automation curve to transition to that value.
 
+###### JSON
 ```js
 [beat, "control", address, value]
 [beat, "control", address, value, duration]
+```
+
+###### API
+```js
+Event.control(beat, address, value);
+Event.control(beat, address, value, duration);
 ```
 
 `address` – INT | STRING<br/>
@@ -344,8 +357,14 @@ Where there is no `"rate"` event at beat `0`, playback defaults to a rate of
 
 Sets the meter of playback.
 
+###### JSON
 ```js
 [beat, "meter", rsid, divisor]
+```
+
+###### API
+```js
+Event.meter(beat, rsid, divisor);
 ```
 
 `rsid` – UINT<br/>
@@ -405,12 +424,12 @@ have an effect on a metronome or rhythm generator).
 
 ### `"chord"`
 
-<small>json</small>
+###### JSON
 ```js
 [beat, "chord", root, extension, duration]
 ```
 
-<small>api</small>
+###### API
 ```js
 Event.chord(beat, root, extension, duration)
 ```
@@ -495,8 +514,14 @@ The duration of the chord in beats (defaults to `2`).
 
 ### `"key"`
 
+###### JSON
 ```js
 [beat, "key", name]
+```
+
+###### API
+```js
+Event.key(beat, name);
 ```
 
 `name` – STRING | INT [-7..7]<br/>
@@ -516,8 +541,14 @@ performance sounds.
 
 ### `"text"`
 
+###### JSON
 ```js
 [beat, "text", duration, text]
+```
+
+###### API
+```js
+Event.text(beat, duration, text);
 ```
 
 `duration` – FLOAT<br/>
