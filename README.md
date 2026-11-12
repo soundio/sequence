@@ -196,12 +196,12 @@ the event array and the structure of the remaining values:
 
 ### `"sequence"`
 
-Plays events from a sequence in the `sequences` array. Output events have a
-target id or address assigned and optionally, events are transformed on playback.
-
 ```js
 [beat, "sequence", sequenceId, targetId, duration, ...transforms]
 ```
+
+Plays events from a sequence in the `sequences` array. Output events have a
+target id or address assigned and optionally, events are transformed on playback.
 
 `sequenceId` – INT [1-65535]<br/>
 The `id` of a sequence found in the parent sequence's `sequences` array.
@@ -334,6 +334,8 @@ Where there is no `"rate"` event at beat `0`, playback defaults to a rate of
 ---
 
 ### `"meter"`
+
+Sets the meter of playback.
 
 ```js
 [beat, "meter", rsid, divisor]
