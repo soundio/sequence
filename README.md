@@ -12,16 +12,10 @@ This repository contains:
 - Reference implementations of `Sequence`, `Event`, `Transform` and `SequenceIterator` in JS
 - Parsers, event serialisers and deserialisers
 
-> [!CAUTION]
-> This document is not a final draft. The format is subject to change.
-
 > [!NOTE]
 > Consumers of Sequence data are expected to silently ignore properties and
 > event types not documented here. Sequence data is an extensible base format
 > for building things on top of.
-
-
-## Formats & Usage
 
 Sequence data may be represented as:
 
@@ -29,6 +23,8 @@ Sequence data may be represented as:
 - **AT Protocol record** JSON with serialised events ([io.sound.sequence](https://atproto.at/lexicon/io.sound.sequence), `.json`, `type="application/json"`)
 - **Sequence text** human readable text format (`.sequence`, `type="text/sequence"`)
 
+> [!CAUTION]
+> This document is not a final draft. The format is subject to change.
 
 ## Reference implementation
 
