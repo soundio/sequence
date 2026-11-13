@@ -224,6 +224,11 @@ export default function serialise(events) {
                             offset += 1;
                             break;
 
+                        case Transform.TYPES.reflect:
+                            view.setFloat16(offset, event[i + 1], true);
+                            offset += 2;
+                            break;
+
                         default:
                             throw new Error(`Transform number ${ n } not recognised`);
                     }

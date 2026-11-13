@@ -34,9 +34,8 @@ It's fragile, but it is efficient. There is a full suite of tests for various
 groups of notes in test/chord.js. Consult it before changing anything.
 
 Chord extensions matching /^\{\d{1,2}\}.*\/$/ are slash chords. The `{n}` tag
-denotes the interval from the bass note to the root note of the chord (within
-the range 1-11), which is replaced with the root note name, and the bass note
-name is appended after the slash.
+denotes the interval from the root pitch. Chord events have one root pitch only
+and that becomes the bass note of a slash chord.
 */
 
 const CHORDENTRIES = [
@@ -51,6 +50,7 @@ const CHORDENTRIES = [
     ['{4}/',      HSID.of(0, 4, 8, 11)],             // C/A♭
     ['{9}-/',     HSID.of(0, 4, 9, 11)],             // C-/E♭ 1st inversion
     ['{5}-/',     HSID.of(0, 5, 7, 8)],              // C-/G  2nd inversion
+    ['{5}-11/',   HSID.of(0, 5, 8, 10)],             // C-11/G (reflection of C)
     ['{1}/',      HSID.of(0, 1, 5, 8)],              // C/B                       - must come after {5}-/
     ['{11}/',     HSID.of(0, 3, 6, 11)],             // C/D♭
     ['{8}7/',     HSID.of(0, 3, 6, 8, 10)],          // C7/E
@@ -85,6 +85,7 @@ const CHORDENTRIES = [
     ['∆♯4♯5',     HSID.of(0, 2, 4, 6, 8, 9, 11)],    // 3rd mode melodic minor
     ['-∆♭6',      HSID.of(0, 2, 3, 5, 7, 8, 11)],    // 1st mode harmonic minor
     ['∆♭6',       HSID.of(0, 2, 4, 7, 8, 11)],       // 1st mode harmonic major
+    ['{5}-6/',    HSID.of(0, 2, 5, 8, 10)],          // F-6/C                     - must come after 7♭13
 ];
 
 export const CHORDNUMBERS = Object.fromEntries(CHORDENTRIES);

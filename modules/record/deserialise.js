@@ -109,6 +109,11 @@ export default function deserialise(buffer) {
                             o += 1;
                             break;
 
+                        case Transform.TYPES.reflect:
+                            params.push(view.getFloat16(offset + o, true));
+                            o += 2;
+                            break;
+
                         default:
                             throw new Error(`Unknown transform number: ${ number }`);
                     }

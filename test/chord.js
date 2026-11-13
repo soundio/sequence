@@ -38,6 +38,7 @@ Deno.test('getChordOf(), getChordFrom()', () => {
         getChordOf(0, 4, 9, 11),              // C-/Eb 1st inversion
         getChordOf(0, 5, 8),                  // C-/G  2nd inversion
         getChordOf(0, 5, 7, 8),               // C-/G  2nd inversion
+        getChordOf(0, 5, 8, 10),              // C-11/G
         getChordOf(0, 6, 8, 10),              // C7/E
         getChordOf(0, 3, 5),                  // C7/G
         getChordOf(0, 3, 9),                  // C7/G
@@ -114,7 +115,8 @@ Deno.test('getChordOf(), getChordFrom()', () => {
         getChordOf(0, 3, 6, 8, 9),            // °7
         getChordOf(0, 3, 6, 9, 11),           // °7
         getChordOf(0, 2, 3, 5, 6, 8, 9, 11),  // °7
-        getChordOf(0, 4, 6, 8)                // +7  // POSSIBLE 7alt
+        getChordOf(0, 4, 6, 8),               // +7  // POSSIBLE 7alt
+        getChordOf(0, 2, 5, 8, 10)            // F-6/C
     ];
 
     equals(results, [
@@ -141,6 +143,7 @@ Deno.test('getChordOf(), getChordFrom()', () => {
         '{9}-/',
         '{5}-/',
         '{5}-/',
+        '{5}-11/',
         '{8}7/',
         '{5}7/',
         '{5}7/',
@@ -217,6 +220,7 @@ Deno.test('getChordOf(), getChordFrom()', () => {
         '°7',
         '°7',
         '°7',
-        '+7'
+        '+7',
+        '{5}-6/'
     ]);
 });

@@ -49,6 +49,7 @@ import * as rate      from './transform/rate.js';
 import * as transpose from './transform/transpose.js';
 import * as gain      from './transform/gain.js';
 import * as swing     from './transform/swing.js';
+import * as reflect   from './transform/reflect.js';
 
 // The order of these matters to the serialiser as they are assigned ascending
 // ids. Do not change the order without changing the serialiser VERSION and
@@ -58,5 +59,6 @@ Transform.register(rate);
 Transform.register(transpose);
 Transform.register(gain);
 Transform.register(swing);
+Transform.register(reflect);
 
 export default Transform;

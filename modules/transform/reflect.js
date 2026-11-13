@@ -1,5 +1,7 @@
 
-import * as HSID from '../hsid.js';
+import mod12          from '../number/mod-12.js';
+import * as HSID      from '../hsid.js';
+import { CHORDNAMES } from '../event/chord.js';
 
 /*
 reflect(axis, n)
@@ -26,55 +28,63 @@ symmetrical, as is the whole tone (+7) scale.
   B –––––––––––– ● –––––––––––– F   axis = 5
                ╱ |
              ╱   |
-     F♯   ╱      |           B♭
+   F♯/G♭  ╱      |           B♭
        ╱         |
-          C♯     |       E♭
-               G♯/A♭
+          D♭     |      E♭
+                 A♭
 
 Talking in the key of C, axis 3.5 will reflect a tune into the key of E♭
 (known as negative harmony) while axis 5 will sort of invert and tritone
 substitute a G7 chord.
 */
 
-export default function reflect(a, n) {
-    // Add 12 to keep number positive, subtract reflection axis so we are reflecting around 0
-    const x = n + 12 - a;
-    // Get the modulus in the range -3, 3
-    let m = (x + 3) % 6 - 3;
-    // Special case when n is 3 semitones from a, we need to decide direction
-    if (m === -3) {
-        // Are we at the far side of the circle from point that defines the axis?
-        console.log("distance", Math.abs(n % 12 - a));
-        if (Math.abs(n % 12 - a) === 9) m = 9;
-    }
-
-    // Get the whole number floor
-    const b = 6 * Math.round(x / 6);
-    // Add axis, floor, 12, invert m and subtract it
-    return b + a - 12 - m;
+export default function reflect(axis, n) {
+    // Distance from axis in range 0-12
+    const d = mod12(n - axis);
+    // Reflect across near end of axis
+    return d < 3 ? n - 2 * d :
+        // Reflect across far end of axis
+        d <= 9 ? n - 2 * (d - 6) :
+        // Reflect across near end of axis
+        n - 2 * (d - 12) ;
 }
+
+export const name = 'reflect';
 
 export function apply(event, axis) {
     switch (event.type) {
         case 'key':
-            // HMMM.. not straightforward, actually
+            // Reflect key's Dorian centre (k + 2) across 7 * axis on the circle of fifths,
+            // wrapped into the standard -5..6 (F..F#) key number range
+            event[2] = mod12(14 * axis - event[2] + 1) - 5;
             break;
         case 'note':
-            if (!event.pitched) break;
+            if (event.isDrumNote) break;
             event[2] = reflect(axis, event[2]);
             break;
         case 'chord': {
-            const numbers = HSID.toNumbers(event[3]);
-            let n = numbers.length;
-            while (n--) numbers[n] = reflect(axis, numbers[n] + event[2] + 12); // Add 12 to avoid negatives
-            event[2] = numbers[0] % 12;
-            n = numbers.length;
-            while (n--) numbers[n] = (numbers[n] - numbers[0] + 12) % 12;
+            const root   = event[2];
+            const source = HSID.toNumbers(event[3]);
 
-            // Sanity check
-            if (max.apply(Math, numbers) > 11) throw new Error('Chord HSID numbers should not exceed 11');
+            // Reflect root of chord
+            event[2] = mod12(reflect(axis, root));
+            if (!source.length) break;
 
-            event[3] = HSID.from(numbers);
+            // Reflect HSID of chord
+            const numbers = new Uint8Array(source.length);
+            let n = source.length;
+            while (--n) {
+                numbers[n] = mod12(reflect(axis, source[n] + root) - event[2]);
+            }
+            numbers.sort();
+            const hsid = HSID.from(numbers);
+
+            // Sanity check, is new hsid in chord names?
+            if (!(hsid in CHORDNAMES)) {
+                console.warn(`Reflected chord ${ source.join(', ') } -> ${ numbers.join(', ') } (HSID ${ hsid }) not a known HSID for a chord name`);
+            }
+
+            event[3] = hsid;
             break;
         }
     }
@@ -84,6 +94,6 @@ export function apply(event, axis) {
 
 export const unapply = apply;
 
-// Int8 name Float16 axis. We could encode axis into UInt8 to save a byte. That
-// would require some per-transform serialisation shenanigans.
+// Int8 name + Float16 axis. We could encode axis into UInt8 to save a byte.
+// That would require some per-transform serialisation shenanigans.
 export const BYTES = 3;

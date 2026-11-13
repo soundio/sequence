@@ -109,7 +109,7 @@ Deno.test('Round-trip "meter", "chord", "key" events', () => {
 Deno.test('Round-trip "sequence" events', () => {
     assertRoundTrip([
         [1, 'sequence', 1, 0, 8],
-        [2, 'sequence', 1, 0, 8, 'transpose', 2, 'rate', 0.5]
+        [2, 'sequence', 1, 0, 8, 'transpose', 2, 'rate', 0.5, 'reflect', 3.5]
     ]);
 });
 
