@@ -290,16 +290,16 @@ An optional `cursor` object caches segment index and cumulative locations
 for repeated lookups on an immutable `events` array.
 **/
 
-export function locationAtBeatOfValues(v0, v1, c0, c1, d0, beats, beat) {
+export function locationAtBeatOfRamp(v0, v1, c0, c1, d0, duration, beat) {
     // Returns time relative to e0 time, where b is beat from e0[0]
     return beat === 0 ? 0 :
-        c1 === CURVES.linear ?      timeAtBeatLinearBeats(v0, v1, beats, beat) :
-        c1 === CURVES.exponential ? timeAtBeatExponentialBeats(v0, v1, beats, beat) :
+        c1 === CURVES.linear ?      timeAtBeatLinearBeats(v0, v1, duration, beat) :
+        c1 === CURVES.exponential ? timeAtBeatExponentialBeats(v0, v1, duration, beat) :
         c0 === CURVES.target ?      timeAtBeatTargetBeats(v0, v1, d0, beat) :
         timeAtBeatStep(v0, beat) ;
 }
 
-function segmentLocation(events, n, beat) {
+function locationAtBeatIndex(events, n, beat) {
     const b0 = events[n];
     const c0 = events[n + 1];
     const v0 = c0 === CURVES.target ? events[n - 2] : events[n + 2];
@@ -307,7 +307,7 @@ function segmentLocation(events, n, beat) {
     const b1 = events[n + 4];
     const c1 = events[n + 5];
     const v1 = c0 === CURVES.target ? events[n + 2] : events[n + 6];
-    return locationAtBeatOfValues(v0, v1, c0, c1, d0, b1 - b0, beat - b0);
+    return locationAtBeatOfRamp(v0, v1, c0, c1, d0, b1 - b0, beat - b0);
 }
 
 const initialCursor = { index: 0, 0: 0 };
@@ -327,7 +327,7 @@ export function locationAtBeat(events, beat, cursor) {
         let j = i + 1;
         while (j * 4 < events.length && events[j * 4] < beat) {
             if (cursor[j] === undefined) {
-                cursor[j] = cursor[i] + segmentLocation(events, i * 4, events[j * 4]);
+                cursor[j] = cursor[i] + locationAtBeatIndex(events, i * 4, events[j * 4]);
             }
             // Increment i and j
             ++i;
@@ -335,18 +335,18 @@ export function locationAtBeat(events, beat, cursor) {
         }
 
         cursor.index = i;
-        return cursor[i] + segmentLocation(events, i * 4, beat);
+        return cursor[i] + locationAtBeatIndex(events, i * 4, beat);
     }
 
     // Work without a cursor
     let loc = 0;
     let n = 0;
     while (n + 4 < events.length && events[n + 4] < beat) {
-        loc += segmentLocation(events, n, events[n + 4]);
+        loc += locationAtBeatIndex(events, n, events[n + 4]);
         n += 4;
     }
 
-    return loc + segmentLocation(events, n, beat);
+    return loc + locationAtBeatIndex(events, n, beat);
 }
 
 
@@ -381,7 +381,7 @@ export function beatAtLocation(events, location) {
 
         if (n + 4 >= events.length) break;
 
-        const d = locationAtBeatOfValues(v0, v1, c0, c1, d0, b1 - b0, b1 - b0);
+        const d = locationAtBeatOfRamp(v0, v1, c0, c1, d0, b1 - b0, b1 - b0);
         if (b1 > b0 && loc + d >= location) break;
 
         loc += d;
