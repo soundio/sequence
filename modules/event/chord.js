@@ -6,10 +6,9 @@ import mirror  from '../object/mirror.js';
 import { normalisePitch } from '../pitch.js';
 import { toKeyNumber, keyToRootNumber, KEYNAMES } from './key.js';
 import Event, { stringify } from './event.js';
-import { hsidOf, hsidFrom, hsidToNumbers } from '../harmony/hsid.js';
+import * as HSID from '../hsid.js';
 
 
-const DEBUG  = globalThis.DEBUG;
 const define = Object.defineProperties;
 const { round } = Math;
 const rslashextension = /^\{(\d{1,2})\}/;
@@ -41,51 +40,51 @@ name is appended after the slash.
 */
 
 const CHORDENTRIES = [
-    ['',          hsidOf(0, 2, 4, 7)],              // Before '+' so that 0,2,4 shows identifies with this
-    ['+',         hsidOf(0, 2, 4, 8)],
-    ['sus',       hsidOf(0, 2, 5, 7)],
-    ['sus♭9',     hsidOf(0, 1, 5, 7)],
-    ['-',         hsidOf(0, 2, 3, 7)],
-    ['°',         hsidOf(0, 2, 3, 6)],
-    ['{8}/',      hsidOf(0, 3, 8, 10)],             // C/E   1st inversion
-    ['{5}/',      hsidOf(0, 5, 7, 9)],              // C/G   2nd inversion
-    ['{4}/',      hsidOf(0, 4, 8, 11)],             // C/A♭
-    ['{9}-/',     hsidOf(0, 4, 9, 11)],             // C-/E♭ 1st inversion
-    ['{5}-/',     hsidOf(0, 5, 7, 8)],              // C-/G  2nd inversion
-    ['{1}/',      hsidOf(0, 1, 5, 8)],              // C/B                       - must come after {5}-/
-    ['{11}/',     hsidOf(0, 3, 6, 11)],             // C/D♭
-    ['{8}7/',     hsidOf(0, 3, 6, 8, 10)],          // C7/E
-    ['{5}7/',     hsidOf(0, 3, 5, 9)],              // C7/G
-    ['ø',         hsidOf(0, 3, 6, 10)],
-    ['∆6',        hsidOf(0, 4, 7, 9)],
-    ['∆6/9',      hsidOf(0, 2, 4, 7, 9)],
-    ['∆',         hsidOf(0, 2, 4, 7, 9, 11)],       // 1st mode major (ionian)   - must come before ∆♯11
-    ['∆♯11',      hsidOf(0, 2, 4, 6, 7, 9, 11)],    // 4th mode major lydian)
-    ['7sus',      hsidOf(0, 2, 5, 7, 10)],          // - must come before 7 to classify 0,2,7,10 (Gm/C) as 7sus
-    ['7',         hsidOf(0, 2, 4, 7, 10)],          // 5th mode major (myxolydian)
-    ['13sus',     hsidOf(0, 2, 5, 7, 9, 10)],       // - must come before 13 to classify 0,2,9,10 (Gm/C) as 13sus
-    ['13',        hsidOf(0, 2, 4, 7, 9, 10)],
-    ['-11',       hsidOf(0, 2, 3, 5, 10)],
-    ['-6',        hsidOf(0, 2, 3, 5, 7, 9)],
-    ['-7',        hsidOf(0, 2, 3, 5, 7, 9, 10)],    // 2nd mode major (dorian)
-    ['-∆',        hsidOf(0, 2, 3, 5, 7, 9, 11)],    // 1st mode melodic minor
-    ['7♯11',      hsidOf(0, 2, 4, 6, 7, 9, 10)],    // 4th mode melodic minor
-    ['7♭13',      hsidOf(0, 2, 4, 5, 7, 8, 10)],    // 5th mode melodic minor
-    ['+7',        hsidOf(0, 2, 4, 6, 8, 10)],       // Whole tone                - this must come before 7alt, ø9 and ∆♯4♯5
-    ['°7',        hsidOf(0, 2, 3, 5, 6, 8, 9, 11)], // Whole step / half step
-    ['7♯9',       hsidOf(0, 3, 4, 6, 7, 9, 10)],    // Hendrix chord             - must come before 7alt and 7♭9
-    ['7alt',      hsidOf(0, 1, 3, 4, 6, 8, 10)],    // 7th mode melodic minor    - before 7♭9 if F♯ triad / C is to be classified as 7alt, after if it is to be classified as 7♭9
-    ['7♭9',       hsidOf(0, 1, 3, 4, 6, 7, 10)],    // Half step / whole step no 13th
-    ['13♭9',      hsidOf(0, 1, 3, 4, 6, 7, 9, 10)], // Half step / whole step    - must come before 7♭9♭13
-    ['7sus♭9',    hsidOf(0, 1, 5, 7, 10)],          // Japanese insen scale
-    ['13sus♭9',   hsidOf(0, 1, 3, 5, 7, 9, 10)],    // 2nd mode melodic minor
-    ['7♭9♭13',    hsidOf(0, 1, 4, 5, 7, 8, 10)],    // 5th mode harmonic minor
-    ['-♭6',       hsidOf(0, 2, 3, 5, 7, 8, 10)],    // 6th mode major (aoelian)  - must come after 13sus♭9
-    ['-♭9',       hsidOf(0, 1, 3, 5, 7, 8, 10)],    // 3rd mode major (phrygian) - must come after -♭6
-    ['ø9',        hsidOf(0, 2, 3, 5, 6, 8, 10)],    // 6th mode melodic minor
-    ['∆♯4♯5',     hsidOf(0, 2, 4, 6, 8, 9, 11)],    // 3rd mode melodic minor
-    ['-∆♭6',      hsidOf(0, 2, 3, 5, 7, 8, 11)],    // 1st mode harmonic minor
-    ['∆♭6',       hsidOf(0, 2, 4, 7, 8, 11)],       // 1st mode harmonic major
+    ['',          HSID.of(0, 2, 4, 7)],              // Before '+' so that 0,2,4 shows identifies with this
+    ['+',         HSID.of(0, 2, 4, 8)],
+    ['sus',       HSID.of(0, 2, 5, 7)],
+    ['sus♭9',     HSID.of(0, 1, 5, 7)],
+    ['-',         HSID.of(0, 2, 3, 7)],
+    ['°',         HSID.of(0, 2, 3, 6)],
+    ['{8}/',      HSID.of(0, 3, 8, 10)],             // C/E   1st inversion
+    ['{5}/',      HSID.of(0, 5, 7, 9)],              // C/G   2nd inversion
+    ['{4}/',      HSID.of(0, 4, 8, 11)],             // C/A♭
+    ['{9}-/',     HSID.of(0, 4, 9, 11)],             // C-/E♭ 1st inversion
+    ['{5}-/',     HSID.of(0, 5, 7, 8)],              // C-/G  2nd inversion
+    ['{1}/',      HSID.of(0, 1, 5, 8)],              // C/B                       - must come after {5}-/
+    ['{11}/',     HSID.of(0, 3, 6, 11)],             // C/D♭
+    ['{8}7/',     HSID.of(0, 3, 6, 8, 10)],          // C7/E
+    ['{5}7/',     HSID.of(0, 3, 5, 9)],              // C7/G
+    ['ø',         HSID.of(0, 3, 6, 10)],
+    ['∆6',        HSID.of(0, 4, 7, 9)],
+    ['∆6/9',      HSID.of(0, 2, 4, 7, 9)],
+    ['∆',         HSID.of(0, 2, 4, 7, 9, 11)],       // 1st mode major (ionian)   - must come before ∆♯11
+    ['∆♯11',      HSID.of(0, 2, 4, 6, 7, 9, 11)],    // 4th mode major lydian)
+    ['7sus',      HSID.of(0, 2, 5, 7, 10)],          // - must come before 7 to classify 0,2,7,10 (Gm/C) as 7sus
+    ['7',         HSID.of(0, 2, 4, 7, 10)],          // 5th mode major (myxolydian)
+    ['13sus',     HSID.of(0, 2, 5, 7, 9, 10)],       // - must come before 13 to classify 0,2,9,10 (Gm/C) as 13sus
+    ['13',        HSID.of(0, 2, 4, 7, 9, 10)],
+    ['-11',       HSID.of(0, 2, 3, 5, 10)],
+    ['-6',        HSID.of(0, 2, 3, 5, 7, 9)],
+    ['-7',        HSID.of(0, 2, 3, 5, 7, 9, 10)],    // 2nd mode major (dorian)
+    ['-∆',        HSID.of(0, 2, 3, 5, 7, 9, 11)],    // 1st mode melodic minor
+    ['7♯11',      HSID.of(0, 2, 4, 6, 7, 9, 10)],    // 4th mode melodic minor
+    ['7♭13',      HSID.of(0, 2, 4, 5, 7, 8, 10)],    // 5th mode melodic minor
+    ['+7',        HSID.of(0, 2, 4, 6, 8, 10)],       // Whole tone                - this must come before 7alt, ø9 and ∆♯4♯5
+    ['°7',        HSID.of(0, 2, 3, 5, 6, 8, 9, 11)], // Whole step / half step
+    ['7♯9',       HSID.of(0, 3, 4, 6, 7, 9, 10)],    // Hendrix chord             - must come before 7alt and 7♭9
+    ['7alt',      HSID.of(0, 1, 3, 4, 6, 8, 10)],    // 7th mode melodic minor    - before 7♭9 if F♯ triad / C is to be classified as 7alt, after if it is to be classified as 7♭9
+    ['7♭9',       HSID.of(0, 1, 3, 4, 6, 7, 10)],    // Half step / whole step no 13th
+    ['13♭9',      HSID.of(0, 1, 3, 4, 6, 7, 9, 10)], // Half step / whole step    - must come before 7♭9♭13
+    ['7sus♭9',    HSID.of(0, 1, 5, 7, 10)],          // Japanese insen scale
+    ['13sus♭9',   HSID.of(0, 1, 3, 5, 7, 9, 10)],    // 2nd mode melodic minor
+    ['7♭9♭13',    HSID.of(0, 1, 4, 5, 7, 8, 10)],    // 5th mode harmonic minor
+    ['-♭6',       HSID.of(0, 2, 3, 5, 7, 8, 10)],    // 6th mode major (aoelian)  - must come after 13sus♭9
+    ['-♭9',       HSID.of(0, 1, 3, 5, 7, 8, 10)],    // 3rd mode major (phrygian) - must come after -♭6
+    ['ø9',        HSID.of(0, 2, 3, 5, 6, 8, 10)],    // 6th mode melodic minor
+    ['∆♯4♯5',     HSID.of(0, 2, 4, 6, 8, 9, 11)],    // 3rd mode melodic minor
+    ['-∆♭6',      HSID.of(0, 2, 3, 5, 7, 8, 11)],    // 1st mode harmonic minor
+    ['∆♭6',       HSID.of(0, 2, 4, 7, 8, 11)],       // 1st mode harmonic major
 ];
 
 export const CHORDNUMBERS = Object.fromEntries(CHORDENTRIES);
@@ -120,7 +119,7 @@ export function toChordHSID(value) {
     return typeof value === 'string' ?
             CHORDNUMBERS[normalisePitch(value.replaceAll(rparenthesis, ''))] :
         typeof value === 'object' ?
-            hsidFrom(value) :
+            HSID.from(value) :
         value ;
 }
 
@@ -158,14 +157,14 @@ export function getChordFrom(numbers) {
     if (numbers.length < 3) return;
 
     // If numbers is a chord identifier, fast out
-    const chordHSID = hsidFrom(numbers);
+    const chordHSID = HSID.from(numbers);
     if (CHORDNAMES[chordHSID]) return CHORDNAMES[chordHSID];
 
     let hsid, s = 0, h;
     // Loop in the order of HSIDs declared in CHORDENTRIES, find the first of
     // the highest scoring matches
     for (hsid of CHORDIDS) {
-        const chord = hsidToNumbers(hsid);
+        const chord = HSID.toNumbers(hsid);
         const score = scoreNumbers(chord, numbers);
         if (score <= s) continue;
         s = score;

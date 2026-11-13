@@ -34,7 +34,7 @@ always has an id of `0`, and simple intervals map so that a semitone `[0, 1]`
 has id `1`, a second `[0, 2]` has id `2` and so on.
 **/
 
-export function hsidFrom(numbers) {
+export function from(numbers) {
     // If numbers contains a single note return 0, or no notes return -1
     if (numbers.length < 2) return numbers.length ? 0 : -1;
 
@@ -60,8 +60,8 @@ export function hsidFrom(numbers) {
     return id;
 }
 
-export function hsidOf() {
-    return hsidFrom(arguments);
+export function of() {
+    return from(arguments);
 }
 
 
@@ -71,7 +71,7 @@ Unpacks a harmonic structure id to an ascending collection of note numbers.
 Returns a Uint8Array.
 **/
 
-export const hsidToNumbers = cache((hsid) => {
+export const toNumbers = cache((hsid) => {
     if (DEBUG && typeof hsid !== 'number') throw new Error(`hsidToNumbers() takes number, called with ${ typeof hsid }`)
 
     // If id is -ve it's an empty array
