@@ -310,33 +310,8 @@ function locationAtBeatIndex(events, n, beat) {
     return locationAtBeatOfRamp(v0, v1, c0, c1, d0, b1 - b0, beat - b0);
 }
 
-const initialCursor = { index: 0, 0: 0 };
-
-export function locationAtBeat(events, beat, cursor) {
+export function locationAtBeat(events, beat) {
     if (!beat) return 0;
-
-    if (cursor) {
-        // Initialise cursor
-        if (cursor[0] === undefined) assign(cursor, initialCursor);
-
-        // Rewind cursor if beat falls before the current segment
-        let i = cursor.index;
-        while (i > 0 && beat < events[i * 4]) --i;
-
-        // Advance cursor and lazily memoise cumulative segment start locations
-        let j = i + 1;
-        while (j * 4 < events.length && events[j * 4] < beat) {
-            if (cursor[j] === undefined) {
-                cursor[j] = cursor[i] + locationAtBeatIndex(events, i * 4, events[j * 4]);
-            }
-            // Increment i and j
-            ++i;
-            ++j;
-        }
-
-        cursor.index = i;
-        return cursor[i] + locationAtBeatIndex(events, i * 4, beat);
-    }
 
     // Work without a cursor
     let loc = 0;
@@ -347,6 +322,33 @@ export function locationAtBeat(events, beat, cursor) {
     }
 
     return loc + locationAtBeatIndex(events, n, beat);
+}
+
+const initialCursor = { index: 0, 0: 0 };
+
+export function locationAtBeatWithCursor(events, beat, cursor) {
+    // Fast out
+    if (!beat) return 0;
+    // Initialise cursor
+    if (cursor[0] === undefined) assign(cursor, initialCursor);
+
+    // Rewind cursor if beat falls before the current segment
+    let i = cursor.index;
+    while (i > 0 && beat < events[i * 4]) --i;
+
+    // Advance cursor and lazily memoise cumulative segment start locations
+    let j = i + 1;
+    while (j * 4 < events.length && events[j * 4] < beat) {
+        if (cursor[j] === undefined) {
+            cursor[j] = cursor[i] + locationAtBeatIndex(events, i * 4, events[j * 4]);
+        }
+        // Increment i and j
+        ++i;
+        ++j;
+    }
+
+    cursor.index = i;
+    return cursor[i] + locationAtBeatIndex(events, i * 4, beat);
 }
 
 

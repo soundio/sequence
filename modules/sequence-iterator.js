@@ -3,7 +3,7 @@ import get        from 'fn/get.js';
 import matches    from 'fn/matches.js';
 import Event      from './event.js';
 import Transform  from './transform.js';
-import { beatAtLocation, locationAtBeat, rateAtBeatOfValues } from './location.js';
+import { beatAtLocation, locationAtBeatWithCursor, rateAtBeatOfValues } from './location.js';
 import byPriority from './events/by-priority.js';
 import { CURVES } from './event/curves.js';
 
@@ -69,6 +69,22 @@ function readRateEvents(rates, events) {
     return rates;
 }
 
+function applyTransform(rates, cursor, startBeat, transform, event) {
+    // Find location after rates transforms
+    const location = locationAtBeatWithCursor(rates, event[0], cursor);
+    if (event.duration && !Event.isMeter(event)) {
+        event.duration = locationAtBeatWithCursor(rates, event[0] + event.duration, cursor) - location;
+    }
+    // Apply location as beat
+    event[0] = location;
+    // Modify event by sequence event's transforms
+    event = transform.apply(event);
+    // Modify event sequence event's start beat
+    event[0] += startBeat;
+
+    return event;
+}
+
 /**
 SequenceIterator(events, sequences, transform, parent = null, trigger = null)
 **/
@@ -118,20 +134,6 @@ export default class SequenceIterator extends Iterator {
         this.n = n - 1;
     }
 
-    #transform(value) {
-        // Modify event beat and duration by sequence's rate events
-        const l0 = locationAtBeat(this.#rates, value[0], this.#cursor);
-        if (value.duration && !Event.isMeter(value)) {
-            value.duration = locationAtBeat(this.#rates, value[0] + value.duration, this.#cursor) - l0;
-        }
-        value[0] = l0;
-        // Modify event by sequence event's transforms
-        value = this.transform.apply(value);
-        // Modify event sequence event's start beat
-        value[0] += this.startBeat;
-        return value;
-    }
-
     next() {
         const { sequence, events, n } = this;
 
@@ -139,7 +141,8 @@ export default class SequenceIterator extends Iterator {
         if (!value) {
             const event = events[n + 1];
             if (event) {
-                value = this.#transform(Event.from(event));
+                //value = this.#transform(Event.from(event));
+                value = applyTransform(this.#rates, this.#cursor, this.startBeat, this.transform, Event.from(event));
                 // Keep some internal data
                 value.sequence = sequence;
                 value.events   = events;
@@ -160,7 +163,8 @@ export default class SequenceIterator extends Iterator {
             if (!value) {
                 // Get next value from iterator and transform it for current context
                 if (value = iterator.next().value) {
-                    this.#transform(value);
+                    //this.#transform(value);
+                    value = applyTransform(this.#rates, this.#cursor, this.startBeat, this.transform, value);
                     // Modify target destination
                     if (iterator.target !== undefined) {
                         value.target = typeof value.target === 'number' && typeof iterator.target === 'number' ?

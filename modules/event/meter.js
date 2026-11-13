@@ -68,6 +68,9 @@ export default class MeterEvent extends Event {
         return divisions;
     }
 
+    // TODO: rename duration, as it is not really the duration of the event like
+    // other events ... then we can take the check for isMeterEvent out of
+    // SequenceIterator
     get duration()          {
         return RSID.lengthOf(this[2]) * this[3];
     }
