@@ -219,13 +219,15 @@ frame of reference).
 
 `...transforms` – optional sequence of transform pairs<br/>
 Transforms are applied to events yielded by the nested sequence during iteration
-and consumed (they do not appear on the iterated output events):
+and consumed.
 
-- `"displace", beats` – shifts event beats inside the nested sequence
-- `"rate", scale` – scales playback speed (`2` = double speed / half duration)
-- `"transpose", semitones` – shifts pitch of `"note"` and `"chord"` events
+- `"displace", beats` – displaces the sequence by `beats`
 - `"gain", scale` – scales linear gain of `"note"` events
 - `"swing", division, strength` – applies swing quantisation
+- `"rate", scale` – scales playback speed (`2` = double speed / half duration)
+- `"reflect", axis` – reflects `"note"`, `"chord"` and `"key"` events over `axis`
+- `"transpose", semitones` – shifts pitch of `"note"` and `"chord"` events
+
 
 For example, this event sends sequence `1` to instrument `3` starting at beat
 `0.5` for `4` beats, transposed up `2` semitones at rate `1.5`:
