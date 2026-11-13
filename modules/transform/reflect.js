@@ -1,8 +1,4 @@
 
-import mod12          from '../number/mod-12.js';
-import * as HSID      from '../hsid.js';
-import { CHORDNAMES } from '../event/chord.js';
-
 /*
 reflect(axis, n)
 
@@ -38,6 +34,10 @@ Talking in the key of C, axis 3.5 will reflect a tune into the key of E♭
 substitute a G7 chord.
 */
 
+import mod12          from '../number/mod-12.js';
+import * as HSID      from '../hsid.js';
+import { CHORDNAMES } from '../event/chord.js';
+
 export default function reflect(axis, n) {
     // Distance from axis in range 0-12
     const d = mod12(n - axis);
@@ -54,14 +54,16 @@ export const name = 'reflect';
 export function apply(event, axis) {
     switch (event.type) {
         case 'key':
-            // Reflect key's Dorian centre (k + 2) across 7 * axis on the circle of fifths,
-            // wrapped into the standard -5..6 (F..F#) key number range
+            // Reflect key's dorian centre (key + 2) across 7 * axis on the
+            // line of fifths, wrapped into the standard key number range
             event[2] = mod12(14 * axis - event[2] + 1) - 5;
             break;
+
         case 'note':
             if (event.isDrumNote) break;
             event[2] = reflect(axis, event[2]);
             break;
+
         case 'chord': {
             const root   = event[2];
             const source = HSID.toNumbers(event[3]);
