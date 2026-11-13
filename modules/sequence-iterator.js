@@ -76,6 +76,10 @@ SequenceIterator(events, sequences, transform, parent = null, trigger = null)
 export default class SequenceIterator extends Iterator {
     // Rates are represented as a flat array of 4-number param events
     #rates = [0, CURVES.step, 1, 0];
+    // Cursor for lookups along #rates used by locationAtBeat()
+    #cursor = {};
+    // Cached next transformed event from this sequence's own events array
+    #next;
 
     startBeat = 0;
     stopBeat  = Infinity;
@@ -114,31 +118,36 @@ export default class SequenceIterator extends Iterator {
         this.n = n - 1;
     }
 
-    next() {
-        const { sequence, events, transform, n } = this;
-        const event = events[n + 1];
-
-        let value;
-
-        if (event) {
-            value = Event.from(event);
-            // Modify event beat and duration by sequence's rate events
-            const l0 = locationAtBeat(this.#rates, value[0]);
-            if (value.duration && !Event.isMeter(value)) {
-                value.duration = locationAtBeat(this.#rates, value[0] + value.duration) - l0;
-            }
-            value[0] = l0;
-            // Modify event by sequence event's transforms
-            value = transform.apply(value);
-            // Modify event sequence event's start beat
-            value[0] += this.startBeat;
-            // Keep some internal data
-            value.sequence = sequence;
-            value.events   = events;
-            value.event    = event;
+    #transform(value) {
+        // Modify event beat and duration by sequence's rate events
+        const l0 = locationAtBeat(this.#rates, value[0], this.#cursor);
+        if (value.duration && !Event.isMeter(value)) {
+            value.duration = locationAtBeat(this.#rates, value[0] + value.duration, this.#cursor) - l0;
         }
+        value[0] = l0;
+        // Modify event by sequence event's transforms
+        value = this.transform.apply(value);
+        // Modify event sequence event's start beat
+        value[0] += this.startBeat;
+        return value;
+    }
 
-        //const value = event && transform(transforms, Event.from(event/*, n + 1, events*/));
+    next() {
+        const { sequence, events, n } = this;
+
+        let value = this.#next;
+        if (!value) {
+            const event = events[n + 1];
+            if (event) {
+                value = this.#transform(Event.from(event));
+                // Keep some internal data
+                value.sequence = sequence;
+                value.events   = events;
+                value.event    = event;
+                // Cache transformed event
+                this.#next = value;
+            }
+        }
 
         let iterator;
         let i = -1, j = 0;
@@ -151,16 +160,7 @@ export default class SequenceIterator extends Iterator {
             if (!value) {
                 // Get next value from iterator and transform it for current context
                 if (value = iterator.next().value) {
-                    // Modify event beat and duration by sequence's rate events
-                    const l0 = locationAtBeat(this.#rates, value[0]);
-                    if (value.duration && !Event.isMeter(value)) {
-                        value.duration = locationAtBeat(this.#rates, value[0] + value.duration) - l0;
-                    }
-                    value[0] = l0;
-                    // Modify event by sequence event's transforms
-                    transform.apply(value);
-                    // Modify event sequence event's start beat
-                    value[0] += this.startBeat;
+                    this.#transform(value);
                     // Modify target destination
                     if (iterator.target !== undefined) {
                         value.target = typeof value.target === 'number' && typeof iterator.target === 'number' ?
@@ -193,13 +193,18 @@ export default class SequenceIterator extends Iterator {
         }
 
         // We're out of events TODO: we may not be out of iterators??
-        if (!value || value[0] >= this.stopBeat) return assign(this, done);
+        if (!value || value[0] >= this.stopBeat) {
+            this.#next = undefined;
+            return assign(this, done);
+        }
 
-        // Advance index and assign event as this.value
+        // Advance index, consume cached next event, and assign event as this.value
         this.n += 1;
+        this.#next = undefined;
         this.value = value;
 
         // If it is a sequence event spawn a new iterator
+        const event = value.event;
         if (Event.isSequence(event)) {
             // Find sequence
             const sequences = this.sequences;
@@ -236,7 +241,7 @@ export default class SequenceIterator extends Iterator {
     }
 
     locationAtBeat(beat) {
-        return this.startLocation + locationAtBeat(this.#rates, beat)
+        return this.startLocation + locationAtBeat(this.#rates, beat, this.#cursor);
     }
 
     static from(sequence) {

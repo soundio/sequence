@@ -163,3 +163,52 @@ Deno.test('location: locationAtBeat() and beatAtLocation() multi-segment round-t
         almost(beatAtLocation(events, loc), b, 1e-10);
     }
 });
+
+Deno.test('location: locationAtBeat() with cursor matches stateless lookup', () => {
+    const events = [
+        0,  CURVES.step,        1, 0,
+        4,  CURVES.linear,      2, 0,
+        8,  CURVES.exponential, 4, 0,
+        12, CURVES.target,      1, 2,
+        16, CURVES.step,        2, 0
+    ];
+
+    const cursor = {};
+
+    // Forward pass
+    for (let b = 0; b <= 20; b += 0.5) {
+        almost(locationAtBeat(events, b, cursor), locationAtBeat(events, b), 1e-12);
+    }
+
+    // Backward pass
+    for (let b = 20; b >= 0; b -= 0.5) {
+        almost(locationAtBeat(events, b, cursor), locationAtBeat(events, b), 1e-12);
+    }
+
+    // Random / boundary / negative jumps
+    for (const b of [18, 2, 16, 0, 12, 4, 8, -1, 14.5, 0.25]) {
+        almost(locationAtBeat(events, b, cursor), locationAtBeat(events, b), 1e-12);
+    }
+});
+
+Deno.test('location: locationAtBeat() and beatAtLocation() respect .length on TypedArray buffers', () => {
+    class EventsBuffer extends Float64Array {
+        length = 0;
+    }
+
+    // Preallocated buffer with logical length 8 and zeroed trailing slots 8..15
+    const events = new EventsBuffer(16);
+    events.set([
+        0, CURVES.step,   1, 0,
+        4, CURVES.linear, 3, 0
+    ]);
+    events.length = 8;
+
+    const cursor = {};
+
+    // 0..4 linear 1->3 (loc = 2), 4..6 step at rate 3 (loc = 2 + 2/3)
+    almost(locationAtBeat(events, 4, cursor), 2, 1e-12);
+    almost(locationAtBeat(events, 6, cursor), 2 + 2 / 3, 1e-12);
+    almost(locationAtBeat(events, 6), 2 + 2 / 3, 1e-12);
+    almost(beatAtLocation(events, 2 + 2 / 3), 6, 1e-12);
+});

@@ -2,7 +2,8 @@
 import { CURVES } from './event/curves.js';
 
 
-const INV_E = 1 / Math.E;
+const assign = Object.assign;
+const INV_E  = 1 / Math.E;
 
 
 function targetTimeConstant(value0, value1, beatConstant) {
@@ -283,8 +284,10 @@ export function rateAtBeatOfValues(v0, v1, c0, c1, d0, beats, beat) {
 
 
 /**
-.locationAtBeat(events, beat)
+.locationAtBeat(events, beat, cursor)
 Returns the location of a given `beat` in a flat array of automation events.
+An optional `cursor` object caches segment index and cumulative locations
+for repeated lookups on an immutable `events` array.
 **/
 
 export function locationAtBeatOfValues(v0, v1, c0, c1, d0, beats, beat) {
@@ -296,32 +299,54 @@ export function locationAtBeatOfValues(v0, v1, c0, c1, d0, beats, beat) {
         timeAtBeatStep(v0, beat) ;
 }
 
-export function locationAtBeat(events, beat) {
+function segmentLocation(events, n, beat) {
+    const b0 = events[n];
+    const c0 = events[n + 1];
+    const v0 = c0 === CURVES.target ? events[n - 2] : events[n + 2];
+    const d0 = events[n + 3];
+    const b1 = events[n + 4];
+    const c1 = events[n + 5];
+    const v1 = c0 === CURVES.target ? events[n + 2] : events[n + 6];
+    return locationAtBeatOfValues(v0, v1, c0, c1, d0, b1 - b0, beat - b0);
+}
+
+const initialCursor = { index: 0, 0: 0 };
+
+export function locationAtBeat(events, beat, cursor) {
     if (!beat) return 0;
 
-    let loc = 0;
-    let n = 0;
-    let b0, c0, v0, d0, b1, c1, v1;
+    if (cursor) {
+        // Initialise cursor
+        if (cursor[0] === undefined) assign(cursor, initialCursor);
 
-    while (events[n += 4] < beat) {
-        b0 = events[n - 4];
-        c0 = events[n - 3];
-        v0 = c0 === CURVES.target ? events[n - 6] : events[n - 2];
-        d0 = events[n - 1];
-        b1 = events[n];
-        c1 = events[n + 1];
-        v1 = c0 === CURVES.target ? events[n - 2] : events[n + 2];
-        loc += locationAtBeatOfValues(v0, v1, c0, c1, d0, b1 - b0, b1 - b0);
+        // Rewind cursor if beat falls before the current segment
+        let i = cursor.index;
+        while (i > 0 && beat < events[i * 4]) --i;
+
+        // Advance cursor and lazily memoise cumulative segment start locations
+        let j = i + 1;
+        while (j * 4 < events.length && events[j * 4] < beat) {
+            if (cursor[j] === undefined) {
+                cursor[j] = cursor[i] + segmentLocation(events, i * 4, events[j * 4]);
+            }
+            // Increment i and j
+            ++i;
+            ++j;
+        }
+
+        cursor.index = i;
+        return cursor[i] + segmentLocation(events, i * 4, beat);
     }
 
-    b0 = events[n - 4];
-    c0 = events[n - 3];
-    v0 = c0 === CURVES.target ? events[n - 6] : events[n - 2];
-    d0 = events[n - 1];
-    b1 = events[n];
-    c1 = events[n + 1];
-    v1 = c0 === CURVES.target ? events[n - 2] : events[n + 2];
-    return loc + locationAtBeatOfValues(v0, v1, c0, c1, d0, b1 - b0, beat - b0);
+    // Work without a cursor
+    let loc = 0;
+    let n = 0;
+    while (n + 4 < events.length && events[n + 4] < beat) {
+        loc += segmentLocation(events, n, events[n + 4]);
+        n += 4;
+    }
+
+    return loc + segmentLocation(events, n, beat);
 }
 
 
@@ -345,8 +370,7 @@ export function beatAtLocation(events, location) {
     let loc = 0;
     let n = 0;
     let b0, c0, v0, d0, b1, c1, v1;
-
-    while (events[n] !== undefined) {
+    while (n < events.length) {
         b0 = events[n];
         c0 = events[n + 1];
         v0 = c0 === CURVES.target ? events[n - 2] : events[n + 2];
@@ -355,7 +379,7 @@ export function beatAtLocation(events, location) {
         c1 = events[n + 5];
         v1 = c0 === CURVES.target ? events[n + 2] : events[n + 6];
 
-        if (b1 === undefined) break;
+        if (n + 4 >= events.length) break;
 
         const d = locationAtBeatOfValues(v0, v1, c0, c1, d0, b1 - b0, b1 - b0);
         if (b1 > b0 && loc + d >= location) break;

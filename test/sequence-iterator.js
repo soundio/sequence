@@ -9,6 +9,7 @@ import {
 
 
 import Sequence from '../modules/sequence.js';
+import SequenceIterator from '../modules/sequence-iterator.js';
 
 
 const { fround } = Math;
@@ -102,4 +103,71 @@ Deno.test('Sequence iteration with target curve held into linear ramp', () => {
     almost(notes[0][0], tau + rampDur, 1e-6);
     // At beat 6 rate is 4, so 4-beat note has duration 1
     almost(notes[0].duration, 1, 1e-6);
+});
+
+Deno.test('SequenceIterator caches parent next event across child yields', () => {
+    const sequence = Sequence.from({
+        events: [
+            [0, "sequence", 1, 0, 6],
+            [6, "note", "C5", 0.5, 1]
+        ],
+        sequences: [{
+            id: 1,
+            events: [
+                [0, "note", "A4", 0.5, 0.5],
+                [1, "note", "A4", 0.5, 0.5],
+                [2, "note", "A4", 0.5, 0.5],
+                [3, "note", "A4", 0.5, 0.5],
+                [4, "note", "A4", 0.5, 0.5]
+            ]
+        }]
+    });
+
+    let c5Count = 0;
+    const spyTransform = {
+        apply(event) {
+            if (event[2] === 72) c5Count++;
+            return event;
+        }
+    };
+
+    const output = [...new SequenceIterator(sequence, spyTransform)];
+    equals(output.length, 7);
+    // C5 is only transformed once even though 5 child events yield before it
+    is(c5Count, 1);
+});
+
+Deno.test('SequenceIterator rate cursor handles long durations and nested sequences across rate ramps', () => {
+    const sequence = Sequence.from({
+        events: [
+            [0,  "rate", "step", 1],
+            [0,  "note", "C4", 0.5, 12],
+            [0,  "sequence", 1, 0, 8],
+            [4,  "rate", "linear", 3],
+            [8,  "rate", "step", 2],
+            [10, "note", "G4", 0.5, 2]
+        ],
+        sequences: [{
+            id: 1,
+            events: [
+                [1, "note", "E4", 0.5, 2],
+                [6, "note", "F4", 0.5, 2]
+            ]
+        }]
+    });
+
+    const notes = Array.from(sequence).filter((e) => e.type === 'note');
+    equals(notes.length, 4);
+
+    // 0..4: linear ramp 1 -> 3 (loc at 4 is 2)
+    // 4..8: step at rate 3 (loc at 8 is 2 + 4/3 = 10/3)
+    // 8..12: step at rate 2 (loc at 10 is 13/3, loc at 12 is 16/3)
+    almost(notes[0][0], 0, 1e-12);
+    almost(notes[0].duration, 16 / 3, 1e-12);
+    almost(notes[1][0], Math.sqrt(3) - 1, 1e-12);
+    almost(notes[1].duration, Math.sqrt(7) - Math.sqrt(3), 1e-12);
+    almost(notes[2][0], 8 / 3, 1e-12);
+    almost(notes[2].duration, 2 / 3, 1e-12);
+    almost(notes[3][0], 13 / 3, 1e-12);
+    almost(notes[3].duration, 1, 1e-12);
 });
