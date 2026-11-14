@@ -1,6 +1,6 @@
 
 /**
-parseMidiClip(buffer)
+parseMIDIClip(buffer)
 Converts a MIDI 2.0 Clip File (.midi2) or UMP stream into a Sequence object.
 
 Supports:
@@ -159,10 +159,10 @@ export class PropertyExchangeAssembler {
 
 
 /**
-parseMidiClip(buffer, options)
+parseMIDIClip(buffer, options)
 Parses a MIDI 2.0 Clip binary buffer into a Sequence instance using DataView methods.
 **/
-export default function parseMidiClip(buffer, options = {}) {
+export default function parseMIDIClip(buffer, options = {}) {
     const view = buffer instanceof DataView ? buffer :
         buffer instanceof Uint8Array ? new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
         buffer instanceof ArrayBuffer ? new DataView(buffer) :
@@ -266,7 +266,9 @@ export default function parseMidiClip(buffer, options = {}) {
                 }
                 else {
                     handleNoteOff(key, beat);
-                    const gain = velocity / 65535;
+                    // GM2 / DLS square-law velocity-to-gain curve
+                    const norm = velocity / 65535;
+                    const gain = norm * norm;
                     activeNotes.set(key, { startBeat: beat, pitch: noteNumber, gain });
                 }
             }
@@ -321,7 +323,9 @@ export default function parseMidiClip(buffer, options = {}) {
                 }
                 else {
                     handleNoteOff(key, beat);
-                    const gain = velocity / 127;
+                    // GM2 / DLS square-law velocity-to-gain curve
+                    const norm = velocity / 127;
+                    const gain = norm * norm;
                     activeNotes.set(key, { startBeat: beat, pitch: noteNumber, gain });
                 }
             }

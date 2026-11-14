@@ -6,7 +6,7 @@ import {
     assertStrictEquals as is
 } from 'jsr:@std/assert@1';
 
-import parseMidiClip from '../modules/parse/parse-midi-clip.js';
+import parseMIDIClip from '../modules/parse/parse-midi-clip.js';
 import Sequence from '../modules/sequence.js';
 import Event from '../modules/event.js';
 
@@ -21,7 +21,7 @@ function createUmpBuffer(words) {
 }
 
 
-Deno.test('parseMidiClip: SMF2CLIP with notes, tempo, meter and key', () => {
+Deno.test('parseMIDIClip: SMF2CLIP with notes, tempo, meter and key', () => {
     // Build a sample binary MIDI 2.0 clip stream:
     // Header: "SMF2CLIP" (8 bytes)
     // 1. Utility DCTPQ = 480 (1 word)
@@ -89,7 +89,7 @@ Deno.test('parseMidiClip: SMF2CLIP with notes, tempo, meter and key', () => {
     view.setUint32(offset + 4, 0x00000000, false);
     offset += 8;
 
-    const sequence = parseMidiClip(buffer);
+    const sequence = parseMIDIClip(buffer);
     assert(sequence instanceof Sequence);
 
     // Should contain: rate (2.0), meter (4, 1), key ('C'), note (beat 0, pitch 60, duration 1)
@@ -112,11 +112,12 @@ Deno.test('parseMidiClip: SMF2CLIP with notes, tempo, meter and key', () => {
     const noteEvent = sequence.events.find(e => e.type === 'note');
     assert(noteEvent, 'Should contain a note event');
     equals(noteEvent.number, 60);
+    almost(noteEvent[3], (0x8000 / 65535) ** 2, 1e-6);
     almost(noteEvent.duration, 1.0, 0.001);
 });
 
 
-Deno.test('parseMidiClip: Property Exchange (PE) SysEx8 parameter resolution', () => {
+Deno.test('parseMIDIClip: Property Exchange (PE) SysEx8 parameter resolution', () => {
     // Test SysEx8 with embedded Property Exchange JSON mapping address 74 to WebAudio param
     const peJson = JSON.stringify({
         resource: 'ResourceList',
@@ -169,7 +170,7 @@ Deno.test('parseMidiClip: Property Exchange (PE) SysEx8 parameter resolution', (
     );
 
     const buffer = createUmpBuffer(packets);
-    const sequence = parseMidiClip(buffer);
+    const sequence = parseMIDIClip(buffer);
     assert(sequence instanceof Sequence);
 
     // CC 74 should resolve to "frequency" via PE Map (Tier 1)
@@ -184,7 +185,7 @@ Deno.test('parseMidiClip: Property Exchange (PE) SysEx8 parameter resolution', (
 });
 
 
-Deno.test('parseMidiClip: Standard Profile & Sequence PARAMNAMES resolution', () => {
+Deno.test('parseMIDIClip: Standard Profile & Sequence PARAMNAMES resolution', () => {
     const packets = [
         // 1. Enable Profile 0x01 on Channel 0 (MT 0x7, 2 words)
         // word0: MT=0x7, status=0x1, channel=0
@@ -202,7 +203,7 @@ Deno.test('parseMidiClip: Standard Profile & Sequence PARAMNAMES resolution', ()
     ];
 
     const buffer = createUmpBuffer(packets);
-    const sequence = parseMidiClip(buffer);
+    const sequence = parseMIDIClip(buffer);
     assert(sequence instanceof Sequence);
 
     // CC 74 on channel 0 -> "frequency"

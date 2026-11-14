@@ -100,7 +100,7 @@ export default class SequenceIterator extends Iterator {
     startBeat = 0;
     stopBeat  = Infinity;
 
-    constructor(sequence, transform = Transform.identity, startBeat = 0, stopBeat = Infinity, sequences = nothing/*, objects*/) {
+    constructor(sequence, transform = Transform.identity, startBeat = 0, stopBeat = Infinity, sequences = nothing, settings = {}) {
         const { events } = sequence;
 
         super();
@@ -126,7 +126,7 @@ export default class SequenceIterator extends Iterator {
             sequences ;
 
         // Read rate events into #rates automation array
-        readRateEvents(this.#rates, events)
+        if (!settings.outputInBeats) readRateEvents(this.#rates, events)
 
         // Set n to index before first event falling on or after beat 0
         let n = -1, event;
