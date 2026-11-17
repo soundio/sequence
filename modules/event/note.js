@@ -79,7 +79,7 @@ export default class NoteEvent extends Event {
     }
 
     toString(key = 0) {
-        return `${ super.toString() } ${ (this.spell(key) === 2 ? ' ' : '') + this.spell(key) }${ this.gain === '-20dB' ? '' : ' ' + this.gain } ${ stringify(this.duration) }${ this.label ? ' | ' + this.label : '' }`;
+        return `${ super.toString() } ${ (this.spell(key).length === 2 ? ' ' : '') + this.spell(key) }${ this.gain === '-20dB' ? '' : ' ' + this.gain } ${ stringify(this.duration) }${ this.label ? ' | ' + this.label : '' }`;
     }
 }
 

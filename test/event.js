@@ -34,41 +34,42 @@ Deno.test('Event.from(chord) slash chord', () => {
     is(event.root, "E");
     is(event.extension, "{8}/");
     is(event.bass, undefined);
-    is(event.toChordSymbol(), "C/E");
-    is(event.toChordSymbol(0), "C/E");
+    is(event.spell(), "C/E");
+    is(event.spell(0), "C/E");
     is(event.toString(), "0 chord C/E 2");
     equals(Event.from(event).toJSON(), [0, CHORD, 4, 2775, 2]);
 });
 
-Deno.test('ChordEvent.toChordSymbol()', () => {
+Deno.test('ChordEvent.spell()', () => {
     const c7g = Event.of(1, "chord", "G", "{5}7/", 4);
-    is(c7g.toChordSymbol(), "C7/G");
+    is(c7g.spell(), "C7/G");
     is(c7g.toString(), "1 chord C7/G 4");
 
     const cmEb = Event.of(2, "chord", "E♭", "{9}-/", 3);
-    is(cmEb.toChordSymbol(), "C-/E♭");
+    is(cmEb.spell(), "C-/E♭");
     is(cmEb.toString(), "2 chord C-/E♭ 3");
 
     const dm7 = Event.of(0, "chord", "D", "-7", 4);
-    is(dm7.toChordSymbol(), "D-7");
+    is(dm7.spell(), "D-7");
     is(dm7.toString(), "0 chord D-7 4");
 
     // Key-aware rendering of chords
     const chord1 = Event.of(0, "chord", 1, "7", 4);
-    is(chord1.toChordSymbol("E♭"), "D♭7");
-    is(chord1.toChordSymbol("D"), "C♯7");
+    is(chord1.spell(-3), "D♭7");
+    is(chord1.spell(2), "C♯7");
 
     // A/C# in key C (extension {8}/ on root 1):
     const aCsharp = Event.of(0, "chord", 1, "{8}/", 4);
-    is(aCsharp.toChordSymbol("C"), "A/C♯");
+    is(aCsharp.spell(0), "A/C♯");
 
-    // D♭ major in key C (extension '' on root 1):
+    // Major chord on root 1 in key C (0) spells as C♯, and in key F (-1) as D♭:
     const dbMaj = Event.of(0, "chord", 1, "", 4);
-    is(dbMaj.toChordSymbol("C"), "D♭");
+    is(dbMaj.spell(0), "C♯");
+    is(dbMaj.spell(-1), "D♭");
 
     // C♯°7 in key C (extension '°7' on root 1):
     const csharpDim = Event.of(0, "chord", 1, "°7", 4);
-    is(csharpDim.toChordSymbol("C"), "C♯°7");
+    is(csharpDim.spell(0), "C♯°7");
 });
 
 Deno.test('ChordEvent.of() parsing chord symbols', () => {
@@ -78,7 +79,7 @@ Deno.test('ChordEvent.of() parsing chord symbols', () => {
     is(ce.sourcePitch, "E");
     is(ce.extension, "{8}/");
     is(ce.duration, 2);
-    is(ce.toChordSymbol(), "C/E");
+    is(ce.spell(), "C/E");
     is(ce.toString(), "0 chord C/E 2");
     equals(ce.toJSON(), [0, CHORD, 4, 2775, 2]);
 
@@ -88,7 +89,7 @@ Deno.test('ChordEvent.of() parsing chord symbols', () => {
     is(c7g.sourcePitch, "G");
     is(c7g.extension, "{5}7/");
     is(c7g.duration, 4);
-    is(c7g.toChordSymbol(), "C7/G");
+    is(c7g.spell(), "C7/G");
 
     // Minor slash chord with flat accidental
     const cmEb = Event.of(2, "chord", "C-/E♭", 3);
@@ -96,7 +97,7 @@ Deno.test('ChordEvent.of() parsing chord symbols', () => {
     is(cmEb.sourcePitch, "E♭");
     is(cmEb.extension, "{9}-/");
     is(cmEb.duration, 3);
-    is(cmEb.toChordSymbol(), "C-/E♭");
+    is(cmEb.spell(), "C-/E♭");
 
     // Standard chord with alias 'm7' -> '-7'
     const dm7 = Event.of(0, "chord", "Dm7", 4);
@@ -104,14 +105,14 @@ Deno.test('ChordEvent.of() parsing chord symbols', () => {
     is(dm7.sourcePitch, "D");
     is(dm7.extension, "-7");
     is(dm7.duration, 4);
-    is(dm7.toChordSymbol(), "D-7");
+    is(dm7.spell(), "D-7");
 
     // Major triad with duration
     const c = Event.of(0, "chord", "C", 4);
     is(c.root, "C");
     is(c.extension, "");
     is(c.duration, 4);
-    is(c.toChordSymbol(), "C");
+    is(c.spell(), "C");
 
     // Default duration (2)
     const ceDef = Event.of(0, "chord", "C/E");
@@ -123,20 +124,20 @@ Deno.test('ChordEvent.of() parsing chord symbols', () => {
     const aCsharp = Event.of(0, "chord", "A/C#", 4);
     is(aCsharp.root, "C♯");
     is(aCsharp.extension, "{8}/");
-    is(aCsharp.toChordSymbol("C"), "A/C♯");
+    is(aCsharp.spell(0), "A/C♯");
 
     // 6/9 chord with slash in extension
     const c69 = Event.of(0, "chord", "C∆6/9", 2);
     is(c69.root, "C");
     is(c69.extension, "∆6/9");
     is(c69.duration, 2);
-    is(c69.toChordSymbol(), "C∆6/9");
+    is(c69.spell(), "C∆6/9");
 
     const c69alias = Event.of(0, "chord", "C6/9", 2);
     is(c69alias.root, "C");
     is(c69alias.extension, "∆6/9");
     is(c69alias.duration, 2);
-    is(c69alias.toChordSymbol(), "C∆6/9");
+    is(c69alias.spell(), "C∆6/9");
 });
 
 Deno.test('Event.of(meter)', () => {

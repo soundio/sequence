@@ -129,7 +129,7 @@ Deno.test('Transform.of("reflect") on note and chord events', () => {
     negHarmony.apply(cmaj);
     is(cmaj[2], 7);
     is(cmaj.extension, '{5}-11/');
-    is(cmaj.toChordSymbol(), 'C-11/G');
+    is(cmaj.spell(), 'C-11/G');
     negHarmony.unapply(cmaj);
     is(cmaj[2], 0);
     is(cmaj[3], cmajHsid);
@@ -140,7 +140,7 @@ Deno.test('Transform.of("reflect") on note and chord events', () => {
     negHarmony.apply(g7);
     is(g7[2], 0);
     is(g7.extension, '{5}-6/');
-    is(g7.toChordSymbol(), 'F-6/C');
+    is(g7.spell(), 'F-6/C');
     negHarmony.unapply(g7);
     is(g7[2], 7);
     is(g7[3], g7Hsid);

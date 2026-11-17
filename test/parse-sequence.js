@@ -177,19 +177,19 @@ Deno.test('parseSequence() slash chords', () => {
     is(seq.events[0].root, 'E');
     is(seq.events[0].extension, '{8}/');
     is(seq.events[0].duration, 2);
-    is(seq.events[0].toChordSymbol(), 'C/E');
+    is(seq.events[0].spell(), 'C/E');
 
     // 2 chord C7/G 4
     is(seq.events[1].root, 'G');
     is(seq.events[1].extension, '{5}7/');
     is(seq.events[1].duration, 4);
-    is(seq.events[1].toChordSymbol(), 'C7/G');
+    is(seq.events[1].spell(), 'C7/G');
 
     // 6 chord C-/E♭ (default duration 2)
     is(seq.events[2].root, 'E♭');
     is(seq.events[2].extension, '{9}-/');
     is(seq.events[2].duration, 2);
-    is(seq.events[2].toChordSymbol(), 'C-/E♭');
+    is(seq.events[2].spell(), 'C-/E♭');
 });
 
 Deno.test('parseSequence() chord symbols and duration disambiguation', () => {
@@ -206,19 +206,19 @@ Deno.test('parseSequence() chord symbols and duration disambiguation', () => {
     is(seq.events[0].root, 'C');
     is(seq.events[0].extension, '');
     is(seq.events[0].duration, 7);
-    is(seq.events[0].toChordSymbol(), 'C');
+    is(seq.events[0].spell(), 'C');
 
     // 8 chord C7 7 -> C7, duration 7
     is(seq.events[1].root, 'C');
     is(seq.events[1].extension, '7');
     is(seq.events[1].duration, 7);
-    is(seq.events[1].toChordSymbol(), 'C7');
+    is(seq.events[1].spell(), 'C7');
 
     // 16 chord C7 -> C7, default duration 2
     is(seq.events[2].root, 'C');
     is(seq.events[2].extension, '7');
     is(seq.events[2].duration, 2);
-    is(seq.events[2].toChordSymbol(), 'C7');
+    is(seq.events[2].spell(), 'C7');
 });
 
 Deno.test('parseSequence() event labels after pipe', () => {
