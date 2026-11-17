@@ -9,7 +9,7 @@ import {
 import Transform from '../modules/transform.js';
 import Event     from '../modules/event.js';
 import * as HSID from '../modules/hsid.js';
-import reflect   from '../modules/transform/reflect.js';
+import reflect   from '../modules/transforms/reflect.js';
 
 Deno.test('Transform.of()', () => {
     const transform = Transform.of();
