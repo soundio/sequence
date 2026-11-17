@@ -145,7 +145,7 @@ Deno.test('Event.of(meter)', () => {
     const m44 = Event.of(0, "meter", 0b1010, 1);
     is(m44.rsid, 10);
     is(m44.divisor, 1);
-    is(m44.duration, 4);
+    is(m44.beats, 4);
     is(m44.timesig, '4/4');
     equals(m44.divisions, [2, 4]);
 
@@ -153,14 +153,14 @@ Deno.test('Event.of(meter)', () => {
     const m34 = Event.of(0, "meter", 0b111, 1);
     is(m34.rsid, 7);
     is(m34.divisor, 1);
-    is(m34.duration, 3);
+    is(m34.beats, 3);
     is(m34.timesig, '3/4');
 
     // 6/8 meter: rsid 36 (0b100100), divisor 0.5
     const m68 = Event.of(0, "meter", 0b100100, 0.5);
     is(m68.rsid, 36);
     is(m68.divisor, 0.5);
-    is(m68.duration, 3);
+    is(m68.beats, 3);
     is(m68.timesig, '6/8');
     equals(m68.divisions, [1.5, 3]);
 
@@ -168,7 +168,7 @@ Deno.test('Event.of(meter)', () => {
     const m22 = Event.of(0, "meter", 0b11, 2);
     is(m22.rsid, 3);
     is(m22.divisor, 2);
-    is(m22.duration, 4);
+    is(m22.beats, 4);
     is(m22.timesig, '2/2');
     equals(m22.divisions, [2, 4]);
 });
@@ -177,7 +177,7 @@ Deno.test('Event.from(meter)', () => {
     const m = Event.from([0, "meter", 0b1010, 1]);
     is(m.rsid, 10);
     is(m.divisor, 1);
-    is(m.duration, 4);
+    is(m.beats, 4);
     is(m.timesig, '4/4');
     equals(m.divisions, [2, 4]);
 });

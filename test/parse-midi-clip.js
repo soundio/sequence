@@ -101,7 +101,7 @@ Deno.test('parseMIDIClip: SMF2CLIP with notes, tempo, meter and key', () => {
     assert(meterEvent, 'Should contain a meter event');
     equals(meterEvent.rsid, 0b1010);
     equals(meterEvent.divisor, 1);
-    equals(meterEvent.duration, 4);
+    equals(meterEvent.beats, 4);
     equals(meterEvent.timesig, '4/4');
     equals(meterEvent.divisions, [2, 4]);
 

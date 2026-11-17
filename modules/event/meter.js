@@ -28,6 +28,8 @@ const rsids = {
     '6.5,0.5': 0b1001001001000  // 13/8
 };
 
+// TEMP warning
+let D = 0;
 
 export default class MeterEvent extends Event {
     static of(beat, rsid, divisor) {
@@ -64,20 +66,17 @@ export default class MeterEvent extends Event {
         }
 
         // Push in duration
-        divisions.push(this.duration);
+        divisions.push(this.beats);
         return divisions;
     }
 
-    // TODO: rename duration, as it is not really the duration of the event like
-    // other events ... then we can take the check for isMeterEvent out of
-    // SequenceIterator
-    get duration()          {
+    get beats()          {
         return RSID.lengthOf(this[2]) * this[3];
     }
 
-    set duration(duration) {
-        const rsid = rsids[duration + ',' + this[3]];
-        if (!rsid) throw new Error(`MeterEvent: metric RSID of duration ${ duration } divisor ${ this[3] } not found`);
+    set beats(beats) {
+        const rsid = rsids[beats + ',' + this[3]];
+        if (!rsid) throw new Error(`MeterEvent: metric RSID of beats ${ beats } divisor ${ this[3] } not found`);
         this.rsid = rsid;
     }
 
@@ -99,8 +98,8 @@ export default class MeterEvent extends Event {
         const groups    = rtimesig.exec(string);
         const numerator = parseInt(groups[1], 10);
         const divisor   = 4 / parseInt(groups[2], 10);
-        this.divisor  = divisor;
-        this.duration = numerator * divisor;
+        this.divisor = divisor;
+        this.beats   = numerator * divisor;
     }
 
     // Human readable string
@@ -140,7 +139,7 @@ export function getDivisionBefore(meter, beat) {
     // Bar divisions
     const divisions = meter.divisions;
     // Beat from start of bar
-    const b1 = mod(meter.duration, beat - meter[0]);
+    const b1 = mod(meter.beats, beat - meter[0]);
     // Beat from start of bar to end of current meter division
     const b2 = divisionBefore(divisions, b1);
     // Beat at next division
@@ -151,7 +150,7 @@ export function getDivisionAfter(meter, beat) {
     // Bar divisions
     const divisions = meter.divisions;
     // Beat from start of bar
-    const b1 = mod(meter.duration, beat - meter[0]);
+    const b1 = mod(meter.beats, beat - meter[0]);
     // Beat from start of bar to end of current meter division
     const b2 = divisionAfter(divisions, b1);
     // Beat at next division

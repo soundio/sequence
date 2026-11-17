@@ -113,11 +113,11 @@ export default function parseABC(abc) {
                     else if (voice.el_type === 'bar') {
                         // If cursor is not at bar start when a bar comes around...
                         const meterEvent = findLastOfType('meter', events);
-                        const duration = meterEvent.duration || (RSID.lengthOf(meterEvent[2]) * meterEvent[3]);
-                        if ((sequence.cursor - meterEvent[0]) % duration !== 0) {
+                        const beats = meterEvent.beats || (RSID.lengthOf(meterEvent[2]) * meterEvent[3]);
+                        if ((sequence.cursor - meterEvent[0]) % beats !== 0) {
                             // ...advance cursor to next bar start
-                            const wholeBars  = Math.floor((sequence.cursor - meterEvent[0]) / duration);
-                            const beat = (wholeBars + 1) * duration;
+                            const wholeBars  = Math.floor((sequence.cursor - meterEvent[0]) / beats);
+                            const beat = (wholeBars + 1) * beats;
                             sequence.cursor = beat;
                         }
                     }

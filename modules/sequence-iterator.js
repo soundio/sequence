@@ -4,7 +4,7 @@ import matches    from 'fn/matches.js';
 import Event      from './event.js';
 import Transform  from './transform.js';
 import { beatAtLocation, locationAtBeatWithCursor, rateAtBeatOfValues } from './location.js';
-import byPriority from './events/by-priority.js';
+//import byPriority from './events/by-priority.js';
 import { CURVES } from './event/curves.js';
 
 
@@ -72,7 +72,7 @@ function readRateEvents(rates, events) {
 function applyTransform(rates, cursor, startBeat, transform, event) {
     // Find location after rates transforms
     const location = locationAtBeatWithCursor(rates, event[0], cursor);
-    if (event.duration && !Event.isMeter(event)) {
+    if (event.duration) {
         event.duration = locationAtBeatWithCursor(rates, event[0] + event.duration, cursor) - location;
     }
     // Apply location as beat
