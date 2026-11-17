@@ -11,56 +11,8 @@ import { toRecord, toATProtoRecord, fromRecord } from './modules/record.js';
 
 
 const assign = Object.assign;
+const from   = Sequence.from;
 
-
-function isBuffer(data) {
-    return data instanceof ArrayBuffer || ArrayBuffer.isView(data);
-}
-
-function toView(data) {
-    return data instanceof DataView ? data :
-        ArrayBuffer.isView(data) ? new DataView(data.buffer, data.byteOffset, data.byteLength) :
-        new DataView(data);
-}
-
-function fromBuffer(buffer) {
-    const view = toView(buffer);
-    if (view.byteLength < 8) throw new Error('Sequence.from() unrecognised buffer format');
-
-    const w0 = view.getUint32(0, false);
-    const w1 = view.getUint32(4, false);
-
-    // MIDI 2.0 Clip: "SMF2CLIP"
-    if (w0 === 0x534D4632 && w1 === 0x434C4950) {
-        return parseMIDIClip(view);
-    }
-
-    // MIDI 1.0 SMF ("MThd", len >= 6) or RIFF/RMID
-    if (
-        (w0 === 0x4D546864 && w1 >= 6 && view.byteLength >= 14) ||
-        (w0 === 0x52494646 && view.byteLength >= 12 && view.getUint32(8, false) === 0x524D4944)
-    )
-    {
-        return parseMIDI(view);
-    }
-}
-
-// The Sequence() constructor delegates to Sequence.from() to recursively
-// instantiate nested sequences, so Sequence.from() must be overridden to
-// provide deserialisation of nested records' events.
-
-const fromData = Sequence.from;
-
-Sequence.from = function from(data) {
-    // data is a binary buffer
-    return isBuffer(data) ? fromBuffer(data) :
-    // events is a Uint8Array
-        data.events && data.events instanceof Uint8Array ? fromRecord(data) :
-    // events is an ATProto bytes object
-        data.events && typeof data.events.$bytes === 'string' ? fromRecord(data) :
-    // events is something else
-        fromData(data) ;
-};
 
 assign(Sequence, {
     /**
@@ -71,25 +23,67 @@ assign(Sequence, {
     version: VERSION,
 
     /**
-    Sequence.parse(string);
-    **/
-    parse,
-
-    /**
-    Sequence.parseMIDI(string);
-    **/
-    parseMIDI,
-
-    /**
     Sequence.toRecord(sequence);
     **/
     toRecord,
     toATProtoRecord,
 
     /**
+    Sequence.from(json);
+    The Sequence() constructor delegates to Sequence.from() to recursively
+    instantiate nested sequences, so Sequence.from() must be overridden to
+    provide deserialisation of nested records' events.
+    **/
+    from: function(data) {
+            // events is a Uint8Array
+        return data.events && data.events instanceof Uint8Array ? fromRecord(data) :
+            // events is an ATProto bytes object
+            data.events && typeof data.events.$bytes === 'string' ? fromRecord(data) :
+            // events is something else
+            from(data) ;
+    },
+
+    /**
     Sequence.fromRecord(record);
     **/
-    fromRecord
+    fromRecord,
+
+    /**
+    Sequence.parse(string);
+    **/
+    parse,
+
+    /**
+    Sequence.parseMIDI(bytes);
+    **/
+    parseMIDI: function(bytes) {
+        // Make dataview
+        const view = bytes instanceof DataView ?
+                bytes :
+            ArrayBuffer.isView(bytes) ?
+                new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength) :
+            new DataView(bytes);
+
+        if (view.byteLength < 8) throw new Error(`Sequence.parseMIDI() buffer not recognised as MIDI`);
+
+        const w0 = view.getUint32(0, false);
+        const w1 = view.getUint32(4, false);
+
+        // MIDI 2.0 Clip: "SMF2CLIP"
+        if (w0 === 0x534D4632 && w1 === 0x434C4950) {
+            return parseMIDIClip(view);
+        }
+
+        // MIDI 1.0 SMF ("MThd", len >= 6) or RIFF/RMID
+        if (
+            (w0 === 0x4D546864 && w1 >= 6 && view.byteLength >= 14) ||
+            (w0 === 0x52494646 && view.byteLength >= 12 && view.getUint32(8, false) === 0x524D4944)
+        ) {
+            return parseMIDI(view);
+        }
+
+        throw new Error(`Sequence.parseMIDI() buffer not recognised as MIDI`);
+    }
 });
 
 
