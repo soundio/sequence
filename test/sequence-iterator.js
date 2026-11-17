@@ -171,3 +171,31 @@ Deno.test('SequenceIterator rate cursor handles long durations and nested sequen
     almost(notes[3][0], 13 / 3, 1e-12);
     almost(notes[3].duration, 1, 1e-12);
 });
+
+Deno.test('SequenceIterator treats sequence event duration 0 as running until child ends', () => {
+    const sequence = Sequence.from({
+        events: [
+            [0, "sequence", 1, "voice-1", 0],
+            [0, "sequence", 2, "voice-2", 0]
+        ],
+        sequences: [{
+            id: 1,
+            events: [
+                [0, "note", "C4", 0.5, 1],
+                [2, "note", "E4", 0.5, 1]
+            ]
+        }, {
+            id: 2,
+            events: [
+                [1, "note", "G4", 0.5, 1]
+            ]
+        }]
+    });
+
+    const notes = Array.from(sequence).filter((e) => e.type === 'note');
+    equals(notes.map((e) => [e[0], e[2]]), [
+        [0, 60],
+        [1, 67],
+        [2, 64]
+    ]);
+});

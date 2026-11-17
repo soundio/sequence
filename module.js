@@ -22,6 +22,7 @@ function toView(data) {
         ArrayBuffer.isView(data) ? new DataView(data.buffer, data.byteOffset, data.byteLength) :
         new DataView(data);
 }
+
 function fromBuffer(buffer) {
     const view = toView(buffer);
     if (view.byteLength < 8) throw new Error('Sequence.from() unrecognised buffer format');

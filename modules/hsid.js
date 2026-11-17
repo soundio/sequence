@@ -97,3 +97,6 @@ export const toNumbers = cache((hsid) => {
 
     return numbers;
 });
+
+// New name!!!!
+export const toArray = toNumbers;

@@ -1,7 +1,8 @@
 
-import dB from 'fn/to-db.js';
+import dB        from 'fn/to-db.js';
 import { toDrumName, toNoteName, toNoteNumber } from 'midi/note.js';
 import parseGain from '../parse/parse-gain.js';
+import spell     from '../spell.js';
 import Event, { stringify } from './event.js';
 
 
@@ -71,8 +72,14 @@ export default class NoteEvent extends Event {
         return this;
     }
 
-    toString() {
-        return `${ super.toString() } ${ (this.pitch.length === 2 ? ' ' : '') + this.pitch }${ this.gain === '-20dB' ? '' : ' ' + this.gain } ${ stringify(this.duration) }${ this.label ? ' | ' + this.label : '' }`;
+    spell(key = 0) {
+        return this.isDrumNote ?
+            toDrumName(this[2]) :
+            spell(this[2], key);
+    }
+
+    toString(key = 0) {
+        return `${ super.toString() } ${ (this.spell(key) === 2 ? ' ' : '') + this.spell(key) }${ this.gain === '-20dB' ? '' : ' ' + this.gain } ${ stringify(this.duration) }${ this.label ? ' | ' + this.label : '' }`;
     }
 }
 

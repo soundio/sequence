@@ -4,7 +4,7 @@ import { toRootName, toRootNumber } from 'midi/note.js';
 import mod12   from '../number/mod-12.js';
 import mirror  from '../object/mirror.js';
 import { normalisePitch } from '../pitch.js';
-import { toKeyNumber, keyToRootNumber, KEYNAMES } from './key.js';
+import { spellRoot } from '../spell.js';
 import Event, { stringify } from './event.js';
 import * as HSID from '../hsid.js';
 
@@ -179,36 +179,6 @@ export function getChordOf() {
     return getChordFrom(arguments);
 }
 
-
-
-
-
-// Line-of-fifths offsets from key for semitone degrees 0..11 relative to tonic
-//           0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11
-// In C:     C  D♭   D  E♭   E   F  F♯   G  A♭   A  B♭   B
-const FIFTHS_OFFSETS = [0, -5, 2, -3, 4, -1, 6, 1, -4, 3, -2, 5];
-
-// Sharp line-of-fifths offsets for secondary leading tone / diminished chords:
-// In C:     C  C♯   D  D♯   E   F  F♯   G  G♯   A  A♯   B
-const DIM_FIFTHS_OFFSETS = [0, 7, 2, 9, 4, -1, 6, 1, 8, 3, 10, 5];
-
-function spell(key, hsid, n) {
-    const root   = toRootNumber(n);
-    const tonic  = keyToRootNumber(key);
-    const degree = mod12(root - tonic);
-
-    // If diminished chord, use sharp offsets for secondary leading tones
-    const name = hsid !== undefined && hsid !== null ?
-        (typeof hsid === 'string' ? hsid : toChordName(hsid)) :
-        '';
-
-    const isDim = name === '°' || name === '°7' || name === 'dim' || name === 'dim7';
-    const offsets = isDim ? DIM_FIFTHS_OFFSETS : FIFTHS_OFFSETS;
-    const fifths = toKeyNumber(key) + offsets[degree];
-    return KEYNAMES[fifths] || toRootName(root);
-}
-
-
 export default class ChordEvent extends Event {
     static of(beat, root, extension = '', duration = 2) {
         if (root === undefined) {
@@ -277,31 +247,24 @@ export default class ChordEvent extends Event {
         return this;
     }
 
-    toChordSymbol(key = 0) {
-        const root      = this[2];
-        const hsid      = this[3];
-        const extension = toChordName(hsid);
-        const isSlash   = rslashextension.test(extension) && extension.endsWith('/');
+    spell(key = 0) {
+        const extension = toChordName(this[3]);
+        const slash     = rslashextension.exec(extension);
 
-        if (isSlash) {
-            let bassName;
-            const symbol = extension.replace(rslashextension, ($0, $1) => {
-                const interval      = parseInt($1, 10);
-                const upperRoot     = mod12(root + interval);
-                const upperRootName = spell(key, null, upperRoot);
-                const bassInterval  = mod12(12 - interval);
-                const bassFifths    = toKeyNumber(upperRootName) + FIFTHS_OFFSETS[bassInterval];
-                bassName            = KEYNAMES[bassFifths] || toRootName(root);
-                return upperRootName;
-            });
-            return symbol + bassName;
+        // Spell slash chord
+        if (slash) {
+            const $0 = slash[0];
+            const $1 = slash[1];
+            const n  = parseInt($1, 10);
+            return `${ spellRoot(this[2] + n, key) }${ extension.slice($0.length) }${ spellRoot(this[2], key) }`;
         }
 
-        return spell(key, hsid, root) + extension;
+        // Spell chord
+        return spellRoot(this[2], key) + extension;
     }
 
     toString(key = 0) {
-        return `${ super.toString() } chord ${ this.toChordSymbol(key) } ${ stringify(this.duration) }${ this.label ? ' | ' + this.label : '' }`;
+        return `${ super.toString() } chord ${ this.spell(key) } ${ stringify(this.duration) }${ this.label ? ' | ' + this.label : '' }`;
     }
 }
 

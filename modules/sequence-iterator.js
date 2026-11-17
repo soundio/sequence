@@ -222,8 +222,8 @@ export default class SequenceIterator extends Iterator {
                 event.transform,
                 // Start beat
                 event[0],
-                // Stop beat
-                event[0] + event[4],
+                // Stop beat (duration 0 means run until child sequence ends)
+                event[4] ? event[0] + event[4] : Infinity,
                 // Reference to sequences
                 sequences
             );

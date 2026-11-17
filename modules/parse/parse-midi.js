@@ -14,6 +14,7 @@ Supports:
 - Cross-track conductor deduplication and structurally identical sub-sequence deduplication (ideal for Logic Pro multi-track region exports)
 **/
 
+import { bytesToInt14, bytesToSignedFloat, int7ToFloat } from 'midi/bytes.js';
 import Sequence from '../sequence.js';
 import MeterEvent from '../event/meter.js';
 import { PARAMNAMES } from '../event/control.js';
@@ -246,7 +247,7 @@ function parseTrack(view, trackStart, trackEnd, header, smpteTempoState) {
             activeNotes.set(key, queue);
         }
         // GM2 / DLS square-law velocity-to-gain curve: (v / 127)^2
-        const norm = velocity / 127;
+        const norm = int7ToFloat(velocity);
         queue.push({ startTick: tick, startBeat: beat, pitch, gain: norm * norm, channel });
     }
 
@@ -314,7 +315,7 @@ function parseTrack(view, trackStart, trackEnd, header, smpteTempoState) {
                 state.dataLsb = val7;
             }
 
-            const rpnAddr = (state.rpnMsb << 7) | state.rpnLsb;
+            const rpnAddr = bytesToInt14(state.rpnLsb, state.rpnMsb);
             const paramName = RPN_PARAMNAMES[rpnAddr];
             if (!paramName) return;
 
@@ -323,8 +324,7 @@ function parseTrack(view, trackStart, trackEnd, header, smpteTempoState) {
                 value = state.dataMsb + (state.dataLsb / 100);
             }
             else if (rpnAddr === 0x0001) {
-                const val14 = (state.dataMsb << 7) | state.dataLsb;
-                value = ((val14 - 8192) / 8192) * 100;
+                value = bytesToSignedFloat(state.dataLsb, state.dataMsb) * 100;
             }
             else if (rpnAddr === 0x0002) {
                 value = state.dataMsb - 64;
@@ -347,7 +347,7 @@ function parseTrack(view, trackStart, trackEnd, header, smpteTempoState) {
         if (RPN_PLUMBING_CCS.has(cc)) return;
         if (!(cc in PARAMNAMES)) return;
 
-        pushControl(channel, PARAMNAMES[cc], val7 / 127);
+        pushControl(channel, PARAMNAMES[cc], int7ToFloat(val7));
     }
 
     while (offset < trackEnd) {
@@ -454,7 +454,7 @@ function parseTrack(view, trackStart, trackEnd, header, smpteTempoState) {
             if (offset >= trackEnd) break;
             const data1 = view.getUint8(offset++) & 0x7F;
             if (messageType === 0xD0) {
-                pushControl(channel, 'expression', data1 / 127);
+                pushControl(channel, 'expression', int7ToFloat(data1));
             }
             continue;
         }
@@ -474,8 +474,7 @@ function parseTrack(view, trackStart, trackEnd, header, smpteTempoState) {
             handleControlChange(channel, data1, data2);
         }
         else if (messageType === 0xE0) {
-            const val14 = (data2 << 7) | data1;
-            const value = (val14 - 8192) / 8192;
+            const value = bytesToSignedFloat(data1, data2);
             pushControl(channel, 'pitch', value);
         }
         // 0xA0 (Poly Key Pressure): consumed cleanly; Sequence targets notes, not per-key pressure

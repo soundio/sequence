@@ -37,17 +37,8 @@ substitute a G7 chord.
 import mod12          from '../number/mod-12.js';
 import * as HSID      from '../hsid.js';
 import { CHORDNAMES } from '../event/chord.js';
+import reflect        from '../transforms/reflect.js';
 
-export default function reflect(axis, n) {
-    // Distance from axis in range 0-12
-    const d = mod12(n - axis);
-    // Reflect across near end of axis
-    return d < 3 ? n - 2 * d :
-        // Reflect across far end of axis
-        d <= 9 ? n - 2 * (d - 6) :
-        // Reflect across near end of axis
-        n - 2 * (d - 12) ;
-}
 
 export const name = 'reflect';
 

@@ -13,6 +13,7 @@ Supports:
 - Stream messages (Start of Clip, End of Clip)
 **/
 
+import { bytesToInt14, bytesToSignedFloat, int7ToFloat, int16ToFloat, int32ToFloat, int32ToSignedFloat } from 'midi/bytes.js';
 import Sequence from '../sequence.js';
 import MeterEvent from '../event/meter.js';
 import { PARAMNAMES } from '../event/control.js';
@@ -267,7 +268,7 @@ export default function parseMIDIClip(buffer, options = {}) {
                 else {
                     handleNoteOff(key, beat);
                     // GM2 / DLS square-law velocity-to-gain curve
-                    const norm = velocity / 65535;
+                    const norm = int16ToFloat(velocity);
                     const gain = norm * norm;
                     activeNotes.set(key, { startBeat: beat, pitch: noteNumber, gain });
                 }
@@ -281,7 +282,7 @@ export default function parseMIDIClip(buffer, options = {}) {
             // Control Change (CC)
             else if (status === 0x0B) {
                 const index = view.getUint8(offset + 2) & 0x7F;
-                const value = view.getUint32(offset + 4, false) / 0xFFFFFFFF;
+                const value = int32ToFloat(view.getUint32(offset + 4, false));
                 const name  = resolveParamName(group, channel, status, index);
                 events.push([beat, 'control', name, 'step', value, 0]);
             }
@@ -289,21 +290,20 @@ export default function parseMIDIClip(buffer, options = {}) {
             else if (status === 0x02 || status === 0x03) {
                 const bank  = view.getUint8(offset + 2) & 0x7F;
                 const index = view.getUint8(offset + 3) & 0x7F;
-                const addr14 = (bank << 7) | index;
+                const addr14 = bytesToInt14(index, bank);
                 const paramAddress = status === 0x02 ? 256 + addr14 : 16640 + addr14;
-                const value = view.getUint32(offset + 4, false) / 0xFFFFFFFF;
+                const value = int32ToFloat(view.getUint32(offset + 4, false));
                 const name  = resolveParamName(group, channel, status, paramAddress);
                 events.push([beat, 'control', name, 'step', value, 0]);
             }
             // Pitch Bend
             else if (status === 0x0E) {
-                const rawValue = view.getUint32(offset + 4, false);
-                const value = (rawValue - 0x80000000) / 0x80000000;
+                const value = int32ToSignedFloat(view.getUint32(offset + 4, false));
                 events.push([beat, 'control', 'pitch', 'step', value, 0]);
             }
             // Channel Pressure
             else if (status === 0x0D) {
-                const value = view.getUint32(offset + 4, false) / 0xFFFFFFFF;
+                const value = int32ToFloat(view.getUint32(offset + 4, false));
                 events.push([beat, 'control', 'expression', 'step', value, 0]);
             }
         }
@@ -324,7 +324,7 @@ export default function parseMIDIClip(buffer, options = {}) {
                 else {
                     handleNoteOff(key, beat);
                     // GM2 / DLS square-law velocity-to-gain curve
-                    const norm = velocity / 127;
+                    const norm = int7ToFloat(velocity);
                     const gain = norm * norm;
                     activeNotes.set(key, { startBeat: beat, pitch: noteNumber, gain });
                 }
@@ -338,7 +338,7 @@ export default function parseMIDIClip(buffer, options = {}) {
             // CC
             else if (status === 0x0B) {
                 const index = view.getUint8(offset + 2) & 0x7F;
-                const value = (view.getUint8(offset + 3) & 0x7F) / 127;
+                const value = int7ToFloat(view.getUint8(offset + 3) & 0x7F);
                 const name  = resolveParamName(group, channel, status, index);
                 events.push([beat, 'control', name, 'step', value, 0]);
             }
@@ -346,8 +346,7 @@ export default function parseMIDIClip(buffer, options = {}) {
             else if (status === 0x0E) {
                 const lsb = view.getUint8(offset + 2) & 0x7F;
                 const msb = view.getUint8(offset + 3) & 0x7F;
-                const val14 = (msb << 7) | lsb; // 0..16383, center 8192
-                const value = (val14 - 8192) / 8192;
+                const value = bytesToSignedFloat(lsb, msb);
                 events.push([beat, 'control', 'pitch', 'step', value, 0]);
             }
         }
