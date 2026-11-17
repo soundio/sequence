@@ -1,7 +1,7 @@
 {
     "imports": {
         "fn/":   "https://cdn.jsdelivr.net/gh/stephband/fn@1.7.0/modules/",
-        "midi/": "https://cdn.jsdelivr.net/gh/stephband/midi@1.1.9/modules/"
+        "midi/": "https://cdn.jsdelivr.net/gh/stephband/midi@1.2.0/modules/"
     },
 
     "tasks": {
