@@ -108,7 +108,9 @@ export default class SequenceIterator extends Iterator {
         if (DEBUG && !transform.apply) throw new TypeError(`SequenceIterator() object transform has no method .apply(object)`);
 
         // Sort events by beat and type
-        events.sort(byPriority);
+        // Potentially expensive if using Data proxy ... and aren't sequence.events
+        // guaranteed to be in order? They should be.
+        //events.sort(byPriority);
 
         // Sequence object being iterated
         this.sequence = sequence;
