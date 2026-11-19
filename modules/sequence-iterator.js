@@ -71,7 +71,7 @@ function readRateEvents(rates, events) {
 
 function applyTransform(rates, cursor, startBeat, transform, event) {
     // When there are rates to process...
-    if (rates.length > 4 || rates[1] === CURVES.target) {
+    if (rates.length > 4 || rates[1] !== CURVES.step || rates[2] !== 1) {
         // find location after rates transforms
         const location = locationAtBeatWithCursor(rates, event[0], cursor);
         if (event.duration) {
