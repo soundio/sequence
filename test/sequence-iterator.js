@@ -199,3 +199,21 @@ Deno.test('SequenceIterator treats sequence event duration 0 as running until ch
         [2, 64]
     ]);
 });
+
+Deno.test('Sequence.from() sorts out-of-order events by beat and priority', () => {
+    const sequence = Sequence.from({
+        events: [
+            [1, "note", "E4", 0.5, 1],
+            [0, "note", "C4", 0.5, 1],
+            [0, "meter", 10, 1],
+            [0, "key", "D"]
+        ]
+    });
+
+    equals(Array.from(sequence, (e) => [e[0], e.type]), [
+        [0, 'key'],
+        [0, 'meter'],
+        [0, 'note'],
+        [1, 'note']
+    ]);
+});

@@ -10,10 +10,6 @@ import insert  from './events/insert.js';
 const assign = Object.assign;
 
 
-function setEventsProperty(event, _n, events) {
-    event.events = events;
-}
-
 function generateUnique(values) {
     let value = 0;
     while (values.indexOf(++value) !== -1);
@@ -22,8 +18,9 @@ function generateUnique(values) {
 
 export default class Sequence {
     constructor(events, sequences) {
-        this.events = events.map(Event.from);
-        this.events.forEach(setEventsProperty);
+        this.events = [];
+        let n = -1;
+        while (events[++n] !== undefined) this.add(Event.from(events[n]));
         if (sequences) this.sequences = sequences.map(Sequence.from);
     }
 
