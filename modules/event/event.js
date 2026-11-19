@@ -4,13 +4,11 @@ import { CURVES, CURVENAMES } from './curves.js';
 
 
 const define     = Object.defineProperties;
-const writable   = { writable: true };
-const properties = {
-    sequencer: writable,
-    event:     writable,
-    events:    writable,
-    target:    writable
-};
+const $sequence  = Symbol('sequence');
+const $sequencer = Symbol('sequencer');
+const $event     = Symbol('event');
+const $events    = Symbol('events');
+const $target    = Symbol('target');
 
 export const TYPES = {
     sequence: 1,
@@ -66,8 +64,6 @@ export default class Event {
         // Assign enumerable string properties
         let key;
         for (key in data) this[key] = data[key];
-        // Define instance properties
-        define(this, properties);
     }
 
     get beat()        { return this[0]; }
@@ -138,8 +134,18 @@ export default class Event {
             && !Number.isNaN(event[2]);
     }
 }
-/*
+// Store runtime back-references (`sequence`, `sequencer`, `event`, `events`,
+// `target`) on Symbol keys via prototype accessors rather than calling
+// Object.defineProperties(this, ...) in the constructor on every Event.
+// Symbol keys are invisible to `for..in` (used by `Event.from()` cloning),
+// `Object.keys()`, and deep equality checks, avoiding circular reference
+// leaks (`event.events[0] === event`) with zero per-instance allocation cost.
+// We use Symbols over private fields here so that events can have computed
+// properties defined on their Data.of() proxies (private fields error out).
 define(Event.prototype, {
-    type: { value: 'unknown' }
+    sequence:  { get() { return this[$sequence]; },  set(v) { this[$sequence]  = v; } },
+    sequencer: { get() { return this[$sequencer]; }, set(v) { this[$sequencer] = v; } },
+    event:     { get() { return this[$event]; },     set(v) { this[$event]     = v; } },
+    events:    { get() { return this[$events]; },    set(v) { this[$events]    = v; } },
+    target:    { get() { return this[$target]; },    set(v) { this[$target]    = v; } }
 });
-*/

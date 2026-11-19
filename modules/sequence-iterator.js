@@ -70,13 +70,17 @@ function readRateEvents(rates, events) {
 }
 
 function applyTransform(rates, cursor, startBeat, transform, event) {
-    // Find location after rates transforms
-    const location = locationAtBeatWithCursor(rates, event[0], cursor);
-    if (event.duration) {
-        event.duration = locationAtBeatWithCursor(rates, event[0] + event.duration, cursor) - location;
+    // When there are rates to process...
+    if (rates.length > 4 || rates[1] === CURVES.target) {
+        // find location after rates transforms
+        const location = locationAtBeatWithCursor(rates, event[0], cursor);
+        if (event.duration) {
+            event.duration = locationAtBeatWithCursor(rates, event[0] + event.duration, cursor) - location;
+        }
+        // Apply location as beat
+        event[0] = location;
     }
-    // Apply location as beat
-    event[0] = location;
+
     // Modify event by sequence event's transforms
     event = transform.apply(event);
     // Modify event sequence event's start beat

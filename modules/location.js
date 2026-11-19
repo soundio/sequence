@@ -329,6 +329,7 @@ const initialCursor = { index: 0, 0: 0 };
 export function locationAtBeatWithCursor(events, beat, cursor) {
     // Fast out
     if (!beat) return 0;
+
     // Initialise cursor
     if (cursor[0] === undefined) assign(cursor, initialCursor);
 
